@@ -63,7 +63,7 @@ When the conversation drifts from the stated task:
 - When dev starts, create feature branch from main before any file edits
 - Branch naming: `feature/[plan-name]`
 
-**Before merging:** Update ALL docs before squash merging to main.
+**Doc updates:** Update docs incrementally during development. When touching any doc file, always check all four — never update one in isolation.
 - `docs/ARCHITECTURE.md` -- add/update patterns for any new architectural decisions, new files, or changed structure
 - `CLAUDE.md` -- update the Current Features list if user-facing behavior changed
 - `docs/DECISIONS.md` -- log any key decisions made during the feature
