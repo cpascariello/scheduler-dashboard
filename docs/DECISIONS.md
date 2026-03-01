@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #9 - 2026-03-02
+**Context:** Making the selected row visible in node/VM tables after cross-navigation
+**Decision:** Left border accent via inset box-shadow, reused as hover affordance on all clickable rows
+**Rationale:** Background tint alone (`bg-primary-600/10`) was too subtle against zebra stripes. A 3px left border is the standard "selected item" indicator (VS Code, Slack, etc.) — high contrast, no ambiguity. Reusing it as a hover effect gives consistent visual language for "this row is interactive/active."
+**Alternatives considered:** Glow/ring via box-shadow (too flashy for a data table), animated pulse on arrival (motion can be distracting during repeated navigation), scale + drop shadow (feels heavy in dense tables).
+
 ## Decision #8 - 2026-03-01
 **Context:** Implementing cross-page navigation between overview, nodes, and VMs
 **Decision:** URL search params with read-once-on-mount pattern (no write-back to URL)
