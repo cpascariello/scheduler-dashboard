@@ -101,7 +101,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
           md:static md:z-auto md:translate-x-0 md:transition-none
         `}
       >
-        <div className="flex items-center gap-2 border-b border-edge px-5 py-4">
+        <div className="flex h-14 shrink-0 items-center gap-2 border-b border-edge px-5">
           <div className="size-7 rounded-lg bg-gradient-brand" />
           <span className="text-sm font-bold tracking-tight text-foreground">
             Aleph Cloud
@@ -121,7 +121,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                     href={item.href}
                     className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                       isActive
-                        ? "bg-primary-600/10 text-primary-500 font-medium"
+                        ? "bg-primary-600/10 text-primary-400 font-medium"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                     style={{
