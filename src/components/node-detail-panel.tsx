@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
 import { StatusDot } from "@aleph-front/ds/status-dot";
@@ -116,9 +117,12 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
                 key={vm.hash}
                 className="flex items-center justify-between text-sm"
               >
-                <span className="font-mono text-xs">
+                <Link
+                  href={`/vms?selected=${vm.hash}`}
+                  className="font-mono text-xs text-accent-500 hover:underline"
+                >
                   {truncateHash(vm.hash)}
-                </span>
+                </Link>
                 <Badge
                   variant={
                     vm.scheduledStatus === "scheduled"

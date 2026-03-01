@@ -1,20 +1,44 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { NodeTable } from "@/components/node-table";
 import { NodeDetailPanel } from "@/components/node-detail-panel";
+import type { NodeStatus } from "@/api/types";
 
-export default function NodesPage() {
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+const VALID_NODE_STATUSES = new Set<string>([
+  "healthy",
+  "degraded",
+  "offline",
+  "unknown",
+]);
+
+function NodesContent() {
+  const searchParams = useSearchParams();
+
+  const statusParam = searchParams.get("status");
+  const initialStatus =
+    statusParam && VALID_NODE_STATUSES.has(statusParam)
+      ? (statusParam as NodeStatus)
+      : undefined;
+
+  const selectedParam = searchParams.get("selected");
+  const [selectedNode, setSelectedNode] = useState<string | null>(
+    selectedParam,
+  );
 
   return (
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
-        <NodeTable onSelectNode={setSelectedNode} />
+        <NodeTable
+          onSelectNode={setSelectedNode}
+          initialStatus={initialStatus}
+          selectedKey={selectedNode ?? undefined}
+        />
       </div>
       {selectedNode && (
         <>
-          {/* Backdrop — below lg only */}
           <div
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={() => setSelectedNode(null)}
@@ -29,5 +53,13 @@ export default function NodesPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function NodesPage() {
+  return (
+    <Suspense>
+      <NodesContent />
+    </Suspense>
   );
 }

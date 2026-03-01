@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #8 - 2026-03-01
+**Context:** Implementing cross-page navigation between overview, nodes, and VMs
+**Decision:** URL search params with read-once-on-mount pattern (no write-back to URL)
+**Rationale:** URL params are the simplest cross-page communication that works with static exports and supports deep-linking/bookmarking. Read-once avoids complexity of syncing URL state with component state on every filter change. No global state store needed.
+**Alternatives considered:** React context for shared state (overkill for one-way navigation), `router.push` with state (not bookmarkable), write-back to URL on every filter change (adds complexity for minimal benefit in an ops dashboard).
+
 ## Decision #7 - 2026-03-01
 **Context:** DS renamed `--card` token to `--surface`
 **Decision:** Replace all `bg-card` with `bg-surface` across the dashboard

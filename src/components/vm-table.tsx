@@ -135,11 +135,13 @@ const columns: Column<VM>[] = [
 
 type VMTableProps = {
   onSelectVM: (hash: string) => void;
+  initialStatus?: VMStatus | undefined;
+  selectedKey?: string | undefined;
 };
 
-export function VMTable({ onSelectVM }: VMTableProps) {
+export function VMTable({ onSelectVM, initialStatus, selectedKey }: VMTableProps) {
   const [statusFilter, setStatusFilter] = useState<VMStatus | undefined>(
-    undefined,
+    initialStatus,
   );
   const filters = statusFilter ? { status: statusFilter } : undefined;
   const { data: vms, isLoading } = useVMs(filters);
@@ -178,6 +180,7 @@ export function VMTable({ onSelectVM }: VMTableProps) {
         data={vms ?? []}
         keyExtractor={(r) => r.hash}
         onRowClick={(r) => onSelectVM(r.hash)}
+        activeKey={selectedKey}
       />
     </TooltipProvider>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@aleph-front/ds/card";
 import { StatusDot } from "@aleph-front/ds/status-dot";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
@@ -72,12 +73,18 @@ export function NodeHealthSummary() {
         {segments
           .filter((s) => s.count > 0)
           .map((seg) => (
-            <li key={seg.label} className="flex items-center gap-2 text-sm">
-              <StatusDot status={seg.status} size="sm" />
-              <span className="text-muted-foreground">{seg.label}</span>
-              <span className="ml-auto font-medium tabular-nums">
-                {seg.count}
-              </span>
+            <li key={seg.label}>
+              <Link
+                href={`/nodes?status=${seg.status}`}
+                className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm transition-colors hover:bg-muted"
+                style={{ transitionDuration: "var(--duration-fast)" }}
+              >
+                <StatusDot status={seg.status} size="sm" />
+                <span className="text-muted-foreground">{seg.label}</span>
+                <span className="ml-auto font-medium tabular-nums">
+                  {seg.count}
+                </span>
+              </Link>
             </li>
           ))}
       </ul>

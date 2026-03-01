@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
@@ -70,7 +71,16 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Assigned Node</dt>
           <dd className="font-mono text-xs">
-            {vm.assignedNode ? truncateHash(vm.assignedNode) : "—"}
+            {vm.assignedNode ? (
+              <Link
+                href={`/nodes?selected=${vm.assignedNode}`}
+                className="text-accent-500 hover:underline"
+              >
+                {truncateHash(vm.assignedNode)}
+              </Link>
+            ) : (
+              "—"
+            )}
           </dd>
         </div>
         <div className="flex justify-between">

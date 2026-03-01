@@ -93,6 +93,13 @@ src/
 **Approach:** AppShell wraps all pages with sidebar + header + scrollable content area. On desktop (`md+`), the sidebar is always visible. On mobile, it collapses to an off-canvas drawer triggered by a hamburger button in the header. The sidebar auto-closes on route change.
 **Key files:** `src/components/app-shell.tsx`, `src/components/app-sidebar.tsx`, `src/components/app-header.tsx`
 
+### Cross-Page Navigation via URL Search Params
+
+**Context:** Users need to drill from overview cards to filtered list pages, and between node/VM detail panels.
+**Approach:** URL search params (`?status=`, `?selected=`) are the cross-page communication mechanism. Pages read params on mount via `useSearchParams()` to initialize local state (read-once, no write-back). Overview cards use `<Link>` to navigate with status filters. Detail panels use `<Link>` for cross-entity references. Requires `<Suspense>` boundary in static exports since search params aren't known at build time.
+**Key files:** `src/app/nodes/page.tsx`, `src/app/vms/page.tsx`, `src/components/node-health-summary.tsx`, `src/components/vm-allocation-summary.tsx`, `src/components/node-detail-panel.tsx`, `src/components/vm-detail-panel.tsx`
+**Notes:** Tables accept `initialStatus` prop to seed filter state from URL params. Validation via `Set.has()` prevents invalid status values from breaking the UI. DS Table `activeKey` prop highlights the selected row with a left border accent (`inset box-shadow`); the same accent appears on hover for all clickable rows.
+
 ### Responsive Layout
 
 **Context:** Dashboard must work on mobile, tablet, and desktop.

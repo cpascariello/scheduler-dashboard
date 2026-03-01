@@ -105,11 +105,13 @@ const columns: Column<Node>[] = [
 
 type NodeTableProps = {
   onSelectNode: (hash: string) => void;
+  initialStatus?: NodeStatus | undefined;
+  selectedKey?: string | undefined;
 };
 
-export function NodeTable({ onSelectNode }: NodeTableProps) {
+export function NodeTable({ onSelectNode, initialStatus, selectedKey }: NodeTableProps) {
   const [statusFilter, setStatusFilter] = useState<NodeStatus | undefined>(
-    undefined,
+    initialStatus,
   );
   const filters = statusFilter ? { status: statusFilter } : undefined;
   const { data: nodes, isLoading } = useNodes(filters);
@@ -148,6 +150,7 @@ export function NodeTable({ onSelectNode }: NodeTableProps) {
         data={nodes ?? []}
         keyExtractor={(r) => r.hash}
         onRowClick={(r) => onSelectNode(r.hash)}
+        activeKey={selectedKey}
       />
     </TooltipProvider>
   );

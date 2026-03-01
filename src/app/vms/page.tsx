@@ -1,20 +1,43 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { VMTable } from "@/components/vm-table";
 import { VMDetailPanel } from "@/components/vm-detail-panel";
+import type { VMStatus } from "@/api/types";
 
-export default function VMsPage() {
-  const [selectedVM, setSelectedVM] = useState<string | null>(null);
+const VALID_VM_STATUSES = new Set<string>([
+  "scheduled",
+  "observed",
+  "orphaned",
+  "missing",
+  "unschedulable",
+]);
+
+function VMsContent() {
+  const searchParams = useSearchParams();
+
+  const statusParam = searchParams.get("status");
+  const initialStatus =
+    statusParam && VALID_VM_STATUSES.has(statusParam)
+      ? (statusParam as VMStatus)
+      : undefined;
+
+  const selectedParam = searchParams.get("selected");
+  const [selectedVM, setSelectedVM] = useState<string | null>(selectedParam);
 
   return (
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
-        <VMTable onSelectVM={setSelectedVM} />
+        <VMTable
+          onSelectVM={setSelectedVM}
+          initialStatus={initialStatus}
+          selectedKey={selectedVM ?? undefined}
+        />
       </div>
       {selectedVM && (
         <>
-          {/* Backdrop — below lg only */}
           <div
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={() => setSelectedVM(null)}
@@ -29,5 +52,13 @@ export default function VMsPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function VMsPage() {
+  return (
+    <Suspense>
+      <VMsContent />
+    </Suspense>
   );
 }
