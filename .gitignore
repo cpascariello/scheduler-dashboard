@@ -32,3 +32,6 @@ pnpm-workspace.yaml
 
 # debug
 npm-debug.log*
+
+# playwright
+.playwright-mcp/
