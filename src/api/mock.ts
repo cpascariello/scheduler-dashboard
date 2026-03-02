@@ -3,6 +3,7 @@ import type {
   NodeDetail,
   OverviewStats,
   SchedulerEvent,
+  StatsSnapshot,
   VM,
   VMDetail,
   VMSummary,
@@ -886,6 +887,82 @@ export const mockOverviewStats: OverviewStats = {
     (v) => v.scheduledStatus === "unschedulable",
   ).length,
 };
+
+// --- Stats history ---
+
+function generateStatsHistory(): StatsSnapshot[] {
+  const baseTime = new Date("2026-03-01T14:00:00Z");
+  const points: StatsSnapshot[] = [];
+
+  const totalNodesPattern = [
+    14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 14, 13,
+    13, 13, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15,
+  ];
+  const healthyPattern = [
+    11, 11, 11, 11, 12, 12, 12, 12, 12, 11, 10, 9,
+    8, 9, 10, 11, 12, 12, 11, 10, 10, 9, 9, 9,
+  ];
+  const totalVMsPattern = [
+    30, 30, 31, 31, 32, 32, 33, 34, 34, 35, 35, 35,
+    36, 36, 37, 37, 38, 38, 38, 39, 39, 39, 40, 40,
+  ];
+  const orphanedPattern = [
+    0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 2, 2,
+    3, 3, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3,
+  ];
+  const missingPattern = [
+    1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 2, 3,
+    3, 4, 3, 2, 2, 1, 1, 2, 3, 3, 4, 4,
+  ];
+  const unschedulablePattern = [
+    0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 2, 2,
+    2, 2, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3,
+  ];
+
+  for (let i = 0; i < 24; i++) {
+    const timestamp = new Date(
+      baseTime.getTime() - (23 - i) * 60 * 60 * 1000,
+    );
+    const totalNodes = totalNodesPattern[i]!;
+    const healthy = healthyPattern[i]!;
+    const degraded = Math.max(
+      0,
+      totalNodes -
+        healthy -
+        (totalNodes > healthy + 2
+          ? 2
+          : totalNodes > healthy
+            ? 1
+            : 0),
+    );
+    const offline = totalNodes - healthy - degraded;
+    const totalVMs = totalVMsPattern[i]!;
+    const orphaned = orphanedPattern[i]!;
+    const missing = missingPattern[i]!;
+    const unschedulable = unschedulablePattern[i]!;
+    const scheduled = totalVMs - orphaned - missing - unschedulable;
+    const observed = scheduled - Math.floor(scheduled * 0.15);
+
+    points.push({
+      timestamp: timestamp.toISOString(),
+      totalNodes,
+      healthyNodes: healthy,
+      degradedNodes: degraded,
+      offlineNodes: offline,
+      totalVMs,
+      scheduledVMs: scheduled,
+      observedVMs: observed,
+      orphanedVMs: orphaned,
+      missingVMs: missing,
+      unschedulableVMs: unschedulable,
+    });
+  }
+
+  return points;
+}
+
+export const mockStatsHistory: StatsSnapshot[] =
+  generateStatsHistory();
 
 // --- Detail helpers ---
 

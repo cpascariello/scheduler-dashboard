@@ -32,12 +32,14 @@ src/
 ├── api/
 │   ├── types.ts            # Scheduler entity types
 │   ├── client.ts           # API client with mock fallback
-│   └── mock.ts             # Deterministic mock data (15 nodes, 40 VMs, 50 events)
+│   ├── mock.ts              # Deterministic mock data (15 nodes, 40 VMs, 50 events, 24h stats history)
+│   └── mock.test.ts         # Mock data integrity tests
 ├── hooks/
 │   ├── use-nodes.ts        # useNodes, useNode (30s/15s polling)
 │   ├── use-vms.ts          # useVMs, useVM (30s/15s polling)
 │   ├── use-events.ts       # useEvents (10s polling)
-│   └── use-overview-stats.ts  # useOverviewStats (30s polling)
+│   ├── use-overview-stats.ts  # useOverviewStats (30s polling)
+│   └── use-stats-history.ts   # useStatsHistory (30s polling)
 ├── components/
 │   ├── app-shell.tsx       # Layout: sidebar + header + content
 │   ├── app-sidebar.tsx     # Navigation sidebar
@@ -79,7 +81,14 @@ src/
 **Context:** Avoid duplicate UI primitives across projects.
 **Approach:** All reusable UI components live in `@aleph-front/ds` and are imported via subpath exports. Dashboard-specific compositions that combine DS components with domain logic live in `src/components/`.
 **Key files:** `node_modules/@aleph-front/ds/`, `src/components/`
-**Notes:** DS is linked via `file:` protocol. The `@ac/*` path alias must be mapped in tsconfig.json for DS internal imports to resolve.
+**Notes:** DS is linked via `file:` protocol. The `@ac/*` path alias must be mapped in tsconfig.json (and vitest.config.ts) for DS internal imports to resolve. DS color tokens use `error`/`success`/`warning` naming (not Tailwind's `destructive`). Always verify token vars exist in DS `tokens.css` before use.
+
+### Sparkline Charts (Recharts)
+
+**Context:** Stat cards need to show 24h trend data at a glance.
+**Approach:** Recharts `<AreaChart>` rendered in a `<ResponsiveContainer>` inside each `StatCard`. A `StatsSnapshot` type extends `OverviewStats` with a timestamp. Mock layer generates 24 hourly data points with hand-crafted trend patterns. `extractHistory()` helper maps snapshot arrays to the `{ value }` shape Recharts expects.
+**Key files:** `src/components/stats-bar.tsx`, `src/api/types.ts` (`StatsSnapshot`), `src/hooks/use-stats-history.ts`
+**Notes:** Animation is disabled (`isAnimationActive={false}`) to prevent re-animation on poll refresh. Colors use DS `--color-*-400` tokens for dark-mode contrast. The chart bleeds to card edges via negative margins (`-mx-3 -mb-2`).
 
 ### Dark Theme Default
 

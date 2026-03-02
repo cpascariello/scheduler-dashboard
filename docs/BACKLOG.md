@@ -40,9 +40,14 @@ Ideas and scope creep captured for later consideration.
 **Description:** Publish `@aleph-front/ds` to npm instead of using `file:` protocol linking. Would enable version pinning and CI/CD without local repo dependency.
 **Priority:** Low
 
+### 2026-03-02 - Align DS color tokens with Tailwind conventions
+**Source:** Sparklines implementation — used `var(--color-destructive)` which doesn't exist; DS uses `error` not `destructive`
+**Description:** Add Tailwind-convention semantic aliases to the DS (e.g. `--color-destructive` → `--color-error-*`). Reduces mismatch between what developers/AI expect and what the DS provides. Consider aligning `success`/`warning` naming too, and whether to add a typed token export for compile-time validation.
+**Priority:** Medium
+
 ### 2026-03-01 - Resource usage charts (Recharts)
 **Source:** Design doc
-**Description:** Add time-series charts for CPU/memory/disk usage history on node detail views. Recharts is already a dependency but not yet used.
+**Description:** Add time-series charts for CPU/memory/disk usage history on node detail views. Recharts is now used for stat card sparklines — same pattern can be extended to larger detail charts.
 **Priority:** Medium
 
 ---

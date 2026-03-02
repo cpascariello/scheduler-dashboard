@@ -18,6 +18,18 @@ Each entry includes:
 
 ---
 
+## Decision #11 - 2026-03-02
+**Context:** Sparkline colors invisible on dark backgrounds — `var(--color-destructive)` doesn't exist in the DS
+**Decision:** Use DS `--color-*-400` token vars instead of hardcoded OKLCH values or non-existent semantic aliases
+**Rationale:** The DS uses `error` not `destructive`. The 400 shade has enough lightness (0.64–0.83 in OKLCH) for dark background contrast. Using token vars instead of raw OKLCH means colors stay in sync if the DS palette changes.
+**Alternatives considered:** Adding `--color-destructive` alias to the DS (backlogged — broader naming convention decision), hardcoding brighter OKLCH values (fragile, disconnected from DS).
+
+## Decision #10 - 2026-03-02
+**Context:** Choosing how to display 24h trend data on stat cards
+**Decision:** Recharts `<AreaChart>` sparklines with monotone interpolation, no animation, 15% fill opacity
+**Rationale:** Sparklines need to convey trend direction at a glance, not precise values. Monotone interpolation produces smooth curves. Animation disabled because 30s polling would re-trigger it constantly. Low fill opacity keeps the chart subtle — the number is the primary metric, the sparkline is secondary context.
+**Alternatives considered:** Line-only (no fill — harder to see), bar charts (too busy for 24 data points in a small area), SVG path without Recharts (Recharts already a dependency).
+
 ## Decision #9 - 2026-03-02
 **Context:** Making the selected row visible in node/VM tables after cross-navigation
 **Decision:** Left border accent via inset box-shadow, reused as hover affordance on all clickable rows
