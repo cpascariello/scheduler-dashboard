@@ -60,6 +60,7 @@ When the conversation drifts from the stated task:
 
 **Branching:**
 - Brainstorm and plan on main
+- **Push main before branching** — unpushed commits on main cause divergence after squash merge
 - When dev starts, create feature branch from main before any file edits
 - Branch naming: `feature/[plan-name]`
 
