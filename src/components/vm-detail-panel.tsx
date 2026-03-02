@@ -69,21 +69,6 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Assigned Node</dt>
-          <dd className="font-mono text-xs">
-            {vm.assignedNode ? (
-              <Link
-                href={`/nodes?selected=${vm.assignedNode}`}
-                className="text-accent-500 hover:underline"
-              >
-                {truncateHash(vm.assignedNode)}
-              </Link>
-            ) : (
-              "—"
-            )}
-          </dd>
-        </div>
-        <div className="flex justify-between">
           <dt className="text-muted-foreground">Scheduled Status</dt>
           <dd>
             <Badge variant={VM_STATUS_VARIANT[vm.scheduledStatus]} size="sm">
@@ -104,6 +89,25 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           </dd>
         </div>
       </dl>
+
+      <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Assigned Node
+        </h4>
+        {vm.assignedNode ? (
+          <Link
+            href={`/nodes?selected=${vm.assignedNode}`}
+            className="group/link inline-flex items-center gap-1 font-mono text-sm font-bold text-primary-300 hover:underline"
+          >
+            {truncateHash(vm.assignedNode)}
+            <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
+            </svg>
+          </Link>
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
+        )}
+      </div>
 
       <div className="mt-4 space-y-2 border-t border-edge pt-3">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
