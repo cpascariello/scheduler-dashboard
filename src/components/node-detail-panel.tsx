@@ -119,7 +119,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
               >
                 <Link
                   href={`/vms?selected=${vm.hash}`}
-                  className="group/link inline-flex items-center gap-1 font-mono text-sm font-bold text-primary-300 hover:underline"
+                  className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
                 >
                   {truncateHash(vm.hash)}
                   <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
