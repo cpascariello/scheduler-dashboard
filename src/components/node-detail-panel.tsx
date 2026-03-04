@@ -14,30 +14,11 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useNode } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
 import { relativeTime, truncateHash } from "@/lib/format";
-import { nodeStatusToDot } from "@/lib/status-map";
-import type { NodeStatus, VmStatus } from "@/api/types";
-
-const NODE_STATUS_VARIANT: Record<
-  NodeStatus,
-  "default" | "success" | "warning" | "error" | "info"
-> = {
-  healthy: "success",
-  unreachable: "error",
-  unknown: "default",
-  removed: "warning",
-};
-
-const VM_STATUS_VARIANT: Record<
-  VmStatus,
-  "default" | "success" | "warning" | "error" | "info"
-> = {
-  scheduled: "info",
-  unscheduled: "default",
-  unschedulable: "error",
-  missing: "error",
-  orphaned: "warning",
-  unknown: "default",
-};
+import {
+  nodeStatusToDot,
+  NODE_STATUS_VARIANT,
+  VM_STATUS_VARIANT,
+} from "@/lib/status-map";
 
 type NodeDetailPanelProps = {
   hash: string;

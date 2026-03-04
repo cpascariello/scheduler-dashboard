@@ -58,7 +58,7 @@ src/
 │   └── resource-bar.tsx    # CPU/memory/disk usage bar
 └── lib/
     ├── format.ts           # relativeTime, relativeTimeFromUnix, truncateHash, formatPercent
-    └── status-map.ts       # nodeStatusToDot() — maps API node statuses to DS StatusDot variants
+    └── status-map.ts       # Status-to-visual maps: nodeStatusToDot(), NODE_STATUS_VARIANT, VM_STATUS_VARIANT
 ```
 
 ---
@@ -95,10 +95,10 @@ src/
 
 ### Status Mapping
 
-**Context:** The DS `StatusDot` component accepts a fixed set of variants (`"healthy" | "degraded" | "error" | "offline" | "unknown"`), but the API returns different node statuses (`"Healthy" | "Unreachable" | "Unknown" | "removed"`).
-**Approach:** `nodeStatusToDot()` maps API node statuses to the closest DS StatusDot variant: `unreachable → error`, `removed → offline`.
+**Context:** The DS `StatusDot` component accepts a fixed set of variants (`"healthy" | "degraded" | "error" | "offline" | "unknown"`), but the API returns different node statuses (`"Healthy" | "Unreachable" | "Unknown" | "removed"`). Badge variants also need consistent mapping from API statuses.
+**Approach:** `src/lib/status-map.ts` is the single source of truth for all status-to-visual mappings: `nodeStatusToDot()` for StatusDot, `NODE_STATUS_VARIANT` and `VM_STATUS_VARIANT` for Badge variants. All components import from this file — never define status variant maps locally.
 **Key files:** `src/lib/status-map.ts`
-**Notes:** VM statuses don't need mapping — they're displayed as text badges, not StatusDots.
+**Notes:** `scheduled` maps to `"success"` (green) — it's the healthy state for VMs. Badge size should always be `"sm"` across the dashboard for consistency.
 
 ### Dark Theme Default
 

@@ -14,21 +14,9 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVMs } from "@/hooks/use-vms";
 import { useVMCreationTimes } from "@/hooks/use-vm-creation-times";
 import { truncateHash, relativeTimeFromUnix } from "@/lib/format";
-import type { VmStatus } from "@/api/types";
+import { VM_STATUS_VARIANT } from "@/lib/status-map";
 
 const MAX_ROWS = 15;
-
-const VM_STATUS_VARIANT: Record<
-  VmStatus,
-  "default" | "success" | "warning" | "error" | "info"
-> = {
-  scheduled: "success",
-  unscheduled: "default",
-  orphaned: "warning",
-  missing: "error",
-  unschedulable: "error",
-  unknown: "default",
-};
 
 export function LatestVMsCard() {
   const { data: vms, isLoading } = useVMs();

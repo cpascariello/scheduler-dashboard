@@ -5,13 +5,13 @@ import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useOverviewStats } from "@/hooks/use-overview-stats";
+import { VM_STATUS_VARIANT } from "@/lib/status-map";
 import type { VmStatus } from "@/api/types";
 
 type VmStatusRow = {
   label: string;
   status: VmStatus;
   count: number;
-  variant: "default" | "success" | "warning" | "error" | "info";
 };
 
 export function VMAllocationSummary() {
@@ -32,10 +32,10 @@ export function VMAllocationSummary() {
   if (!stats) return null;
 
   const rows: VmStatusRow[] = [
-    { label: "Scheduled", status: "scheduled", count: stats.scheduledVMs, variant: "info" },
-    { label: "Orphaned", status: "orphaned", count: stats.orphanedVMs, variant: "warning" },
-    { label: "Missing", status: "missing", count: stats.missingVMs, variant: "error" },
-    { label: "Unschedulable", status: "unschedulable", count: stats.unschedulableVMs, variant: "error" },
+    { label: "Scheduled", status: "scheduled", count: stats.scheduledVMs },
+    { label: "Orphaned", status: "orphaned", count: stats.orphanedVMs },
+    { label: "Missing", status: "missing", count: stats.missingVMs },
+    { label: "Unschedulable", status: "unschedulable", count: stats.unschedulableVMs },
   ];
 
   return (
@@ -49,7 +49,7 @@ export function VMAllocationSummary() {
               style={{ transitionDuration: "var(--duration-fast)" }}
             >
               <div className="flex items-center gap-2">
-                <Badge variant={row.variant} size="sm">
+                <Badge variant={VM_STATUS_VARIANT[row.status]} size="sm">
                   {row.label}
                 </Badge>
               </div>

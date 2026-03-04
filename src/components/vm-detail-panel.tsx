@@ -12,19 +12,7 @@ import {
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVM } from "@/hooks/use-vms";
 import { relativeTime, truncateHash } from "@/lib/format";
-import type { VmStatus } from "@/api/types";
-
-const VM_STATUS_VARIANT: Record<
-  VmStatus,
-  "default" | "success" | "warning" | "error" | "info"
-> = {
-  scheduled: "info",
-  unscheduled: "default",
-  orphaned: "warning",
-  missing: "error",
-  unschedulable: "error",
-  unknown: "default",
-};
+import { VM_STATUS_VARIANT } from "@/lib/status-map";
 
 type VMDetailPanelProps = {
   hash: string;
