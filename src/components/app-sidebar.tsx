@@ -137,6 +137,34 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
           </ul>
         </nav>
 
+        {/* Bottom utility link */}
+        <div className="border-t border-edge px-3 py-4">
+          <Link
+            href="/status"
+            className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+              pathname === "/status"
+                ? "bg-primary-600/10 text-primary-400 font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
+            style={{ transitionDuration: "var(--duration-fast)" }}
+          >
+            <svg
+              className="size-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.348 14.652a3.75 3.75 0 010-5.304m5.304 0a3.75 3.75 0 010 5.304m-7.425 2.121a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+            API Status
+          </Link>
+        </div>
+
         <div className="border-t border-edge px-5 py-3">
           <p className="text-xs text-muted-foreground">
             Scheduler Dashboard

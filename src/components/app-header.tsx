@@ -7,6 +7,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/": "Overview",
   "/nodes": "Nodes",
   "/vms": "Virtual Machines",
+  "/status": "API Status",
 };
 
 type AppHeaderProps = {
