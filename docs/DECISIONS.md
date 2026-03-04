@@ -18,6 +18,22 @@ Each entry includes:
 
 ---
 
+## Decision #16 - 2026-03-04
+**Context:** API status page design — considered adding a version dropdown to switch between v0/v1
+**Decision:** No version dropdown; hardcode `/api/v1` prefix
+**Rationale:** v0 has a known bug (per Olivier), and there's no use case for toggling between versions in the dashboard. The `?api=` query param already allows overriding the base URL for debugging. Adding a version selector would be premature complexity.
+
+## Decision #15 - 2026-03-04
+**Context:** Switching API prefix from `/api/v0` to `/api/v1`
+**Decision:** Replace all v0 references with v1 across client and tests
+**Rationale:** Per Olivier's guidance, `/api/v0/nodes` has a bug and `/api/v1` is the stable version. All 12 integration tests pass against v1 endpoints on `rust-scheduler.aleph.im`.
+
+## Decision #14 - 2026-03-04
+**Context:** Migrating from mock-only data to real scheduler API integration (`/api/v0` at port 8081)
+**Decision:** Full type rewrite (not incremental field renames), remove EventFeed and sparklines, derive per-status counts client-side
+**Rationale:** The API's data model differs significantly from the mock model: snake_case wire format, flat resources instead of nested `ResourceSnapshot`, single VM status instead of dual scheduled/observed, `HistoryRow` instead of `SchedulerEvent`, and no global events or stats history endpoints. Incremental patching would have been messier than a clean rewrite. EventFeed removed because there's no global events endpoint — history is per-resource and shown in detail panels. Sparklines removed because there's no `/stats/history` endpoint; client-side accumulation deferred to backlog. `getOverviewStats()` fetches `/stats` + `/vms` + `/nodes` in parallel to compute per-status breakdowns not available from `/stats` alone — React Query deduplicates the concurrent `/vms` call.
+**Alternatives considered:** Keeping sparklines via client-side accumulation in React Query cache (adds complexity for a feature that should come from the backend), adapter layer to preserve old type shapes (more code to maintain than a clean rewrite), keeping EventFeed with per-resource history aggregation (API doesn't support it efficiently).
+
 ## Decision #13 - 2026-03-04
 **Context:** `@aleph-front/ds` is now published on npm; the `file:` link required the DS repo cloned locally
 **Decision:** Migrate from `file:../aleph-cloud-ds/packages/ds` to pinned npm version (`0.0.3`)

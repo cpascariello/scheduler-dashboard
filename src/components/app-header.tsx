@@ -7,6 +7,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/": "Overview",
   "/nodes": "Nodes",
   "/vms": "Virtual Machines",
+  "/status": "API Status",
 };
 
 type AppHeaderProps = {
@@ -15,7 +16,8 @@ type AppHeaderProps = {
 
 export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const pathname = usePathname();
-  const title = ROUTE_TITLES[pathname] ?? "Dashboard";
+  const normalized = pathname.replace(/\/$/, "") || "/";
+  const title = ROUTE_TITLES[normalized] ?? "Dashboard";
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-edge bg-surface px-4 md:px-6">

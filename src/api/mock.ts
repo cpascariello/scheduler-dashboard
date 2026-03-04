@@ -1,968 +1,439 @@
 import type {
+  HistoryRow,
   Node,
   NodeDetail,
   OverviewStats,
-  SchedulerEvent,
-  StatsSnapshot,
   VM,
-  VMDetail,
-  VMSummary,
+  VmDetail,
+  VmType,
 } from "@/api/types";
 
-// --- Nodes (15 total: 9 healthy, 3 degraded, 2 offline, 1 unknown) ---
+// --- Nodes (15 total: 9 healthy, 3 unreachable, 2 unknown, 1 removed) ---
 
 export const mockNodes: Node[] = [
   {
     hash: "a1b2c3d4e5f6",
+    name: "crn-01",
     address: "https://node-01.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 32,
-      memory: 128,
-      disk: 2000,
-      cpuUsage: 45,
-      memoryUsage: 62,
-      diskUsage: 38,
+      vcpusTotal: 32,
+      memoryTotalMb: 131072,
+      diskTotalMb: 2000000,
+      vcpusAvailable: 18,
+      memoryAvailableMb: 49807,
+      diskAvailableMb: 1240000,
+      cpuUsagePct: 44,
+      memoryUsagePct: 62,
+      diskUsagePct: 38,
     },
     vmCount: 5,
-    lastSeen: "2026-03-01T14:30:00Z",
+    updatedAt: "2026-03-01T14:30:00Z",
   },
   {
     hash: "b2c3d4e5f6a7",
+    name: "crn-02",
     address: "https://node-02.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 64,
-      memory: 256,
-      disk: 4000,
-      cpuUsage: 28,
-      memoryUsage: 41,
-      diskUsage: 22,
+      vcpusTotal: 64,
+      memoryTotalMb: 262144,
+      diskTotalMb: 4000000,
+      vcpusAvailable: 46,
+      memoryAvailableMb: 154665,
+      diskAvailableMb: 3120000,
+      cpuUsagePct: 28,
+      memoryUsagePct: 41,
+      diskUsagePct: 22,
     },
     vmCount: 8,
-    lastSeen: "2026-03-01T14:29:55Z",
+    updatedAt: "2026-03-01T14:29:55Z",
   },
   {
     hash: "c3d4e5f6a7b8",
+    name: "crn-03",
     address: "https://node-03.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 16,
-      memory: 64,
-      disk: 1000,
-      cpuUsage: 72,
-      memoryUsage: 85,
-      diskUsage: 55,
+      vcpusTotal: 16,
+      memoryTotalMb: 65536,
+      diskTotalMb: 1000000,
+      vcpusAvailable: 4,
+      memoryAvailableMb: 9830,
+      diskAvailableMb: 450000,
+      cpuUsagePct: 75,
+      memoryUsagePct: 85,
+      diskUsagePct: 55,
     },
     vmCount: 3,
-    lastSeen: "2026-03-01T14:30:02Z",
+    updatedAt: "2026-03-01T14:30:02Z",
   },
   {
     hash: "d4e5f6a7b8c9",
+    name: "crn-04",
     address: "https://node-04.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 32,
-      memory: 128,
-      disk: 2000,
-      cpuUsage: 15,
-      memoryUsage: 22,
-      diskUsage: 18,
+      vcpusTotal: 32,
+      memoryTotalMb: 131072,
+      diskTotalMb: 2000000,
+      vcpusAvailable: 27,
+      memoryAvailableMb: 102196,
+      diskAvailableMb: 1640000,
+      cpuUsagePct: 16,
+      memoryUsagePct: 22,
+      diskUsagePct: 18,
     },
     vmCount: 2,
-    lastSeen: "2026-03-01T14:29:58Z",
+    updatedAt: "2026-03-01T14:29:58Z",
   },
   {
     hash: "e5f6a7b8c9d0",
+    name: "crn-05",
     address: "https://node-05.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 48,
-      memory: 192,
-      disk: 3000,
-      cpuUsage: 55,
-      memoryUsage: 48,
-      diskUsage: 42,
+      vcpusTotal: 48,
+      memoryTotalMb: 196608,
+      diskTotalMb: 3000000,
+      vcpusAvailable: 22,
+      memoryAvailableMb: 102236,
+      diskAvailableMb: 1740000,
+      cpuUsagePct: 54,
+      memoryUsagePct: 48,
+      diskUsagePct: 42,
     },
     vmCount: 6,
-    lastSeen: "2026-03-01T14:30:01Z",
+    updatedAt: "2026-03-01T14:30:01Z",
   },
   {
     hash: "f6a7b8c9d0e1",
+    name: "crn-06",
     address: "https://node-06.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 32,
-      memory: 128,
-      disk: 2000,
-      cpuUsage: 38,
-      memoryUsage: 55,
-      diskUsage: 30,
+      vcpusTotal: 32,
+      memoryTotalMb: 131072,
+      diskTotalMb: 2000000,
+      vcpusAvailable: 20,
+      memoryAvailableMb: 58982,
+      diskAvailableMb: 1400000,
+      cpuUsagePct: 38,
+      memoryUsagePct: 55,
+      diskUsagePct: 30,
     },
     vmCount: 4,
-    lastSeen: "2026-03-01T14:29:50Z",
+    updatedAt: "2026-03-01T14:29:50Z",
   },
   {
     hash: "a7b8c9d0e1f2",
+    name: "crn-07",
     address: "https://node-07.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 64,
-      memory: 256,
-      disk: 4000,
-      cpuUsage: 20,
-      memoryUsage: 35,
-      diskUsage: 15,
+      vcpusTotal: 64,
+      memoryTotalMb: 262144,
+      diskTotalMb: 4000000,
+      vcpusAvailable: 51,
+      memoryAvailableMb: 170394,
+      diskAvailableMb: 3400000,
+      cpuUsagePct: 20,
+      memoryUsagePct: 35,
+      diskUsagePct: 15,
     },
     vmCount: 3,
-    lastSeen: "2026-03-01T14:30:00Z",
+    updatedAt: "2026-03-01T14:30:00Z",
   },
   {
     hash: "b8c9d0e1f2a3",
+    name: "crn-08",
     address: "https://node-08.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 16,
-      memory: 64,
-      disk: 1000,
-      cpuUsage: 88,
-      memoryUsage: 92,
-      diskUsage: 70,
+      vcpusTotal: 16,
+      memoryTotalMb: 65536,
+      diskTotalMb: 1000000,
+      vcpusAvailable: 2,
+      memoryAvailableMb: 5243,
+      diskAvailableMb: 300000,
+      cpuUsagePct: 88,
+      memoryUsagePct: 92,
+      diskUsagePct: 70,
     },
     vmCount: 4,
-    lastSeen: "2026-03-01T14:29:45Z",
+    updatedAt: "2026-03-01T14:29:45Z",
   },
   {
     hash: "c9d0e1f2a3b4",
+    name: "crn-09",
     address: "https://node-09.aleph.cloud",
     status: "healthy",
+    staked: true,
     resources: {
-      cpu: 32,
-      memory: 128,
-      disk: 2000,
-      cpuUsage: 60,
-      memoryUsage: 70,
-      diskUsage: 45,
+      vcpusTotal: 32,
+      memoryTotalMb: 131072,
+      diskTotalMb: 2000000,
+      vcpusAvailable: 13,
+      memoryAvailableMb: 39322,
+      diskAvailableMb: 1100000,
+      cpuUsagePct: 59,
+      memoryUsagePct: 70,
+      diskUsagePct: 45,
     },
     vmCount: 5,
-    lastSeen: "2026-03-01T14:30:03Z",
+    updatedAt: "2026-03-01T14:30:03Z",
   },
   {
     hash: "d0e1f2a3b4c5",
+    name: "crn-10",
     address: "https://node-10.aleph.cloud",
-    status: "degraded",
+    status: "unreachable",
+    staked: true,
     resources: {
-      cpu: 32,
-      memory: 128,
-      disk: 2000,
-      cpuUsage: 95,
-      memoryUsage: 88,
-      diskUsage: 82,
+      vcpusTotal: 32,
+      memoryTotalMb: 131072,
+      diskTotalMb: 2000000,
+      vcpusAvailable: 2,
+      memoryAvailableMb: 15729,
+      diskAvailableMb: 360000,
+      cpuUsagePct: 94,
+      memoryUsagePct: 88,
+      diskUsagePct: 82,
     },
     vmCount: 3,
-    lastSeen: "2026-03-01T14:28:30Z",
+    updatedAt: "2026-03-01T14:28:30Z",
   },
   {
     hash: "e1f2a3b4c5d6",
+    name: "crn-11",
     address: "https://node-11.aleph.cloud",
-    status: "degraded",
+    status: "unreachable",
+    staked: true,
     resources: {
-      cpu: 16,
-      memory: 64,
-      disk: 1000,
-      cpuUsage: 78,
-      memoryUsage: 95,
-      diskUsage: 90,
+      vcpusTotal: 16,
+      memoryTotalMb: 65536,
+      diskTotalMb: 1000000,
+      vcpusAvailable: 4,
+      memoryAvailableMb: 3277,
+      diskAvailableMb: 100000,
+      cpuUsagePct: 75,
+      memoryUsagePct: 95,
+      diskUsagePct: 90,
     },
     vmCount: 2,
-    lastSeen: "2026-03-01T14:27:00Z",
+    updatedAt: "2026-03-01T14:27:00Z",
   },
   {
     hash: "f2a3b4c5d6e7",
+    name: "crn-12",
     address: "https://node-12.aleph.cloud",
-    status: "degraded",
+    status: "unreachable",
+    staked: true,
     resources: {
-      cpu: 48,
-      memory: 192,
-      disk: 3000,
-      cpuUsage: 92,
-      memoryUsage: 85,
-      diskUsage: 78,
+      vcpusTotal: 48,
+      memoryTotalMb: 196608,
+      diskTotalMb: 3000000,
+      vcpusAvailable: 4,
+      memoryAvailableMb: 29491,
+      diskAvailableMb: 660000,
+      cpuUsagePct: 92,
+      memoryUsagePct: 85,
+      diskUsagePct: 78,
     },
     vmCount: 1,
-    lastSeen: "2026-03-01T14:25:00Z",
+    updatedAt: "2026-03-01T14:25:00Z",
   },
   {
     hash: "a3b4c5d6e7f8",
+    name: "crn-13",
     address: "https://node-13.aleph.cloud",
-    status: "offline",
-    resources: {
-      cpu: 32,
-      memory: 128,
-      disk: 2000,
-      cpuUsage: 0,
-      memoryUsage: 0,
-      diskUsage: 45,
-    },
+    status: "unknown",
+    staked: true,
+    resources: null,
     vmCount: 0,
-    lastSeen: "2026-03-01T12:00:00Z",
+    updatedAt: "2026-03-01T12:00:00Z",
   },
   {
     hash: "b4c5d6e7f8a9",
+    name: "crn-14",
     address: "https://node-14.aleph.cloud",
-    status: "offline",
-    resources: {
-      cpu: 16,
-      memory: 64,
-      disk: 1000,
-      cpuUsage: 0,
-      memoryUsage: 0,
-      diskUsage: 30,
-    },
+    status: "unknown",
+    staked: false,
+    resources: null,
     vmCount: 0,
-    lastSeen: "2026-02-28T22:15:00Z",
+    updatedAt: "2026-02-28T22:15:00Z",
   },
   {
     hash: "c5d6e7f8a9b0",
-    address: "https://node-15.aleph.cloud",
-    status: "unknown",
-    resources: {
-      cpu: 32,
-      memory: 128,
-      disk: 2000,
-      cpuUsage: 0,
-      memoryUsage: 0,
-      diskUsage: 0,
-    },
+    name: null,
+    address: null,
+    status: "removed",
+    staked: false,
+    resources: null,
     vmCount: 0,
-    lastSeen: "2026-02-28T18:00:00Z",
+    updatedAt: "2026-02-28T18:00:00Z",
   },
 ];
 
-// --- VMs (40 total) ---
-// 25 scheduled+observed (normal)
-// 5 scheduled-only
-// 3 orphaned
-// 4 missing
-// 3 unschedulable
+// --- VMs (43 total) ---
+// 25 scheduled, 2 unscheduled, 3 orphaned, 4 missing,
+// 3 unschedulable, 3 unknown, 3 extra for variety
 
-function makeResources(
-  cpu: number,
-  memory: number,
-  disk: number,
-): VM["requirements"] {
-  return { cpu, memory, disk, cpuUsage: 0, memoryUsage: 0, diskUsage: 0 };
+function makeVm(
+  hash: string,
+  node: string | null,
+  type: VmType,
+  status: VM["status"],
+  vcpus: number,
+  memMb: number,
+  diskMb: number,
+): VM {
+  return {
+    hash,
+    type,
+    allocatedNode: node,
+    observedNodes: node ? [node] : [],
+    status,
+    requirements: { vcpus, memoryMb: memMb, diskMb },
+    paymentStatus: node ? "validated" : null,
+    updatedAt: "2026-03-01T14:30:00Z",
+  };
 }
 
 export const mockVMs: VM[] = [
-  // 25 normal VMs (scheduled + observed)
-  ...[
-    { h: "vm01a2b3c4d5e6", node: "a1b2c3d4e5f6", type: "instance" },
-    { h: "vm02b3c4d5e6f7", node: "a1b2c3d4e5f6", type: "instance" },
-    { h: "vm03c4d5e6f7a8", node: "a1b2c3d4e5f6", type: "program" },
-    { h: "vm04d5e6f7a8b9", node: "a1b2c3d4e5f6", type: "instance" },
-    { h: "vm05e6f7a8b9c0", node: "a1b2c3d4e5f6", type: "program" },
-    { h: "vm06f7a8b9c0d1", node: "b2c3d4e5f6a7", type: "instance" },
-    { h: "vm07a8b9c0d1e2", node: "b2c3d4e5f6a7", type: "instance" },
-    { h: "vm08b9c0d1e2f3", node: "b2c3d4e5f6a7", type: "program" },
-    { h: "vm09c0d1e2f3a4", node: "b2c3d4e5f6a7", type: "instance" },
-    { h: "vm10d1e2f3a4b5", node: "b2c3d4e5f6a7", type: "instance" },
-    { h: "vm11e2f3a4b5c6", node: "b2c3d4e5f6a7", type: "program" },
-    { h: "vm12f3a4b5c6d7", node: "b2c3d4e5f6a7", type: "instance" },
-    { h: "vm13a4b5c6d7e8", node: "b2c3d4e5f6a7", type: "program" },
-    { h: "vm14b5c6d7e8f9", node: "c3d4e5f6a7b8", type: "instance" },
-    { h: "vm15c6d7e8f9a0", node: "c3d4e5f6a7b8", type: "instance" },
-    { h: "vm16d7e8f9a0b1", node: "c3d4e5f6a7b8", type: "program" },
-    { h: "vm17e8f9a0b1c2", node: "d4e5f6a7b8c9", type: "instance" },
-    { h: "vm18f9a0b1c2d3", node: "d4e5f6a7b8c9", type: "instance" },
-    { h: "vm19a0b1c2d3e4", node: "e5f6a7b8c9d0", type: "instance" },
-    { h: "vm20b1c2d3e4f5", node: "e5f6a7b8c9d0", type: "program" },
-    { h: "vm21c2d3e4f5a6", node: "e5f6a7b8c9d0", type: "instance" },
-    { h: "vm22d3e4f5a6b7", node: "e5f6a7b8c9d0", type: "instance" },
-    { h: "vm23e4f5a6b7c8", node: "e5f6a7b8c9d0", type: "program" },
-    { h: "vm24f5a6b7c8d9", node: "e5f6a7b8c9d0", type: "instance" },
-    { h: "vm25a6b7c8d9e0", node: "f6a7b8c9d0e1", type: "instance" },
-  ].map(
-    (v): VM => ({
-      hash: v.h,
-      type: v.type,
-      assignedNode: v.node,
-      scheduledStatus: "scheduled",
-      observedStatus: "observed",
-      requirements: makeResources(
-        v.type === "instance" ? 4 : 2,
-        v.type === "instance" ? 8 : 4,
-        v.type === "instance" ? 100 : 50,
-      ),
-    }),
-  ),
+  // 25 scheduled (allocated + observed)
+  makeVm("vm01a2b3c4d5e6", "a1b2c3d4e5f6", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm02b3c4d5e6f7", "a1b2c3d4e5f6", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm03c4d5e6f7a8", "a1b2c3d4e5f6", "PersistentProgram", "scheduled", 2, 4096, 50000),
+  makeVm("vm04d5e6f7a8b9", "a1b2c3d4e5f6", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm05e6f7a8b9c0", "a1b2c3d4e5f6", "PersistentProgram", "scheduled", 2, 4096, 50000),
+  makeVm("vm06f7a8b9c0d1", "b2c3d4e5f6a7", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm07a8b9c0d1e2", "b2c3d4e5f6a7", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm08b9c0d1e2f3", "b2c3d4e5f6a7", "PersistentProgram", "scheduled", 2, 4096, 50000),
+  makeVm("vm09c0d1e2f3a4", "b2c3d4e5f6a7", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm10d1e2f3a4b5", "b2c3d4e5f6a7", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm11e2f3a4b5c6", "b2c3d4e5f6a7", "PersistentProgram", "scheduled", 2, 4096, 50000),
+  makeVm("vm12f3a4b5c6d7", "b2c3d4e5f6a7", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm13a4b5c6d7e8", "b2c3d4e5f6a7", "MicroVm", "scheduled", 1, 2048, 20000),
+  makeVm("vm14b5c6d7e8f9", "c3d4e5f6a7b8", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm15c6d7e8f9a0", "c3d4e5f6a7b8", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm16d7e8f9a0b1", "c3d4e5f6a7b8", "PersistentProgram", "scheduled", 2, 4096, 50000),
+  makeVm("vm17e8f9a0b1c2", "d4e5f6a7b8c9", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm18f9a0b1c2d3", "d4e5f6a7b8c9", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm19a0b1c2d3e4", "e5f6a7b8c9d0", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm20b1c2d3e4f5", "e5f6a7b8c9d0", "PersistentProgram", "scheduled", 2, 4096, 50000),
+  makeVm("vm21c2d3e4f5a6", "e5f6a7b8c9d0", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm22d3e4f5a6b7", "e5f6a7b8c9d0", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm23e4f5a6b7c8", "e5f6a7b8c9d0", "MicroVm", "scheduled", 1, 2048, 20000),
+  makeVm("vm24f5a6b7c8d9", "e5f6a7b8c9d0", "Instance", "scheduled", 4, 8192, 100000),
+  makeVm("vm25a6b7c8d9e0", "f6a7b8c9d0e1", "Instance", "scheduled", 4, 8192, 100000),
 
-  // 5 scheduled-only (not yet observed)
-  ...[
-    { h: "vm26b7c8d9e0f1", node: "f6a7b8c9d0e1", type: "instance" },
-    { h: "vm27c8d9e0f1a2", node: "a7b8c9d0e1f2", type: "program" },
-    { h: "vm28d9e0f1a2b3", node: "a7b8c9d0e1f2", type: "instance" },
-    { h: "vm29e0f1a2b3c4", node: "b8c9d0e1f2a3", type: "program" },
-    { h: "vm30f1a2b3c4d5", node: "c9d0e1f2a3b4", type: "instance" },
-  ].map(
-    (v): VM => ({
-      hash: v.h,
-      type: v.type,
-      assignedNode: v.node,
-      scheduledStatus: "scheduled",
-      observedStatus: null,
-      requirements: makeResources(
-        v.type === "instance" ? 4 : 2,
-        v.type === "instance" ? 8 : 4,
-        v.type === "instance" ? 100 : 50,
-      ),
-    }),
-  ),
+  // 2 unscheduled (were running, now deallocated)
+  makeVm("vm26b7c8d9e0f1", null, "Instance", "unscheduled", 4, 8192, 100000),
+  makeVm("vm27c8d9e0f1a2", null, "PersistentProgram", "unscheduled", 2, 4096, 50000),
 
   // 3 orphaned (observed on node but not in schedule)
-  ...[
-    { h: "vm31a2b3c4d5e6", node: "d0e1f2a3b4c5", type: "instance" },
-    { h: "vm32b3c4d5e6f7", node: "d0e1f2a3b4c5", type: "program" },
-    { h: "vm33c4d5e6f7a8", node: "e1f2a3b4c5d6", type: "instance" },
-  ].map(
-    (v): VM => ({
-      hash: v.h,
-      type: v.type,
-      assignedNode: v.node,
-      scheduledStatus: "orphaned",
-      observedStatus: "observed",
-      requirements: makeResources(4, 8, 100),
-    }),
-  ),
+  makeVm("vm31a2b3c4d5e6", "d0e1f2a3b4c5", "Instance", "orphaned", 4, 8192, 100000),
+  makeVm("vm32b3c4d5e6f7", "d0e1f2a3b4c5", "PersistentProgram", "orphaned", 2, 4096, 50000),
+  makeVm("vm33c4d5e6f7a8", "e1f2a3b4c5d6", "Instance", "orphaned", 4, 8192, 100000),
 
-  // 4 missing (scheduled but node reports them absent)
-  ...[
-    { h: "vm34d5e6f7a8b9", node: "a3b4c5d6e7f8", type: "instance" },
-    { h: "vm35e6f7a8b9c0", node: "a3b4c5d6e7f8", type: "program" },
-    { h: "vm36f7a8b9c0d1", node: "b4c5d6e7f8a9", type: "instance" },
-    { h: "vm37a8b9c0d1e2", node: "e1f2a3b4c5d6", type: "instance" },
-  ].map(
-    (v): VM => ({
-      hash: v.h,
-      type: v.type,
-      assignedNode: v.node,
-      scheduledStatus: "missing",
-      observedStatus: null,
-      requirements: makeResources(4, 8, 100),
-    }),
-  ),
+  // 4 missing (scheduled but not observed)
+  makeVm("vm34d5e6f7a8b9", "a3b4c5d6e7f8", "Instance", "missing", 4, 8192, 100000),
+  makeVm("vm35e6f7a8b9c0", "a3b4c5d6e7f8", "PersistentProgram", "missing", 2, 4096, 50000),
+  makeVm("vm36f7a8b9c0d1", "b4c5d6e7f8a9", "Instance", "missing", 4, 8192, 100000),
+  makeVm("vm37a8b9c0d1e2", "e1f2a3b4c5d6", "Instance", "missing", 4, 8192, 100000),
 
-  // 3 unschedulable (no node can satisfy requirements)
-  ...[
-    { h: "vm38b9c0d1e2f3", type: "instance" },
-    { h: "vm39c0d1e2f3a4", type: "instance" },
-    { h: "vm40d1e2f3a4b5", type: "program" },
-  ].map(
-    (v): VM => ({
-      hash: v.h,
-      type: v.type,
-      assignedNode: null,
-      scheduledStatus: "unschedulable",
-      observedStatus: null,
-      requirements: makeResources(128, 512, 10000),
-    }),
-  ),
+  // 3 unschedulable (no suitable node)
+  makeVm("vm38b9c0d1e2f3", null, "Instance", "unschedulable", 128, 524288, 10000000),
+  makeVm("vm39c0d1e2f3a4", null, "Instance", "unschedulable", 128, 524288, 10000000),
+  makeVm("vm40d1e2f3a4b5", null, "PersistentProgram", "unschedulable", 64, 262144, 10000000),
+
+  // 3 unknown
+  makeVm("vm41e2f3a4b5c6", null, "MicroVm", "unknown", 1, 2048, 20000),
+  makeVm("vm42f3a4b5c6d7", null, "Instance", "unknown", 4, 8192, 100000),
+  makeVm("vm43a4b5c6d7e8", null, "PersistentProgram", "unknown", 2, 4096, 50000),
 ];
 
-// --- Events (50 total, across all categories) ---
+// --- History (40 entries) ---
 
-export const mockEvents: SchedulerEvent[] = [
-  // Registry events
-  {
-    id: "evt-001",
-    type: "node_registered",
-    category: "registry",
-    timestamp: "2026-03-01T14:30:00Z",
-    payload: { nodeHash: "a1b2c3d4e5f6", address: "https://node-01.aleph.cloud" },
-  },
-  {
-    id: "evt-002",
-    type: "node_deregistered",
-    category: "registry",
-    timestamp: "2026-03-01T14:28:00Z",
-    payload: { nodeHash: "a3b4c5d6e7f8", reason: "staking_expired" },
-  },
-  {
-    id: "evt-003",
-    type: "node_staking_updated",
-    category: "registry",
-    timestamp: "2026-03-01T14:25:00Z",
-    payload: {
-      nodeHash: "b2c3d4e5f6a7",
-      previousStake: 200000,
-      newStake: 250000,
-    },
-  },
-  {
-    id: "evt-004",
-    type: "node_registered",
-    category: "registry",
-    timestamp: "2026-03-01T14:20:00Z",
-    payload: { nodeHash: "c5d6e7f8a9b0", address: "https://node-15.aleph.cloud" },
-  },
-  {
-    id: "evt-005",
-    type: "node_address_updated",
-    category: "registry",
-    timestamp: "2026-03-01T14:15:00Z",
-    payload: {
-      nodeHash: "e5f6a7b8c9d0",
-      oldAddress: "https://node-05-old.aleph.cloud",
-      newAddress: "https://node-05.aleph.cloud",
-    },
-  },
-
-  // Node events
-  {
-    id: "evt-006",
-    type: "node_status_changed",
-    category: "node",
-    timestamp: "2026-03-01T14:29:00Z",
-    payload: {
-      nodeHash: "d0e1f2a3b4c5",
-      previousStatus: "healthy",
-      newStatus: "degraded",
-    },
-  },
-  {
-    id: "evt-007",
-    type: "node_resources_updated",
-    category: "node",
-    timestamp: "2026-03-01T14:28:30Z",
-    payload: {
-      nodeHash: "a1b2c3d4e5f6",
-      cpuUsage: 45,
-      memoryUsage: 62,
-    },
-  },
-  {
-    id: "evt-008",
-    type: "node_status_changed",
-    category: "node",
-    timestamp: "2026-03-01T14:27:00Z",
-    payload: {
-      nodeHash: "a3b4c5d6e7f8",
-      previousStatus: "degraded",
-      newStatus: "offline",
-    },
-  },
-  {
-    id: "evt-009",
-    type: "node_heartbeat_missed",
-    category: "node",
-    timestamp: "2026-03-01T14:26:00Z",
-    payload: {
-      nodeHash: "b4c5d6e7f8a9",
-      missedCount: 5,
-    },
-  },
-  {
-    id: "evt-010",
-    type: "node_resources_updated",
-    category: "node",
-    timestamp: "2026-03-01T14:25:30Z",
-    payload: {
-      nodeHash: "b2c3d4e5f6a7",
-      cpuUsage: 28,
-      memoryUsage: 41,
-    },
-  },
-  {
-    id: "evt-011",
-    type: "node_status_changed",
-    category: "node",
-    timestamp: "2026-03-01T14:24:00Z",
-    payload: {
-      nodeHash: "e1f2a3b4c5d6",
-      previousStatus: "healthy",
-      newStatus: "degraded",
-    },
-  },
-  {
-    id: "evt-012",
-    type: "node_heartbeat_missed",
-    category: "node",
-    timestamp: "2026-03-01T14:23:00Z",
-    payload: {
-      nodeHash: "a3b4c5d6e7f8",
-      missedCount: 10,
-    },
-  },
-  {
-    id: "evt-013",
-    type: "node_resources_updated",
-    category: "node",
-    timestamp: "2026-03-01T14:22:00Z",
-    payload: {
-      nodeHash: "c3d4e5f6a7b8",
-      cpuUsage: 72,
-      memoryUsage: 85,
-    },
-  },
-  {
-    id: "evt-014",
-    type: "node_status_changed",
-    category: "node",
-    timestamp: "2026-03-01T14:21:00Z",
-    payload: {
-      nodeHash: "f2a3b4c5d6e7",
-      previousStatus: "healthy",
-      newStatus: "degraded",
-    },
-  },
-  {
-    id: "evt-015",
-    type: "node_resources_updated",
-    category: "node",
-    timestamp: "2026-03-01T14:20:30Z",
-    payload: {
-      nodeHash: "d4e5f6a7b8c9",
-      cpuUsage: 15,
-      memoryUsage: 22,
-    },
-  },
-  {
-    id: "evt-016",
-    type: "node_status_changed",
-    category: "node",
-    timestamp: "2026-03-01T14:19:00Z",
-    payload: {
-      nodeHash: "b4c5d6e7f8a9",
-      previousStatus: "degraded",
-      newStatus: "offline",
-    },
-  },
-  {
-    id: "evt-017",
-    type: "node_heartbeat_missed",
-    category: "node",
-    timestamp: "2026-03-01T14:18:00Z",
-    payload: {
-      nodeHash: "c5d6e7f8a9b0",
-      missedCount: 20,
-    },
-  },
-  {
-    id: "evt-018",
-    type: "node_resources_updated",
-    category: "node",
-    timestamp: "2026-03-01T14:17:00Z",
-    payload: {
-      nodeHash: "e5f6a7b8c9d0",
-      cpuUsage: 55,
-      memoryUsage: 48,
-    },
-  },
-
-  // VM events
-  {
-    id: "evt-019",
-    type: "vm_scheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:29:30Z",
-    payload: {
-      vmHash: "vm26b7c8d9e0f1",
-      nodeHash: "f6a7b8c9d0e1",
-      vmType: "instance",
-    },
-  },
-  {
-    id: "evt-020",
-    type: "vm_observed",
-    category: "vm",
-    timestamp: "2026-03-01T14:29:15Z",
-    payload: { vmHash: "vm01a2b3c4d5e6", nodeHash: "a1b2c3d4e5f6" },
-  },
-  {
-    id: "evt-021",
-    type: "vm_orphaned_detected",
-    category: "vm",
-    timestamp: "2026-03-01T14:28:45Z",
-    payload: { vmHash: "vm31a2b3c4d5e6", nodeHash: "d0e1f2a3b4c5" },
-  },
-  {
-    id: "evt-022",
-    type: "vm_missing_detected",
-    category: "vm",
-    timestamp: "2026-03-01T14:28:15Z",
-    payload: { vmHash: "vm34d5e6f7a8b9", nodeHash: "a3b4c5d6e7f8" },
-  },
-  {
-    id: "evt-023",
-    type: "vm_unschedulable",
-    category: "vm",
-    timestamp: "2026-03-01T14:27:30Z",
-    payload: {
-      vmHash: "vm38b9c0d1e2f3",
-      reason: "insufficient_resources",
-      requiredCpu: 128,
-      requiredMemory: 512,
-    },
-  },
-  {
-    id: "evt-024",
-    type: "vm_scheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:26:30Z",
-    payload: {
-      vmHash: "vm27c8d9e0f1a2",
-      nodeHash: "a7b8c9d0e1f2",
-      vmType: "program",
-    },
-  },
-  {
-    id: "evt-025",
-    type: "vm_observed",
-    category: "vm",
-    timestamp: "2026-03-01T14:26:00Z",
-    payload: { vmHash: "vm06f7a8b9c0d1", nodeHash: "b2c3d4e5f6a7" },
-  },
-  {
-    id: "evt-026",
-    type: "vm_rescheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:25:00Z",
-    payload: {
-      vmHash: "vm14b5c6d7e8f9",
-      fromNode: "d0e1f2a3b4c5",
-      toNode: "c3d4e5f6a7b8",
-      reason: "node_degraded",
-    },
-  },
-  {
-    id: "evt-027",
-    type: "vm_missing_detected",
-    category: "vm",
-    timestamp: "2026-03-01T14:24:30Z",
-    payload: { vmHash: "vm35e6f7a8b9c0", nodeHash: "a3b4c5d6e7f8" },
-  },
-  {
-    id: "evt-028",
-    type: "vm_orphaned_detected",
-    category: "vm",
-    timestamp: "2026-03-01T14:24:00Z",
-    payload: { vmHash: "vm32b3c4d5e6f7", nodeHash: "d0e1f2a3b4c5" },
-  },
-  {
-    id: "evt-029",
-    type: "vm_scheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:23:30Z",
-    payload: {
-      vmHash: "vm28d9e0f1a2b3",
-      nodeHash: "a7b8c9d0e1f2",
-      vmType: "instance",
-    },
-  },
-  {
-    id: "evt-030",
-    type: "vm_observed",
-    category: "vm",
-    timestamp: "2026-03-01T14:22:30Z",
-    payload: { vmHash: "vm19a0b1c2d3e4", nodeHash: "e5f6a7b8c9d0" },
-  },
-  {
-    id: "evt-031",
-    type: "vm_unschedulable",
-    category: "vm",
-    timestamp: "2026-03-01T14:22:00Z",
-    payload: {
-      vmHash: "vm39c0d1e2f3a4",
-      reason: "insufficient_resources",
-      requiredCpu: 128,
-      requiredMemory: 512,
-    },
-  },
-  {
-    id: "evt-032",
-    type: "vm_missing_detected",
-    category: "vm",
-    timestamp: "2026-03-01T14:21:30Z",
-    payload: { vmHash: "vm36f7a8b9c0d1", nodeHash: "b4c5d6e7f8a9" },
-  },
-  {
-    id: "evt-033",
-    type: "vm_scheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:20:00Z",
-    payload: {
-      vmHash: "vm29e0f1a2b3c4",
-      nodeHash: "b8c9d0e1f2a3",
-      vmType: "program",
-    },
-  },
-  {
-    id: "evt-034",
-    type: "vm_orphaned_detected",
-    category: "vm",
-    timestamp: "2026-03-01T14:19:30Z",
-    payload: { vmHash: "vm33c4d5e6f7a8", nodeHash: "e1f2a3b4c5d6" },
-  },
-  {
-    id: "evt-035",
-    type: "vm_observed",
-    category: "vm",
-    timestamp: "2026-03-01T14:19:00Z",
-    payload: { vmHash: "vm17e8f9a0b1c2", nodeHash: "d4e5f6a7b8c9" },
-  },
-  {
-    id: "evt-036",
-    type: "vm_scheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:18:30Z",
-    payload: {
-      vmHash: "vm30f1a2b3c4d5",
-      nodeHash: "c9d0e1f2a3b4",
-      vmType: "instance",
-    },
-  },
-  {
-    id: "evt-037",
-    type: "vm_unschedulable",
-    category: "vm",
-    timestamp: "2026-03-01T14:18:00Z",
-    payload: {
-      vmHash: "vm40d1e2f3a4b5",
-      reason: "insufficient_disk",
-      requiredDisk: 10000,
-    },
-  },
-  {
-    id: "evt-038",
-    type: "vm_missing_detected",
-    category: "vm",
-    timestamp: "2026-03-01T14:17:30Z",
-    payload: { vmHash: "vm37a8b9c0d1e2", nodeHash: "e1f2a3b4c5d6" },
-  },
-  {
-    id: "evt-039",
-    type: "vm_rescheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:16:00Z",
-    payload: {
-      vmHash: "vm25a6b7c8d9e0",
-      fromNode: "e1f2a3b4c5d6",
-      toNode: "f6a7b8c9d0e1",
-      reason: "load_balancing",
-    },
-  },
-  {
-    id: "evt-040",
-    type: "vm_observed",
-    category: "vm",
-    timestamp: "2026-03-01T14:15:30Z",
-    payload: { vmHash: "vm10d1e2f3a4b5", nodeHash: "b2c3d4e5f6a7" },
-  },
-
-  // More registry events
-  {
-    id: "evt-041",
-    type: "node_staking_updated",
-    category: "registry",
-    timestamp: "2026-03-01T14:14:00Z",
-    payload: {
-      nodeHash: "c3d4e5f6a7b8",
-      previousStake: 150000,
-      newStake: 175000,
-    },
-  },
-  {
-    id: "evt-042",
-    type: "node_registered",
-    category: "registry",
-    timestamp: "2026-03-01T14:12:00Z",
-    payload: { nodeHash: "f6a7b8c9d0e1", address: "https://node-06.aleph.cloud" },
-  },
-  {
-    id: "evt-043",
-    type: "node_address_updated",
-    category: "registry",
-    timestamp: "2026-03-01T14:10:00Z",
-    payload: {
-      nodeHash: "a7b8c9d0e1f2",
-      oldAddress: "https://node-07-v1.aleph.cloud",
-      newAddress: "https://node-07.aleph.cloud",
-    },
-  },
-
-  // More node events
-  {
-    id: "evt-044",
-    type: "node_resources_updated",
-    category: "node",
-    timestamp: "2026-03-01T14:08:00Z",
-    payload: {
-      nodeHash: "f6a7b8c9d0e1",
-      cpuUsage: 38,
-      memoryUsage: 55,
-    },
-  },
-  {
-    id: "evt-045",
-    type: "node_status_changed",
-    category: "node",
-    timestamp: "2026-03-01T14:06:00Z",
-    payload: {
-      nodeHash: "c5d6e7f8a9b0",
-      previousStatus: "healthy",
-      newStatus: "unknown",
-    },
-  },
-  {
-    id: "evt-046",
-    type: "node_resources_updated",
-    category: "node",
-    timestamp: "2026-03-01T14:04:00Z",
-    payload: {
-      nodeHash: "b8c9d0e1f2a3",
-      cpuUsage: 88,
-      memoryUsage: 92,
-    },
-  },
-
-  // More VM events
-  {
-    id: "evt-047",
-    type: "vm_observed",
-    category: "vm",
-    timestamp: "2026-03-01T14:02:00Z",
-    payload: { vmHash: "vm22d3e4f5a6b7", nodeHash: "e5f6a7b8c9d0" },
-  },
-  {
-    id: "evt-048",
-    type: "vm_scheduled",
-    category: "vm",
-    timestamp: "2026-03-01T14:00:00Z",
-    payload: {
-      vmHash: "vm15c6d7e8f9a0",
-      nodeHash: "c3d4e5f6a7b8",
-      vmType: "instance",
-    },
-  },
-  {
-    id: "evt-049",
-    type: "vm_rescheduled",
-    category: "vm",
-    timestamp: "2026-03-01T13:58:00Z",
-    payload: {
-      vmHash: "vm08b9c0d1e2f3",
-      fromNode: "d0e1f2a3b4c5",
-      toNode: "b2c3d4e5f6a7",
-      reason: "node_degraded",
-    },
-  },
-  {
-    id: "evt-050",
-    type: "vm_observed",
-    category: "vm",
-    timestamp: "2026-03-01T13:56:00Z",
-    payload: { vmHash: "vm03c4d5e6f7a8", nodeHash: "a1b2c3d4e5f6" },
-  },
+export const mockHistory: HistoryRow[] = [
+  { id: 1, vmHash: "vm01a2b3c4d5e6", nodeHash: "a1b2c3d4e5f6", action: "scheduled", reason: null, timestamp: "2026-03-01T14:30:00Z" },
+  { id: 2, vmHash: "vm06f7a8b9c0d1", nodeHash: "b2c3d4e5f6a7", action: "scheduled", reason: null, timestamp: "2026-03-01T14:29:30Z" },
+  { id: 3, vmHash: "vm14b5c6d7e8f9", nodeHash: "d0e1f2a3b4c5", action: "migrated_from", reason: "NodeUnhealthy", timestamp: "2026-03-01T14:29:00Z" },
+  { id: 4, vmHash: "vm14b5c6d7e8f9", nodeHash: "c3d4e5f6a7b8", action: "migrated_to", reason: "NodeUnhealthy", timestamp: "2026-03-01T14:29:00Z" },
+  { id: 5, vmHash: "vm31a2b3c4d5e6", nodeHash: "d0e1f2a3b4c5", action: "scheduled", reason: null, timestamp: "2026-03-01T14:28:45Z" },
+  { id: 6, vmHash: "vm34d5e6f7a8b9", nodeHash: "a3b4c5d6e7f8", action: "scheduled", reason: null, timestamp: "2026-03-01T14:28:15Z" },
+  { id: 7, vmHash: "vm26b7c8d9e0f1", nodeHash: "f6a7b8c9d0e1", action: "unscheduled", reason: "PaymentFailed", timestamp: "2026-03-01T14:27:30Z" },
+  { id: 8, vmHash: "vm27c8d9e0f1a2", nodeHash: "a7b8c9d0e1f2", action: "unscheduled", reason: "Deleted", timestamp: "2026-03-01T14:27:00Z" },
+  { id: 9, vmHash: "vm02b3c4d5e6f7", nodeHash: "a1b2c3d4e5f6", action: "scheduled", reason: null, timestamp: "2026-03-01T14:26:30Z" },
+  { id: 10, vmHash: "vm07a8b9c0d1e2", nodeHash: "b2c3d4e5f6a7", action: "scheduled", reason: null, timestamp: "2026-03-01T14:26:00Z" },
+  { id: 11, vmHash: "vm25a6b7c8d9e0", nodeHash: "e1f2a3b4c5d6", action: "migrated_from", reason: "rebalance", timestamp: "2026-03-01T14:25:30Z" },
+  { id: 12, vmHash: "vm25a6b7c8d9e0", nodeHash: "f6a7b8c9d0e1", action: "migrated_to", reason: "rebalance", timestamp: "2026-03-01T14:25:30Z" },
+  { id: 13, vmHash: "vm35e6f7a8b9c0", nodeHash: "a3b4c5d6e7f8", action: "scheduled", reason: null, timestamp: "2026-03-01T14:25:00Z" },
+  { id: 14, vmHash: "vm32b3c4d5e6f7", nodeHash: "d0e1f2a3b4c5", action: "scheduled", reason: null, timestamp: "2026-03-01T14:24:30Z" },
+  { id: 15, vmHash: "vm03c4d5e6f7a8", nodeHash: "a1b2c3d4e5f6", action: "scheduled", reason: null, timestamp: "2026-03-01T14:24:00Z" },
+  { id: 16, vmHash: "vm08b9c0d1e2f3", nodeHash: "d0e1f2a3b4c5", action: "migrated_from", reason: "NodeUnhealthy", timestamp: "2026-03-01T14:23:30Z" },
+  { id: 17, vmHash: "vm08b9c0d1e2f3", nodeHash: "b2c3d4e5f6a7", action: "migrated_to", reason: "NodeUnhealthy", timestamp: "2026-03-01T14:23:30Z" },
+  { id: 18, vmHash: "vm19a0b1c2d3e4", nodeHash: "e5f6a7b8c9d0", action: "scheduled", reason: null, timestamp: "2026-03-01T14:23:00Z" },
+  { id: 19, vmHash: "vm33c4d5e6f7a8", nodeHash: "e1f2a3b4c5d6", action: "scheduled", reason: null, timestamp: "2026-03-01T14:22:30Z" },
+  { id: 20, vmHash: "vm36f7a8b9c0d1", nodeHash: "b4c5d6e7f8a9", action: "scheduled", reason: null, timestamp: "2026-03-01T14:22:00Z" },
+  { id: 21, vmHash: "vm04d5e6f7a8b9", nodeHash: "a1b2c3d4e5f6", action: "scheduled", reason: null, timestamp: "2026-03-01T14:21:30Z" },
+  { id: 22, vmHash: "vm09c0d1e2f3a4", nodeHash: "b2c3d4e5f6a7", action: "scheduled", reason: null, timestamp: "2026-03-01T14:21:00Z" },
+  { id: 23, vmHash: "vm15c6d7e8f9a0", nodeHash: "c3d4e5f6a7b8", action: "scheduled", reason: null, timestamp: "2026-03-01T14:20:30Z" },
+  { id: 24, vmHash: "vm17e8f9a0b1c2", nodeHash: "d4e5f6a7b8c9", action: "scheduled", reason: null, timestamp: "2026-03-01T14:20:00Z" },
+  { id: 25, vmHash: "vm37a8b9c0d1e2", nodeHash: "e1f2a3b4c5d6", action: "scheduled", reason: null, timestamp: "2026-03-01T14:19:30Z" },
+  { id: 26, vmHash: "vm20b1c2d3e4f5", nodeHash: "e5f6a7b8c9d0", action: "scheduled", reason: null, timestamp: "2026-03-01T14:19:00Z" },
+  { id: 27, vmHash: "vm10d1e2f3a4b5", nodeHash: "b2c3d4e5f6a7", action: "scheduled", reason: null, timestamp: "2026-03-01T14:18:30Z" },
+  { id: 28, vmHash: "vm11e2f3a4b5c6", nodeHash: "b2c3d4e5f6a7", action: "scheduled", reason: null, timestamp: "2026-03-01T14:18:00Z" },
+  { id: 29, vmHash: "vm21c2d3e4f5a6", nodeHash: "e5f6a7b8c9d0", action: "scheduled", reason: null, timestamp: "2026-03-01T14:17:30Z" },
+  { id: 30, vmHash: "vm05e6f7a8b9c0", nodeHash: "a1b2c3d4e5f6", action: "scheduled", reason: null, timestamp: "2026-03-01T14:17:00Z" },
+  { id: 31, vmHash: "vm16d7e8f9a0b1", nodeHash: "c3d4e5f6a7b8", action: "scheduled", reason: null, timestamp: "2026-03-01T14:16:30Z" },
+  { id: 32, vmHash: "vm18f9a0b1c2d3", nodeHash: "d4e5f6a7b8c9", action: "scheduled", reason: null, timestamp: "2026-03-01T14:16:00Z" },
+  { id: 33, vmHash: "vm22d3e4f5a6b7", nodeHash: "e5f6a7b8c9d0", action: "scheduled", reason: null, timestamp: "2026-03-01T14:15:30Z" },
+  { id: 34, vmHash: "vm12f3a4b5c6d7", nodeHash: "b2c3d4e5f6a7", action: "scheduled", reason: null, timestamp: "2026-03-01T14:15:00Z" },
+  { id: 35, vmHash: "vm23e4f5a6b7c8", nodeHash: "e5f6a7b8c9d0", action: "scheduled", reason: null, timestamp: "2026-03-01T14:14:30Z" },
+  { id: 36, vmHash: "vm13a4b5c6d7e8", nodeHash: "b2c3d4e5f6a7", action: "scheduled", reason: null, timestamp: "2026-03-01T14:14:00Z" },
+  { id: 37, vmHash: "vm24f5a6b7c8d9", nodeHash: "e5f6a7b8c9d0", action: "scheduled", reason: null, timestamp: "2026-03-01T14:13:30Z" },
+  { id: 38, vmHash: "vm26b7c8d9e0f1", nodeHash: "f6a7b8c9d0e1", action: "scheduled", reason: null, timestamp: "2026-03-01T14:13:00Z" },
+  { id: 39, vmHash: "vm27c8d9e0f1a2", nodeHash: "a7b8c9d0e1f2", action: "scheduled", reason: null, timestamp: "2026-03-01T14:12:30Z" },
+  { id: 40, vmHash: "vm41e2f3a4b5c6", nodeHash: "c9d0e1f2a3b4", action: "unscheduled", reason: "NodeDeleted", timestamp: "2026-03-01T14:12:00Z" },
 ];
 
 // --- Overview Stats (computed from arrays) ---
 
 export const mockOverviewStats: OverviewStats = {
   totalNodes: mockNodes.length,
-  healthyNodes: mockNodes.filter((n) => n.status === "healthy").length,
-  degradedNodes: mockNodes.filter((n) => n.status === "degraded").length,
-  offlineNodes: mockNodes.filter((n) => n.status === "offline").length,
+  healthyNodes: mockNodes.filter((n) => n.status === "healthy")
+    .length,
+  unreachableNodes: mockNodes.filter(
+    (n) => n.status === "unreachable",
+  ).length,
+  unknownNodes: mockNodes.filter((n) => n.status === "unknown")
+    .length,
   totalVMs: mockVMs.length,
-  scheduledVMs: mockVMs.filter(
-    (v) => v.scheduledStatus === "scheduled",
-  ).length,
-  observedVMs: mockVMs.filter((v) => v.observedStatus === "observed").length,
-  orphanedVMs: mockVMs.filter(
-    (v) => v.scheduledStatus === "orphaned",
-  ).length,
-  missingVMs: mockVMs.filter(
-    (v) => v.scheduledStatus === "missing",
-  ).length,
+  scheduledVMs: mockVMs.filter((v) => v.status === "scheduled")
+    .length,
+  orphanedVMs: mockVMs.filter((v) => v.status === "orphaned")
+    .length,
+  missingVMs: mockVMs.filter((v) => v.status === "missing").length,
   unschedulableVMs: mockVMs.filter(
-    (v) => v.scheduledStatus === "unschedulable",
+    (v) => v.status === "unschedulable",
   ).length,
+  totalVcpusAllocated: mockVMs
+    .filter((v) => v.status === "scheduled")
+    .reduce((sum, v) => sum + (v.requirements.vcpus ?? 0), 0),
+  totalVcpusCapacity: mockNodes
+    .filter((n) => n.status === "healthy")
+    .reduce((sum, n) => sum + (n.resources?.vcpusTotal ?? 0), 0),
 };
-
-// --- Stats history ---
-
-function generateStatsHistory(): StatsSnapshot[] {
-  const baseTime = new Date("2026-03-01T14:00:00Z");
-  const points: StatsSnapshot[] = [];
-
-  const totalNodesPattern = [
-    14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 14, 13,
-    13, 13, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15,
-  ];
-  const healthyPattern = [
-    11, 11, 11, 11, 12, 12, 12, 12, 12, 11, 10, 9,
-    8, 9, 10, 11, 12, 12, 11, 10, 10, 9, 9, 9,
-  ];
-  const totalVMsPattern = [
-    30, 30, 31, 31, 32, 32, 33, 34, 34, 35, 35, 35,
-    36, 36, 37, 37, 38, 38, 38, 39, 39, 39, 40, 40,
-  ];
-  const orphanedPattern = [
-    0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 2, 2,
-    3, 3, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3,
-  ];
-  const missingPattern = [
-    1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 2, 3,
-    3, 4, 3, 2, 2, 1, 1, 2, 3, 3, 4, 4,
-  ];
-  const unschedulablePattern = [
-    0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 2, 2,
-    2, 2, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3,
-  ];
-
-  for (let i = 0; i < 24; i++) {
-    const timestamp = new Date(
-      baseTime.getTime() - (23 - i) * 60 * 60 * 1000,
-    );
-    const totalNodes = totalNodesPattern[i]!;
-    const healthy = healthyPattern[i]!;
-    const degraded = Math.max(
-      0,
-      totalNodes -
-        healthy -
-        (totalNodes > healthy + 2
-          ? 2
-          : totalNodes > healthy
-            ? 1
-            : 0),
-    );
-    const offline = totalNodes - healthy - degraded;
-    const totalVMs = totalVMsPattern[i]!;
-    const orphaned = orphanedPattern[i]!;
-    const missing = missingPattern[i]!;
-    const unschedulable = unschedulablePattern[i]!;
-    const scheduled = totalVMs - orphaned - missing - unschedulable;
-    const observed = scheduled - Math.floor(scheduled * 0.15);
-
-    points.push({
-      timestamp: timestamp.toISOString(),
-      totalNodes,
-      healthyNodes: healthy,
-      degradedNodes: degraded,
-      offlineNodes: offline,
-      totalVMs,
-      scheduledVMs: scheduled,
-      observedVMs: observed,
-      orphanedVMs: orphaned,
-      missingVMs: missing,
-      unschedulableVMs: unschedulable,
-    });
-  }
-
-  return points;
-}
-
-export const mockStatsHistory: StatsSnapshot[] =
-  generateStatsHistory();
 
 // --- Detail helpers ---
 
@@ -971,55 +442,20 @@ export function getMockNodeDetail(hash: string): NodeDetail {
   if (!node) {
     throw new Error(`Mock node not found: ${hash}`);
   }
-
-  const vms: VMSummary[] = mockVMs
-    .filter((v) => v.assignedNode === hash)
-    .map((v) => ({
-      hash: v.hash,
-      type: v.type,
-      scheduledStatus: v.scheduledStatus,
-    }));
-
-  const recentEvents = mockEvents
-    .filter(
-      (e) =>
-        (e.payload["nodeHash"] as string | undefined) === hash,
-    )
-    .slice(0, 10);
-
-  return {
-    ...node,
-    stakedAmount: 200000,
-    vms,
-    recentEvents,
-  };
+  const vms = mockVMs.filter((v) => v.allocatedNode === hash);
+  const history = mockHistory.filter(
+    (h) => h.nodeHash === hash,
+  );
+  return { ...node, vms, history };
 }
 
-export function getMockVMDetail(hash: string): VMDetail {
+export function getMockVMDetail(hash: string): VmDetail {
   const vm = mockVMs.find((v) => v.hash === hash);
   if (!vm) {
     throw new Error(`Mock VM not found: ${hash}`);
   }
-
-  const recentEvents = mockEvents
-    .filter(
-      (e) =>
-        (e.payload["vmHash"] as string | undefined) === hash,
-    )
-    .slice(0, 10);
-
-  const schedulingHistory = mockEvents
-    .filter(
-      (e) =>
-        (e.payload["vmHash"] as string | undefined) === hash &&
-        (e.type === "vm_scheduled" ||
-          e.type === "vm_rescheduled" ||
-          e.type === "vm_unschedulable"),
-    );
-
-  return {
-    ...vm,
-    schedulingHistory,
-    recentEvents,
-  };
+  const history = mockHistory.filter(
+    (h) => h.vmHash === hash,
+  );
+  return { ...vm, history };
 }

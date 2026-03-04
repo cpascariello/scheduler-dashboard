@@ -12,33 +12,35 @@ import {
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVMs } from "@/hooks/use-vms";
 import { truncateHash } from "@/lib/format";
-import type { VM, VMStatus } from "@/api/types";
+import type { VM, VmStatus } from "@/api/types";
 
-const STATUS_FILTERS: { label: string; value: VMStatus | undefined }[] = [
+const STATUS_FILTERS: { label: string; value: VmStatus | undefined }[] = [
   { label: "All", value: undefined },
   { label: "Scheduled", value: "scheduled" },
-  { label: "Observed", value: "observed" },
+  { label: "Unscheduled", value: "unscheduled" },
   { label: "Orphaned", value: "orphaned" },
   { label: "Missing", value: "missing" },
   { label: "Unschedulable", value: "unschedulable" },
+  { label: "Unknown", value: "unknown" },
 ];
 
 const VM_STATUS_VARIANT: Record<
-  VMStatus,
+  VmStatus,
   "default" | "success" | "warning" | "error" | "info"
 > = {
   scheduled: "info",
-  observed: "success",
+  unscheduled: "default",
   orphaned: "warning",
   missing: "error",
   unschedulable: "error",
+  unknown: "default",
 };
 
 function isDiscrepancy(vm: VM): boolean {
   return (
-    vm.scheduledStatus === "orphaned" ||
-    vm.scheduledStatus === "missing" ||
-    vm.scheduledStatus === "unschedulable"
+    vm.status === "orphaned" ||
+    vm.status === "missing" ||
+    vm.status === "unschedulable"
   );
 }
 
@@ -75,72 +77,63 @@ const columns: Column<VM>[] = [
   {
     header: "Node",
     accessor: (r) =>
-      r.assignedNode ? (
+      r.allocatedNode ? (
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="cursor-help font-mono text-xs text-muted-foreground">
-              {truncateHash(r.assignedNode)}
+              {truncateHash(r.allocatedNode)}
             </span>
           </TooltipTrigger>
-          <TooltipContent>{r.assignedNode}</TooltipContent>
+          <TooltipContent>{r.allocatedNode}</TooltipContent>
         </Tooltip>
       ) : (
         <span className="text-xs text-muted-foreground">—</span>
       ),
     sortable: true,
-    sortValue: (r) => r.assignedNode ?? "",
+    sortValue: (r) => r.allocatedNode ?? "",
   },
   {
-    header: "Scheduled",
+    header: "Status",
     accessor: (r) => (
-      <Badge variant={VM_STATUS_VARIANT[r.scheduledStatus]} size="sm">
-        {r.scheduledStatus}
+      <Badge variant={VM_STATUS_VARIANT[r.status]} size="sm">
+        {r.status}
       </Badge>
     ),
     sortable: true,
-    sortValue: (r) => r.scheduledStatus,
+    sortValue: (r) => r.status,
   },
   {
-    header: "Observed",
-    accessor: (r) =>
-      r.observedStatus ? (
-        <Badge variant={VM_STATUS_VARIANT[r.observedStatus]} size="sm">
-          {r.observedStatus}
-        </Badge>
-      ) : (
-        <span className="text-xs text-muted-foreground">—</span>
-      ),
-    sortable: true,
-    sortValue: (r) => r.observedStatus ?? "",
-  },
-  {
-    header: "CPU",
+    header: "vCPUs",
     accessor: (r) => (
-      <span className="text-xs tabular-nums">{r.requirements.cpu}</span>
+      <span className="text-xs tabular-nums">
+        {r.requirements.vcpus ?? "—"}
+      </span>
     ),
     sortable: true,
-    sortValue: (r) => r.requirements.cpu,
+    sortValue: (r) => r.requirements.vcpus ?? 0,
     align: "right",
   },
   {
-    header: "Mem",
+    header: "Mem (MB)",
     accessor: (r) => (
-      <span className="text-xs tabular-nums">{r.requirements.memory} GB</span>
+      <span className="text-xs tabular-nums">
+        {r.requirements.memoryMb ?? "—"}
+      </span>
     ),
     sortable: true,
-    sortValue: (r) => r.requirements.memory,
+    sortValue: (r) => r.requirements.memoryMb ?? 0,
     align: "right",
   },
 ];
 
 type VMTableProps = {
   onSelectVM: (hash: string) => void;
-  initialStatus?: VMStatus | undefined;
+  initialStatus?: VmStatus | undefined;
   selectedKey?: string | undefined;
 };
 
 export function VMTable({ onSelectVM, initialStatus, selectedKey }: VMTableProps) {
-  const [statusFilter, setStatusFilter] = useState<VMStatus | undefined>(
+  const [statusFilter, setStatusFilter] = useState<VmStatus | undefined>(
     initialStatus,
   );
   const filters = statusFilter ? { status: statusFilter } : undefined;
@@ -158,7 +151,7 @@ export function VMTable({ onSelectVM, initialStatus, selectedKey }: VMTableProps
 
   return (
     <TooltipProvider>
-      <div className="mb-3 flex gap-1.5">
+      <div className="mb-3 flex flex-wrap gap-1.5">
         {STATUS_FILTERS.map((filter) => (
           <button
             key={filter.label}

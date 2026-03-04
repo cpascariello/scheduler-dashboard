@@ -3,7 +3,6 @@
 import { StatsBar } from "@/components/stats-bar";
 import { NodeHealthSummary } from "@/components/node-health-summary";
 import { VMAllocationSummary } from "@/components/vm-allocation-summary";
-import { EventFeed } from "@/components/event-feed";
 
 export default function OverviewPage() {
   return (
@@ -14,8 +13,6 @@ export default function OverviewPage() {
         <NodeHealthSummary />
         <VMAllocationSummary />
       </div>
-
-      <EventFeed />
     </div>
   );
 }

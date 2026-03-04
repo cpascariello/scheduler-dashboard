@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { getVM, getVMs } from "@/api/client";
-import type { VMFilters } from "@/api/types";
+import type { VmFilters } from "@/api/types";
 
-export function useVMs(filters?: VMFilters) {
+export function useVMs(filters?: VmFilters) {
   return useQuery({
     queryKey: ["vms", filters],
     queryFn: () => getVMs(filters),

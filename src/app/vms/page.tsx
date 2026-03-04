@@ -5,14 +5,15 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { VMTable } from "@/components/vm-table";
 import { VMDetailPanel } from "@/components/vm-detail-panel";
-import type { VMStatus } from "@/api/types";
+import type { VmStatus } from "@/api/types";
 
 const VALID_VM_STATUSES = new Set<string>([
   "scheduled",
-  "observed",
+  "unscheduled",
   "orphaned",
   "missing",
   "unschedulable",
+  "unknown",
 ]);
 
 function VMsContent() {
@@ -21,7 +22,7 @@ function VMsContent() {
   const statusParam = searchParams.get("status");
   const initialStatus =
     statusParam && VALID_VM_STATUSES.has(statusParam)
-      ? (statusParam as VMStatus)
+      ? (statusParam as VmStatus)
       : undefined;
 
   const selectedParam = searchParams.get("selected");

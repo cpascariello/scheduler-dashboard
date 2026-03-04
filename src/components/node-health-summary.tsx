@@ -5,6 +5,8 @@ import { Card } from "@aleph-front/ds/card";
 import { StatusDot } from "@aleph-front/ds/status-dot";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useOverviewStats } from "@/hooks/use-overview-stats";
+import { nodeStatusToDot } from "@/lib/status-map";
+import type { NodeStatus } from "@/api/types";
 
 type SegmentProps = {
   count: number;
@@ -27,6 +29,13 @@ function Segment({ count, total, color }: SegmentProps) {
   );
 }
 
+type HealthSegment = {
+  label: string;
+  count: number;
+  status: NodeStatus;
+  color: string;
+};
+
 export function NodeHealthSummary() {
   const { data: stats, isLoading } = useOverviewStats();
 
@@ -45,15 +54,17 @@ export function NodeHealthSummary() {
 
   if (!stats) return null;
 
-  const total = stats.totalNodes;
-  const unknown =
-    total - stats.healthyNodes - stats.degradedNodes - stats.offlineNodes;
+  const removedNodes =
+    stats.totalNodes -
+    stats.healthyNodes -
+    stats.unreachableNodes -
+    stats.unknownNodes;
 
-  const segments = [
-    { label: "Healthy", count: stats.healthyNodes, status: "healthy" as const, color: "var(--color-success-500)" },
-    { label: "Degraded", count: stats.degradedNodes, status: "degraded" as const, color: "var(--color-warning-500)" },
-    { label: "Offline", count: stats.offlineNodes, status: "offline" as const, color: "var(--color-error-500)" },
-    { label: "Unknown", count: unknown, status: "unknown" as const, color: "var(--color-neutral-400)" },
+  const segments: HealthSegment[] = [
+    { label: "Healthy", count: stats.healthyNodes, status: "healthy", color: "var(--color-success-500)" },
+    { label: "Unreachable", count: stats.unreachableNodes, status: "unreachable", color: "var(--color-error-500)" },
+    { label: "Unknown", count: stats.unknownNodes, status: "unknown", color: "var(--color-neutral-400)" },
+    { label: "Removed", count: removedNodes, status: "removed", color: "var(--color-warning-500)" },
   ];
 
   return (
@@ -63,7 +74,7 @@ export function NodeHealthSummary() {
           <Segment
             key={seg.label}
             count={seg.count}
-            total={total}
+            total={stats.totalNodes}
             color={seg.color}
           />
         ))}
@@ -79,7 +90,7 @@ export function NodeHealthSummary() {
                 className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm transition-colors hover:bg-muted"
                 style={{ transitionDuration: "var(--duration-fast)" }}
               >
-                <StatusDot status={seg.status} size="sm" />
+                <StatusDot status={nodeStatusToDot(seg.status)} size="sm" />
                 <span className="text-muted-foreground">{seg.label}</span>
                 <span className="ml-auto font-medium tabular-nums">
                   {seg.count}
