@@ -1,4 +1,5 @@
 import type {
+  AlephMessage,
   ApiHistoryRow,
   ApiNodeRow,
   ApiStats,
@@ -269,4 +270,39 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     totalVcpusAllocated: stats.total_vcpus_allocated,
     totalVcpusCapacity: stats.total_vcpus_capacity,
   };
+}
+
+// --- Aleph Message API (api2.aleph.im) ---
+
+function getAlephBaseUrl(): string {
+  return (
+    process.env["NEXT_PUBLIC_ALEPH_API_URL"] ??
+    "https://api2.aleph.im"
+  );
+}
+
+export async function getMessagesByHashes(
+  hashes: string[],
+): Promise<Map<string, number>> {
+  if (hashes.length === 0) return new Map();
+  if (useMocks()) {
+    const { mockVMCreationTimes } = await import("@/api/mock");
+    return mockVMCreationTimes;
+  }
+  const params = new URLSearchParams({
+    hashes: hashes.join(","),
+  });
+  const url = `${getAlephBaseUrl()}/api/v0/messages.json?${params}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Aleph API error: ${res.status} for messages.json`);
+  }
+  const data = (await res.json()) as {
+    messages: AlephMessage[];
+  };
+  const map = new Map<string, number>();
+  for (const msg of data.messages) {
+    map.set(msg.item_hash, msg.time);
+  }
+  return map;
 }

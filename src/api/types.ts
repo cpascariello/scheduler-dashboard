@@ -164,3 +164,10 @@ export type ApiStats = {
   total_vcpus_allocated: number;
   total_vcpus_capacity: number;
 };
+
+// --- Aleph Message API (api2) ---
+
+export type AlephMessage = {
+  item_hash: string;
+  time: number;
+};

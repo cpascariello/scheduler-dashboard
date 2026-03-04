@@ -459,3 +459,13 @@ export function getMockVMDetail(hash: string): VmDetail {
   );
   return { ...vm, history };
 }
+
+// --- VM Creation Times (mock api2 data) ---
+
+export const mockVMCreationTimes: Map<string, number> = new Map(
+  mockVMs.map((vm, i) => [
+    vm.hash,
+    // Stagger by 1 hour each, most recent first
+    Math.floor(Date.now() / 1000) - i * 3600,
+  ]),
+);
