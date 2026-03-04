@@ -48,6 +48,7 @@ src/
 │   ├── stats-bar.tsx       # Overview stat cards row (no sparklines)
 │   ├── node-health-summary.tsx  # Node health bar chart + legend
 │   ├── vm-allocation-summary.tsx # VM status breakdown
+│   ├── top-nodes-card.tsx   # Top nodes by VM count card
 │   ├── node-table.tsx      # Nodes table with status filters
 │   ├── node-detail-panel.tsx # Node detail side panel
 │   ├── vm-table.tsx        # VMs table with status filters
@@ -105,9 +106,16 @@ src/
 ### Cross-Page Navigation via URL Search Params
 
 **Context:** Users need to drill from overview cards to filtered list pages, and between node/VM detail panels.
-**Approach:** URL search params (`?status=`, `?selected=`) are the cross-page communication mechanism. Pages read params on mount via `useSearchParams()` to initialize local state (read-once, no write-back). Overview cards use `<Link>` to navigate with status filters. Detail panels use `<Link>` for cross-entity references. Requires `<Suspense>` boundary in static exports since search params aren't known at build time.
+**Approach:** URL search params (`?status=`, `?selected=`, `?hasVms=`, `?sort=`, `?order=`) are the cross-page communication mechanism. Pages read params on mount via `useSearchParams()` to initialize local state (read-once, no write-back). Overview cards use `<Link>` to navigate with status filters. Detail panels use `<Link>` for cross-entity references. Requires `<Suspense>` boundary in static exports since search params aren't known at build time.
 **Key files:** `src/app/nodes/page.tsx`, `src/app/vms/page.tsx`, `src/components/node-health-summary.tsx`, `src/components/vm-allocation-summary.tsx`, `src/components/node-detail-panel.tsx`, `src/components/vm-detail-panel.tsx`
-**Notes:** Tables accept `initialStatus` prop to seed filter state from URL params. Validation via `Set.has()` prevents invalid status values from breaking the UI. DS Table `activeKey` prop highlights the selected row with a left border accent (`inset box-shadow`); the same accent appears on hover for all clickable rows.
+**Notes:** Tables accept `initialStatus`, `initialHasVms`, and `initialSort` props to seed filter/sort state from URL params. Validation via `Set.has()` prevents invalid status values from breaking the UI. DS Table `activeKey` prop highlights the selected row with a left border accent (`inset box-shadow`); the same accent appears on hover for all clickable rows. The DS Table has no initial sort API — pre-sort data before passing it to `<Table>`.
+
+### Client-Side Filtering Performance
+
+**Context:** Toggling the `hasVms` checkbox caused a visible delay on the nodes table.
+**Approach:** Client-side filters (like `hasVms`) must NOT be part of the React Query key. Changing the key causes a new network request + loading state. Instead, filter in the component after `useNodes()` returns. Wrap filter state setters in `useTransition` so the checkbox/button updates instantly while the expensive table re-render is deferred.
+**Key files:** `src/components/node-table.tsx`
+**Notes:** Only server-supported filters (like `status`) belong in the query key. Client-side filters should be applied post-fetch in the component. This pattern applies to any future client-side filter (e.g., search, sorting).
 
 ### Responsive Layout
 

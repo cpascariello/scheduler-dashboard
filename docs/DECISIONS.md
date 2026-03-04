@@ -18,6 +18,18 @@ Each entry includes:
 
 ---
 
+## Decision #18 - 2026-03-04
+**Context:** `hasVms` checkbox on nodes page caused a visible delay when toggling
+**Decision:** Keep client-side filters out of the React Query key; apply them post-fetch in the component; wrap state setters in `useTransition`
+**Rationale:** Including `hasVms` in the query key (`["nodes", {hasVms: true}]`) made React Query treat it as a different query on toggle — triggering a new network request + loading state for what's actually just a client-side `vmCount > 0` filter. Moving filtering into the component makes the toggle instant (same cached data, different view). `useTransition` defers the expensive table re-render so the checkbox updates in the current frame.
+**Alternatives considered:** `useDeferredValue` on the filtered array (less explicit), keeping in query key with `keepPreviousData` (still causes unnecessary refetch)
+
+## Decision #17 - 2026-03-04
+**Context:** Adding two activity cards to the overview page (Top Nodes + Latest VMs)
+**Decision:** Split into two separate implementation plans and execute sequentially
+**Rationale:** Each card has different complexity — Top Nodes only needs scheduler data, while Latest VMs requires api2.aleph.im integration for creation timestamps. Separate plans avoid context bloat and allow independent review. The `hasVms` filter is client-side since the scheduler API doesn't support it natively.
+**Alternatives considered:** Single combined plan — rejected due to context window concerns
+
 ## Decision #16 - 2026-03-04
 **Context:** API status page design — considered adding a version dropdown to switch between v0/v1
 **Decision:** No version dropdown; hardcode `/api/v1` prefix
