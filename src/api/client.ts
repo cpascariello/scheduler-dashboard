@@ -281,14 +281,11 @@ function getAlephBaseUrl(): string {
   );
 }
 
-export async function getMessagesByHashes(
+const HASHES_PER_BATCH = 100;
+
+async function fetchMessageBatch(
   hashes: string[],
-): Promise<Map<string, number>> {
-  if (hashes.length === 0) return new Map();
-  if (useMocks()) {
-    const { mockVMCreationTimes } = await import("@/api/mock");
-    return mockVMCreationTimes;
-  }
+): Promise<AlephMessage[]> {
   const params = new URLSearchParams({
     hashes: hashes.join(","),
   });
@@ -300,9 +297,27 @@ export async function getMessagesByHashes(
   const data = (await res.json()) as {
     messages: AlephMessage[];
   };
+  return data.messages;
+}
+
+export async function getMessagesByHashes(
+  hashes: string[],
+): Promise<Map<string, number>> {
+  if (hashes.length === 0) return new Map();
+  if (useMocks()) {
+    const { mockVMCreationTimes } = await import("@/api/mock");
+    return mockVMCreationTimes;
+  }
+  const batches: string[][] = [];
+  for (let i = 0; i < hashes.length; i += HASHES_PER_BATCH) {
+    batches.push(hashes.slice(i, i + HASHES_PER_BATCH));
+  }
+  const results = await Promise.all(batches.map(fetchMessageBatch));
   const map = new Map<string, number>();
-  for (const msg of data.messages) {
-    map.set(msg.item_hash, msg.time);
+  for (const messages of results) {
+    for (const msg of messages) {
+      map.set(msg.item_hash, msg.time);
+    }
   }
   return map;
 }
