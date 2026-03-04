@@ -18,6 +18,16 @@ Each entry includes:
 
 ---
 
+## Decision #16 - 2026-03-04
+**Context:** API status page design — considered adding a version dropdown to switch between v0/v1
+**Decision:** No version dropdown; hardcode `/api/v1` prefix
+**Rationale:** v0 has a known bug (per Olivier), and there's no use case for toggling between versions in the dashboard. The `?api=` query param already allows overriding the base URL for debugging. Adding a version selector would be premature complexity.
+
+## Decision #15 - 2026-03-04
+**Context:** Switching API prefix from `/api/v0` to `/api/v1`
+**Decision:** Replace all v0 references with v1 across client and tests
+**Rationale:** Per Olivier's guidance, `/api/v0/nodes` has a bug and `/api/v1` is the stable version. All 12 integration tests pass against v1 endpoints on `rust-scheduler.aleph.im`.
+
 ## Decision #14 - 2026-03-04
 **Context:** Migrating from mock-only data to real scheduler API integration (`/api/v0` at port 8081)
 **Decision:** Full type rewrite (not incremental field renames), remove EventFeed and sparklines, derive per-status counts client-side

@@ -25,11 +25,6 @@ Ideas and scope creep captured for later consideration.
 **Description:** The DS `StatusDot` only accepts `"healthy" | "degraded" | "error" | "offline" | "unknown"`. API node statuses include `"unreachable"` and `"removed"` which we map to `"error"` and `"offline"` respectively via `nodeStatusToDot()`. Consider adding native `"unreachable"` and `"removed"` variants to the DS for semantic accuracy.
 **Priority:** Low
 
-### 2026-03-04 - Verify real API integration end-to-end
-**Source:** Testing against rust-scheduler.aleph.im
-**Description:** API was returning empty responses during testing (likely resyncing). Need to verify: (1) data renders correctly on all pages when API is back, (2) wrapped array responses (`{"nodes": [...]}`) handled by `unwrapArray()`, (3) CORS works from production origin. Also confirm with Olivier when `/api/v1` goes live to switch the prefix.
-**Priority:** High
-
 ### 2026-03-01 - WebSocket migration
 **Source:** Design doc
 **Description:** Replace polling with WebSocket connections for real-time event streaming. Would reduce latency and server load compared to 10-30s polling intervals.
@@ -66,5 +61,6 @@ Ideas and scope creep captured for later consideration.
 - ✅ 2026-03-03 - IPFS page refresh: add trailingSlash — fixed by adding `trailingSlash: true` to `next.config.ts`
 - ✅ 2026-03-04 - DS npm publishing — migrated from `file:` link to npm `0.0.3`
 - ✅ 2026-03-04 - Real API integration — full type rewrite, client with `/api/v0` prefix, snake→camel transform layer, mock fallback preserved
+- ✅ 2026-03-04 - Verify real API integration end-to-end — addressed by API status page + v0→v1 switch (all 12 integration tests pass against v1)
 
 </details>

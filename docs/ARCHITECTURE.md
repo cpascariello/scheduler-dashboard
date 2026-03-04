@@ -27,11 +27,13 @@ src/
 │   ├── globals.css         # Tailwind + DS tokens import
 │   ├── nodes/
 │   │   └── page.tsx        # Nodes page
+│   ├── status/
+│   │   └── page.tsx        # API status page (endpoint health checks)
 │   └── vms/
 │       └── page.tsx        # VMs page
 ├── api/
 │   ├── types.ts            # Scheduler entity types
-│   ├── client.ts           # API client (/api/v0) with mock fallback + snake→camel transform
+│   ├── client.ts           # API client (/api/v1) with mock fallback + snake→camel transform
 │   ├── mock.ts              # Deterministic mock data (15 nodes, 43 VMs, 40 history rows)
 │   └── mock.test.ts         # Mock data integrity tests
 ├── hooks/
@@ -63,7 +65,7 @@ src/
 ### API Client with Mock Fallback
 
 **Context:** Dashboard must work without a live API (static export on IPFS).
-**Approach:** Each API function checks `NEXT_PUBLIC_USE_MOCKS` env var. If true, dynamically imports mock data. If false, fetches from `NEXT_PUBLIC_API_URL` (default: `http://localhost:8081`). Runtime URL override via `?api=` query parameter. API endpoints are prefixed with `/api/v0`. Wire types (`Api*Row`) use snake_case matching the raw JSON; transform functions convert to camelCase app types. Detail endpoints (`getNode`, `getVM`) use `Promise.all` for parallel fetching of the resource + related VMs/history.
+**Approach:** Each API function checks `NEXT_PUBLIC_USE_MOCKS` env var. If true, dynamically imports mock data. If false, fetches from `NEXT_PUBLIC_API_URL` (default: `http://localhost:8081`). Runtime URL override via `?api=` query parameter. API endpoints are prefixed with `/api/v1`. Wire types (`Api*Row`) use snake_case matching the raw JSON; transform functions convert to camelCase app types. Detail endpoints (`getNode`, `getVM`) use `Promise.all` for parallel fetching of the resource + related VMs/history.
 **Key files:** `src/api/types.ts` (wire + app types), `src/api/client.ts`, `src/api/mock.ts`
 **Notes:** Dynamic imports keep mock data tree-shakeable in production builds. The `getOverviewStats` function fetches `/stats` + `/vms` + `/nodes` in parallel to derive per-status counts not available from `/stats` alone.
 
@@ -124,6 +126,12 @@ src/
 2. Add nav entry to `NAV_ITEMS` in `src/components/app-sidebar.tsx`
 3. Add route title to `ROUTE_TITLES` in `src/components/app-header.tsx`
 4. Verify with `pnpm build` (static export must include the route)
+
+### API Status Page
+
+**Context:** Need a diagnostic page to verify all scheduler endpoints are reachable.
+**Approach:** Standalone client component at `/status` that fires fetch requests to all 7 API endpoints on mount. Uses a two-phase strategy: first hits independent endpoints (stats, nodes list, vms list), then resolves `:hash` placeholders from list results for dependent endpoints (node/vm detail + history). `Promise.allSettled` ensures one failure doesn't block others. StatusDot shows health, HTTP codes displayed alongside. Base URL comes from `NEXT_PUBLIC_API_URL` with `?api=` query param override. Sidebar link is separated from main nav via `border-t` to signal it's a utility page, not primary navigation.
+**Key files:** `src/app/status/page.tsx`, `src/components/app-sidebar.tsx`
 
 ### Adding a New API Endpoint
 
