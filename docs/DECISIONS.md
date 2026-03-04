@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #13 - 2026-03-04
+**Context:** `@aleph-front/ds` is now published on npm; the `file:` link required the DS repo cloned locally
+**Decision:** Migrate from `file:../aleph-cloud-ds/packages/ds` to pinned npm version (`0.0.3`)
+**Rationale:** npm dependency removes the requirement to have the DS repo cloned adjacent to the dashboard. CI/CD can install without local filesystem access. Version pinning (exact, no `^`) ensures reproducible builds. The DS still publishes raw `.tsx` source, so `transpilePackages`, `@ac/*` alias, and Tailwind `@source` directive remain unchanged.
+**Alternatives considered:** Using `^0.0.x` range (risky with 0.x semver — patch versions can break), publishing pre-compiled output (more work in DS, no benefit yet since only one consumer).
+
 ## Decision #12 - 2026-03-03
 **Context:** Page refresh on `/nodes` or `/vms` shows IPFS gateway directory listing instead of the app
 **Decision:** Add `trailingSlash: true` to `next.config.ts`

@@ -35,11 +35,6 @@ Ideas and scope creep captured for later consideration.
 **Description:** Add Playwright E2E tests for critical user flows: navigate pages, filter tables, open detail panels, toggle theme.
 **Priority:** Medium
 
-### 2026-03-01 - DS npm publishing
-**Source:** Design doc
-**Description:** Publish `@aleph-front/ds` to npm instead of using `file:` protocol linking. Would enable version pinning and CI/CD without local repo dependency.
-**Priority:** Low
-
 ### 2026-03-01 - Resource usage charts (Recharts)
 **Source:** Design doc
 **Description:** Add time-series charts for CPU/memory/disk usage history on node detail views. Recharts is now used for stat card sparklines — same pattern can be extended to larger detail charts.
@@ -59,5 +54,6 @@ Ideas and scope creep captured for later consideration.
 
 - ✅ 2026-03-02 - Align DS color tokens with Tailwind conventions — resolved by Decision #11 (dashboard uses `--color-error-*` tokens directly)
 - ✅ 2026-03-03 - IPFS page refresh: add trailingSlash — fixed by adding `trailingSlash: true` to `next.config.ts`
+- ✅ 2026-03-04 - DS npm publishing — migrated from `file:` link to npm `0.0.3`
 
 </details>

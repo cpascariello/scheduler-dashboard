@@ -218,4 +218,4 @@ When adding a new component to `@aleph-front/ds`, follow the "Adding a New Compo
 - React Query hooks with automatic polling (10-30s intervals)
 - Cross-page navigation via URL search params (`?status=`, `?selected=`): overview cards link to filtered list pages, detail panels cross-link between nodes and VMs, selected row highlighted with left border accent
 - Static export for IPFS deployment
-- `@aleph-front/ds` integration via `file:` link and `transpilePackages`
+- `@aleph-front/ds` integration via npm (pinned version) and `transpilePackages`
