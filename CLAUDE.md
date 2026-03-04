@@ -60,7 +60,7 @@ When the conversation drifts from the stated task:
 
 **Branching:**
 - Brainstorm and plan on main
-- **Push main before branching** — unpushed commits on main cause divergence after squash merge
+- **Pull main before branching** — stale main causes merge conflicts
 - When dev starts, create feature branch from main before any file edits
 - Branch naming: `feature/[plan-name]`
 
@@ -79,10 +79,10 @@ When the conversation drifts from the stated task:
 **During development:** Track intent, not metrics.
 
 - **Scope drift:** "This started as [X] but now includes [Y]. Commit [X] first?"
-- **Feature complete:** When user says "done" or "that's it" -> squash merge to main
+- **Feature complete:** When user says "done" or "that's it" -> push branch, create PR, `gh pr merge --squash`
 - **Pre-break:** When user says "break", "later", "tomorrow" -> "Push before you go?"
 
-**Completion:** Squash merge keeps main history clean (one commit per feature).
+**Completion:** `gh pr merge --squash` keeps main history clean (one commit per feature). Never push directly to main — always go through a PR.
 
 Never interrupt based on file count or commit count.
 
