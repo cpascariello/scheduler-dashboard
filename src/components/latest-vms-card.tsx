@@ -14,21 +14,9 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVMs } from "@/hooks/use-vms";
 import { useVMCreationTimes } from "@/hooks/use-vm-creation-times";
 import { truncateHash, relativeTimeFromUnix } from "@/lib/format";
-import type { VmStatus } from "@/api/types";
+import { VM_STATUS_VARIANT } from "@/lib/status-map";
 
 const MAX_ROWS = 15;
-
-const VM_STATUS_VARIANT: Record<
-  VmStatus,
-  "default" | "success" | "warning" | "error" | "info"
-> = {
-  scheduled: "success",
-  unscheduled: "default",
-  orphaned: "warning",
-  missing: "error",
-  unschedulable: "error",
-  unknown: "default",
-};
 
 export function LatestVMsCard() {
   const { data: vms, isLoading } = useVMs();
@@ -38,9 +26,9 @@ export function LatestVMsCard() {
   if (isLoading) {
     return (
       <Card title="Latest VMs" padding="md" className="flex-1">
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           {Array.from({ length: 5 }, (_, i) => (
-            <Skeleton key={i} className="h-8 w-full" />
+            <Skeleton key={i} className="h-10 w-full" />
           ))}
         </div>
       </Card>
@@ -57,7 +45,6 @@ export function LatestVMsCard() {
     );
   }
 
-  // Sort by creation time if available, otherwise by updatedAt
   const sorted = [...allVMs]
     .sort((a, b) => {
       const timeA = creationTimes?.get(a.hash);
@@ -75,21 +62,26 @@ export function LatestVMsCard() {
   return (
     <Card title="Latest VMs" padding="md" className="flex-1">
       <TooltipProvider>
-        <ul className="space-y-1">
+        <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
           {sorted.map((vm) => {
             const createdAt = creationTimes?.get(vm.hash);
             return (
               <li key={vm.hash}>
                 <Link
                   href={`/vms?selected=${vm.hash}`}
-                  className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-sm transition-colors hover:bg-muted"
+                  className="flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-muted"
                   style={{
                     transitionDuration: "var(--duration-fast)",
                   }}
                 >
-                  <Badge variant={VM_STATUS_VARIANT[vm.status]} className="capitalize">
+                  <Badge
+                    variant={VM_STATUS_VARIANT[vm.status]}
+                    size="sm"
+                    className="w-24 shrink-0 justify-center capitalize"
+                  >
                     {vm.status}
                   </Badge>
+
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="min-w-0 flex-1 truncate font-mono text-xs">
@@ -98,6 +90,7 @@ export function LatestVMsCard() {
                     </TooltipTrigger>
                     <TooltipContent>{vm.hash}</TooltipContent>
                   </Tooltip>
+
                   <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">
                     {createdAt != null ? (
                       relativeTimeFromUnix(createdAt)

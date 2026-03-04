@@ -15,7 +15,10 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useNodes } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
 import { truncateHash, relativeTime } from "@/lib/format";
-import { nodeStatusToDot } from "@/lib/status-map";
+import {
+  nodeStatusToDot,
+  NODE_STATUS_VARIANT,
+} from "@/lib/status-map";
 import type { Node, NodeFilters, NodeStatus } from "@/api/types";
 
 const STATUS_FILTERS: { label: string; value: NodeStatus | undefined }[] = [
@@ -25,16 +28,6 @@ const STATUS_FILTERS: { label: string; value: NodeStatus | undefined }[] = [
   { label: "Unknown", value: "unknown" },
   { label: "Removed", value: "removed" },
 ];
-
-const STATUS_VARIANT: Record<
-  NodeStatus,
-  "default" | "success" | "warning" | "error" | "info"
-> = {
-  healthy: "success",
-  unreachable: "error",
-  unknown: "default",
-  removed: "warning",
-};
 
 const columns: Column<Node>[] = [
   {
@@ -63,7 +56,7 @@ const columns: Column<Node>[] = [
   {
     header: "Status",
     accessor: (r) => (
-      <Badge variant={STATUS_VARIANT[r.status]} size="sm" className="capitalize">
+      <Badge variant={NODE_STATUS_VARIANT[r.status]} size="sm" className="capitalize">
         {r.status}
       </Badge>
     ),

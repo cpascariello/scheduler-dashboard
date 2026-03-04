@@ -12,6 +12,7 @@ import {
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVMs } from "@/hooks/use-vms";
 import { truncateHash } from "@/lib/format";
+import { VM_STATUS_VARIANT } from "@/lib/status-map";
 import type { VM, VmStatus } from "@/api/types";
 
 const STATUS_FILTERS: { label: string; value: VmStatus | undefined }[] = [
@@ -23,18 +24,6 @@ const STATUS_FILTERS: { label: string; value: VmStatus | undefined }[] = [
   { label: "Unschedulable", value: "unschedulable" },
   { label: "Unknown", value: "unknown" },
 ];
-
-const VM_STATUS_VARIANT: Record<
-  VmStatus,
-  "default" | "success" | "warning" | "error" | "info"
-> = {
-  scheduled: "info",
-  unscheduled: "default",
-  orphaned: "warning",
-  missing: "error",
-  unschedulable: "error",
-  unknown: "default",
-};
 
 function isDiscrepancy(vm: VM): boolean {
   return (

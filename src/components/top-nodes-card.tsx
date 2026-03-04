@@ -17,15 +17,21 @@ import { nodeStatusToDot } from "@/lib/status-map";
 
 const MAX_ROWS = 15;
 
+function barColor(status: string): string {
+  if (status === "healthy") return "var(--color-success-500)";
+  if (status === "unreachable") return "var(--color-error-500)";
+  return "var(--color-muted-foreground)";
+}
+
 export function TopNodesCard() {
   const { data: nodes, isLoading } = useNodes();
 
   if (isLoading) {
     return (
       <Card title="Top Nodes" padding="md" className="flex-1">
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           {Array.from({ length: 5 }, (_, i) => (
-            <Skeleton key={i} className="h-8 w-full" />
+            <Skeleton key={i} className="h-10 w-full" />
           ))}
         </div>
       </Card>
@@ -47,40 +53,69 @@ export function TopNodesCard() {
     );
   }
 
+  const maxCount = topNodes[0]?.vmCount ?? 1;
+
   return (
     <Card title="Top Nodes" padding="md" className="flex-1">
       <TooltipProvider>
-        <ul className="space-y-1">
-          {topNodes.map((node) => (
-            <li key={node.hash}>
-              <Link
-                href={`/nodes?selected=${node.hash}`}
-                className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-sm transition-colors hover:bg-muted"
-                style={{
-                  transitionDuration: "var(--duration-fast)",
-                }}
-              >
-                <StatusDot
-                  status={nodeStatusToDot(node.status)}
-                  size="sm"
-                />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="min-w-0 flex-1 truncate font-mono text-xs">
-                      {node.name ?? truncateHash(node.hash)}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {node.hash}
-                  </TooltipContent>
-                </Tooltip>
-                <span className="ml-auto shrink-0 tabular-nums text-muted-foreground">
-                  {node.vmCount} {node.vmCount === 1 ? "VM" : "VMs"}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <ol className="space-y-1">
+          {topNodes.map((node, i) => {
+            const pct = (node.vmCount / maxCount) * 100;
+            return (
+              <li key={node.hash}>
+                <Link
+                  href={`/nodes?selected=${node.hash}`}
+                  className="group flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted"
+                  style={{
+                    transitionDuration: "var(--duration-fast)",
+                  }}
+                >
+                  {/* Rank */}
+                  <span className="w-5 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+                    {i + 1}
+                  </span>
+
+                  {/* Status */}
+                  <StatusDot
+                    status={nodeStatusToDot(node.status)}
+                    size="sm"
+                  />
+
+                  {/* Name + bar */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="truncate font-mono text-xs">
+                            {node.name ?? truncateHash(node.hash)}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {node.hash}
+                        </TooltipContent>
+                      </Tooltip>
+                      <span className="shrink-0 text-xs font-medium tabular-nums">
+                        {node.vmCount}
+                      </span>
+                    </div>
+
+                    {/* Proportional bar */}
+                    <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${pct}%`,
+                          backgroundColor: barColor(node.status),
+                          transitionDuration: "var(--duration-normal)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
       </TooltipProvider>
 
       <div className="mt-3 border-t border-border pt-3">
