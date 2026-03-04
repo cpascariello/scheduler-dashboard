@@ -1,4 +1,5 @@
 import type {
+  AlephMessage,
   ApiHistoryRow,
   ApiNodeRow,
   ApiStats,
@@ -269,4 +270,54 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     totalVcpusAllocated: stats.total_vcpus_allocated,
     totalVcpusCapacity: stats.total_vcpus_capacity,
   };
+}
+
+// --- Aleph Message API (api2.aleph.im) ---
+
+function getAlephBaseUrl(): string {
+  return (
+    process.env["NEXT_PUBLIC_ALEPH_API_URL"] ??
+    "https://api2.aleph.im"
+  );
+}
+
+const HASHES_PER_BATCH = 100;
+
+async function fetchMessageBatch(
+  hashes: string[],
+): Promise<AlephMessage[]> {
+  const params = new URLSearchParams({
+    hashes: hashes.join(","),
+  });
+  const url = `${getAlephBaseUrl()}/api/v0/messages.json?${params}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Aleph API error: ${res.status} for messages.json`);
+  }
+  const data = (await res.json()) as {
+    messages: AlephMessage[];
+  };
+  return data.messages;
+}
+
+export async function getMessagesByHashes(
+  hashes: string[],
+): Promise<Map<string, number>> {
+  if (hashes.length === 0) return new Map();
+  if (useMocks()) {
+    const { mockVMCreationTimes } = await import("@/api/mock");
+    return mockVMCreationTimes;
+  }
+  const batches: string[][] = [];
+  for (let i = 0; i < hashes.length; i += HASHES_PER_BATCH) {
+    batches.push(hashes.slice(i, i + HASHES_PER_BATCH));
+  }
+  const results = await Promise.all(batches.map(fetchMessageBatch));
+  const map = new Map<string, number>();
+  for (const messages of results) {
+    for (const msg of messages) {
+      map.set(msg.item_hash, msg.time);
+    }
+  }
+  return map;
 }
