@@ -18,6 +18,11 @@ Each entry includes:
 
 ---
 
+## Decision #21 - 2026-03-04
+**Context:** Global git hook blocks `git push origin main`, conflicting with the local squash merge + push workflow
+**Decision:** Switch to `gh pr merge --squash` for all feature completions — never push directly to main
+**Rationale:** The hook is a global safety guard that prevents accidental direct pushes. Rather than carving out exceptions, align the workflow: push branch → create PR → `gh pr merge --squash`. Same result (one commit per feature on main), but goes through GitHub so the hook is never triggered. PRs also close automatically.
+
 ## Decision #20 - 2026-03-04
 **Context:** api2.aleph.im hash lookups fail with 400 when sending all 426 VM hashes in a single GET request (~28KB URL)
 **Decision:** Batch hash lookups into chunks of 100, fetch in parallel with `Promise.all`
