@@ -22,7 +22,7 @@ const VM_STATUS_VARIANT: Record<
   VmStatus,
   "default" | "success" | "warning" | "error" | "info"
 > = {
-  scheduled: "info",
+  scheduled: "success",
   unscheduled: "default",
   orphaned: "warning",
   missing: "error",
