@@ -9,9 +9,9 @@ import type { NodeStatus } from "@/api/types";
 
 const VALID_NODE_STATUSES = new Set<string>([
   "healthy",
-  "degraded",
-  "offline",
+  "unreachable",
   "unknown",
+  "removed",
 ]);
 
 function NodesContent() {

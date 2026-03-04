@@ -6,17 +6,18 @@ import { Badge } from "@aleph-front/ds/badge";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVM } from "@/hooks/use-vms";
 import { relativeTime, truncateHash } from "@/lib/format";
-import type { VMStatus } from "@/api/types";
+import type { VmStatus } from "@/api/types";
 
 const VM_STATUS_VARIANT: Record<
-  VMStatus,
+  VmStatus,
   "default" | "success" | "warning" | "error" | "info"
 > = {
   scheduled: "info",
-  observed: "success",
+  unscheduled: "default",
   orphaned: "warning",
   missing: "error",
   unschedulable: "error",
+  unknown: "default",
 };
 
 type VMDetailPanelProps = {
@@ -69,37 +70,38 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Scheduled Status</dt>
+          <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge variant={VM_STATUS_VARIANT[vm.scheduledStatus]} size="sm">
-              {vm.scheduledStatus}
+            <Badge variant={VM_STATUS_VARIANT[vm.status]} size="sm">
+              {vm.status}
             </Badge>
           </dd>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-muted-foreground">Observed Status</dt>
-          <dd>
-            {vm.observedStatus ? (
-              <Badge variant={VM_STATUS_VARIANT[vm.observedStatus]} size="sm">
-                {vm.observedStatus}
+        {vm.paymentStatus && (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Payment</dt>
+            <dd>
+              <Badge
+                variant={vm.paymentStatus === "validated" ? "success" : "error"}
+                size="sm"
+              >
+                {vm.paymentStatus}
               </Badge>
-            ) : (
-              <span className="text-xs text-muted-foreground">—</span>
-            )}
-          </dd>
-        </div>
+            </dd>
+          </div>
+        )}
       </dl>
 
       <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Assigned Node
+          Allocated Node
         </h4>
-        {vm.assignedNode ? (
+        {vm.allocatedNode ? (
           <Link
-            href={`/nodes?selected=${vm.assignedNode}`}
+            href={`/nodes?selected=${vm.allocatedNode}`}
             className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
           >
-            {truncateHash(vm.assignedNode)}
+            {truncateHash(vm.allocatedNode)}
             <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
             </svg>
@@ -109,65 +111,76 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
         )}
       </div>
 
-      <div className="mt-4 space-y-2 border-t border-edge pt-3">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Requirements
-        </h4>
-        <dl className="space-y-1 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">CPU</dt>
-            <dd className="tabular-nums">{vm.requirements.cpu} cores</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Memory</dt>
-            <dd className="tabular-nums">{vm.requirements.memory} GB</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Disk</dt>
-            <dd className="tabular-nums">{vm.requirements.disk} GB</dd>
-          </div>
-        </dl>
-      </div>
-
-      {vm.schedulingHistory.length > 0 && (
+      {vm.observedNodes.length > 0 && (
         <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Scheduling History
+            Observed Nodes ({vm.observedNodes.length})
           </h4>
           <ul className="space-y-1">
-            {vm.schedulingHistory.map((evt) => (
-              <li
-                key={evt.id}
-                className="flex items-center justify-between text-sm"
-              >
-                <span className="text-xs text-muted-foreground">
-                  {evt.type.replace(/_/g, " ")}
-                </span>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {relativeTime(evt.timestamp)}
-                </span>
+            {vm.observedNodes.map((nodeHash) => (
+              <li key={nodeHash}>
+                <Link
+                  href={`/nodes?selected=${nodeHash}`}
+                  className="group/link inline-flex items-center gap-1 font-mono text-xs text-primary-300 hover:underline"
+                >
+                  {truncateHash(nodeHash)}
+                  <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
+                  </svg>
+                </Link>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {vm.recentEvents.length > 0 && (
+      <div className="mt-4 space-y-2 border-t border-edge pt-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Requirements
+        </h4>
+        <dl className="space-y-1 text-sm">
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">vCPUs</dt>
+            <dd className="tabular-nums">
+              {vm.requirements.vcpus ?? "—"}
+            </dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Memory</dt>
+            <dd className="tabular-nums">
+              {vm.requirements.memoryMb != null
+                ? `${vm.requirements.memoryMb} MB`
+                : "—"}
+            </dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Disk</dt>
+            <dd className="tabular-nums">
+              {vm.requirements.diskMb != null
+                ? `${vm.requirements.diskMb} MB`
+                : "—"}
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      {vm.history.length > 0 && (
         <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Recent Events
+            History
           </h4>
           <ul className="space-y-1">
-            {vm.recentEvents.slice(0, 5).map((evt) => (
+            {vm.history.slice(0, 10).map((row) => (
               <li
-                key={evt.id}
+                key={row.id}
                 className="flex items-center justify-between text-sm"
               >
                 <span className="text-xs text-muted-foreground">
-                  {evt.type.replace(/_/g, " ")}
+                  {row.action.replace(/_/g, " ")}
+                  {row.reason ? ` (${row.reason})` : ""}
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums">
-                  {relativeTime(evt.timestamp)}
+                  {relativeTime(row.timestamp)}
                 </span>
               </li>
             ))}

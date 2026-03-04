@@ -8,6 +8,30 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useNode } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
 import { relativeTime, truncateHash } from "@/lib/format";
+import { nodeStatusToDot } from "@/lib/status-map";
+import type { NodeStatus, VmStatus } from "@/api/types";
+
+const NODE_STATUS_VARIANT: Record<
+  NodeStatus,
+  "default" | "success" | "warning" | "error" | "info"
+> = {
+  healthy: "success",
+  unreachable: "error",
+  unknown: "default",
+  removed: "warning",
+};
+
+const VM_STATUS_VARIANT: Record<
+  VmStatus,
+  "default" | "success" | "warning" | "error" | "info"
+> = {
+  scheduled: "info",
+  unscheduled: "default",
+  unschedulable: "error",
+  missing: "error",
+  orphaned: "warning",
+  unknown: "default",
+};
 
 type NodeDetailPanelProps = {
   hash: string;
@@ -34,8 +58,10 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
     <Card padding="md" className="w-full lg:w-96">
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <StatusDot status={node.status} />
-          <h3 className="text-sm font-bold">{truncateHash(node.hash, 12)}</h3>
+          <StatusDot status={nodeStatusToDot(node.status)} />
+          <h3 className="text-sm font-bold">
+            {node.name ?? truncateHash(node.hash, 12)}
+          </h3>
         </div>
         <button
           type="button"
@@ -53,58 +79,59 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
           <dt className="text-muted-foreground">Full Hash</dt>
           <dd className="font-mono text-xs">{node.hash}</dd>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-muted-foreground">Address</dt>
-          <dd className="truncate ml-4 text-xs">{node.address}</dd>
-        </div>
+        {node.address && (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Address</dt>
+            <dd className="truncate ml-4 text-xs">{node.address}</dd>
+          </div>
+        )}
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge
-              variant={
-                node.status === "healthy"
-                  ? "success"
-                  : node.status === "degraded"
-                    ? "warning"
-                    : node.status === "offline"
-                      ? "error"
-                      : "default"
-              }
-              size="sm"
-            >
+            <Badge variant={NODE_STATUS_VARIANT[node.status]} size="sm">
               {node.status}
             </Badge>
           </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Staked</dt>
-          <dd className="tabular-nums">
-            {node.stakedAmount.toLocaleString()} ALEPH
+          <dd>
+            <Badge variant={node.staked ? "success" : "default"} size="sm">
+              {node.staked ? "Yes" : "No"}
+            </Badge>
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Last Seen</dt>
-          <dd className="text-xs">{relativeTime(node.lastSeen)}</dd>
+          <dt className="text-muted-foreground">Updated</dt>
+          <dd className="text-xs">{relativeTime(node.updatedAt)}</dd>
         </div>
       </dl>
 
-      <div className="mt-4 space-y-2 border-t border-edge pt-3">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Resources
-        </h4>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">CPU ({node.resources.cpu} cores)</span>
-          <ResourceBar value={node.resources.cpuUsage} label="CPU" />
+      {node.resources && (
+        <div className="mt-4 space-y-2 border-t border-edge pt-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Resources
+          </h4>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              CPU ({node.resources.vcpusTotal} vCPUs)
+            </span>
+            <ResourceBar value={node.resources.cpuUsagePct} label="CPU" />
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Mem ({Math.round(node.resources.memoryTotalMb / 1024)} GB)
+            </span>
+            <ResourceBar value={node.resources.memoryUsagePct} label="Memory" />
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Disk ({Math.round(node.resources.diskTotalMb / 1024)} GB)
+            </span>
+            <ResourceBar value={node.resources.diskUsagePct} label="Disk" />
+          </div>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Mem ({node.resources.memory} GB)</span>
-          <ResourceBar value={node.resources.memoryUsage} label="Memory" />
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Disk ({node.resources.disk} GB)</span>
-          <ResourceBar value={node.resources.diskUsage} label="Disk" />
-        </div>
-      </div>
+      )}
 
       {node.vms.length > 0 && (
         <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
@@ -126,19 +153,8 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
                   </svg>
                 </Link>
-                <Badge
-                  variant={
-                    vm.scheduledStatus === "scheduled"
-                      ? "info"
-                      : vm.scheduledStatus === "orphaned"
-                        ? "warning"
-                        : vm.scheduledStatus === "missing"
-                          ? "error"
-                          : "default"
-                  }
-                  size="sm"
-                >
-                  {vm.scheduledStatus}
+                <Badge variant={VM_STATUS_VARIANT[vm.status]} size="sm">
+                  {vm.status}
                 </Badge>
               </li>
             ))}
@@ -146,22 +162,23 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
         </div>
       )}
 
-      {node.recentEvents.length > 0 && (
+      {node.history.length > 0 && (
         <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Recent Events
+            History
           </h4>
           <ul className="space-y-1">
-            {node.recentEvents.slice(0, 5).map((evt) => (
+            {node.history.slice(0, 10).map((row) => (
               <li
-                key={evt.id}
+                key={row.id}
                 className="flex items-center justify-between text-sm"
               >
                 <span className="text-xs text-muted-foreground">
-                  {evt.type.replace(/_/g, " ")}
+                  {row.action.replace(/_/g, " ")}
+                  {row.reason ? ` (${row.reason})` : ""}
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums">
-                  {relativeTime(evt.timestamp)}
+                  {relativeTime(row.timestamp)}
                 </span>
               </li>
             ))}

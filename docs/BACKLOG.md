@@ -15,9 +15,19 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
-### 2026-03-01 - Real API integration
-**Source:** Initial scaffolding (mock data layer is a placeholder)
-**Description:** Replace mock data with real scheduler API calls. Update `src/api/client.ts` functions to hit actual endpoints. Remove `NEXT_PUBLIC_USE_MOCKS` env var.
+### 2026-03-04 - Stats sparklines via client-side accumulation
+**Source:** Identified while working on real API migration (Decision #14)
+**Description:** The API has no `/stats/history` endpoint. Sparklines were removed during migration. Could accumulate stats snapshots client-side in React Query cache (or a simple in-memory ring buffer) to rebuild 24h trend data. Better solution: request a `/stats/history` endpoint from the backend team.
+**Priority:** Medium
+
+### 2026-03-04 - DS StatusDot variants for unreachable/removed
+**Source:** Identified while working on real API migration
+**Description:** The DS `StatusDot` only accepts `"healthy" | "degraded" | "error" | "offline" | "unknown"`. API node statuses include `"unreachable"` and `"removed"` which we map to `"error"` and `"offline"` respectively via `nodeStatusToDot()`. Consider adding native `"unreachable"` and `"removed"` variants to the DS for semantic accuracy.
+**Priority:** Low
+
+### 2026-03-04 - Verify real API integration end-to-end
+**Source:** Testing against rust-scheduler.aleph.im
+**Description:** API was returning empty responses during testing (likely resyncing). Need to verify: (1) data renders correctly on all pages when API is back, (2) wrapped array responses (`{"nodes": [...]}`) handled by `unwrapArray()`, (3) CORS works from production origin. Also confirm with Olivier when `/api/v1` goes live to switch the prefix.
 **Priority:** High
 
 ### 2026-03-01 - WebSocket migration
@@ -35,9 +45,9 @@ Ideas and scope creep captured for later consideration.
 **Description:** Add Playwright E2E tests for critical user flows: navigate pages, filter tables, open detail panels, toggle theme.
 **Priority:** Medium
 
-### 2026-03-01 - Resource usage charts (Recharts)
+### 2026-03-01 - Resource usage charts
 **Source:** Design doc
-**Description:** Add time-series charts for CPU/memory/disk usage history on node detail views. Recharts is now used for stat card sparklines — same pattern can be extended to larger detail charts.
+**Description:** Add time-series charts for CPU/memory/disk usage history on node detail views. Recharts was removed during API migration — would need to re-add or use a lighter charting library.
 **Priority:** Medium
 
 ### 2026-03-03 - Automated IPFS deployment via Aleph CLI
@@ -55,5 +65,6 @@ Ideas and scope creep captured for later consideration.
 - ✅ 2026-03-02 - Align DS color tokens with Tailwind conventions — resolved by Decision #11 (dashboard uses `--color-error-*` tokens directly)
 - ✅ 2026-03-03 - IPFS page refresh: add trailingSlash — fixed by adding `trailingSlash: true` to `next.config.ts`
 - ✅ 2026-03-04 - DS npm publishing — migrated from `file:` link to npm `0.0.3`
+- ✅ 2026-03-04 - Real API integration — full type rewrite, client with `/api/v0` prefix, snake→camel transform layer, mock fallback preserved
 
 </details>

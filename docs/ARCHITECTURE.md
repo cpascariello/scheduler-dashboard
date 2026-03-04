@@ -31,31 +31,29 @@ src/
 │       └── page.tsx        # VMs page
 ├── api/
 │   ├── types.ts            # Scheduler entity types
-│   ├── client.ts           # API client with mock fallback
-│   ├── mock.ts              # Deterministic mock data (15 nodes, 40 VMs, 50 events, 24h stats history)
+│   ├── client.ts           # API client (/api/v0) with mock fallback + snake→camel transform
+│   ├── mock.ts              # Deterministic mock data (15 nodes, 43 VMs, 40 history rows)
 │   └── mock.test.ts         # Mock data integrity tests
 ├── hooks/
 │   ├── use-nodes.ts        # useNodes, useNode (30s/15s polling)
 │   ├── use-vms.ts          # useVMs, useVM (30s/15s polling)
-│   ├── use-events.ts       # useEvents (10s polling)
-│   ├── use-overview-stats.ts  # useOverviewStats (30s polling)
-│   └── use-stats-history.ts   # useStatsHistory (30s polling)
+│   └── use-overview-stats.ts  # useOverviewStats (30s polling)
 ├── components/
 │   ├── app-shell.tsx       # Layout: sidebar + header + content
 │   ├── app-sidebar.tsx     # Navigation sidebar
 │   ├── app-header.tsx      # Page title + theme toggle
 │   ├── theme-toggle.tsx    # Dark/light toggle with localStorage
-│   ├── stats-bar.tsx       # Overview stat cards row
+│   ├── stats-bar.tsx       # Overview stat cards row (no sparklines)
 │   ├── node-health-summary.tsx  # Node health bar chart + legend
 │   ├── vm-allocation-summary.tsx # VM status breakdown
-│   ├── event-feed.tsx      # Chronological event list with category filters
 │   ├── node-table.tsx      # Nodes table with status filters
 │   ├── node-detail-panel.tsx # Node detail side panel
 │   ├── vm-table.tsx        # VMs table with status filters
 │   ├── vm-detail-panel.tsx # VM detail side panel
 │   └── resource-bar.tsx    # CPU/memory/disk usage bar
 └── lib/
-    └── format.ts           # relativeTime, truncateHash, formatPercent
+    ├── format.ts           # relativeTime, truncateHash, formatPercent
+    └── status-map.ts       # nodeStatusToDot() — maps API node statuses to DS StatusDot variants
 ```
 
 ---
@@ -65,14 +63,14 @@ src/
 ### API Client with Mock Fallback
 
 **Context:** Dashboard must work without a live API (static export on IPFS).
-**Approach:** Each API function checks `NEXT_PUBLIC_USE_MOCKS` env var. If true, dynamically imports mock data. If false, fetches from `NEXT_PUBLIC_API_URL`. Runtime URL override via `?api=` query parameter.
-**Key files:** `src/api/client.ts`, `src/api/mock.ts`
-**Notes:** Dynamic imports keep mock data tree-shakeable in production builds.
+**Approach:** Each API function checks `NEXT_PUBLIC_USE_MOCKS` env var. If true, dynamically imports mock data. If false, fetches from `NEXT_PUBLIC_API_URL` (default: `http://localhost:8081`). Runtime URL override via `?api=` query parameter. API endpoints are prefixed with `/api/v0`. Wire types (`Api*Row`) use snake_case matching the raw JSON; transform functions convert to camelCase app types. Detail endpoints (`getNode`, `getVM`) use `Promise.all` for parallel fetching of the resource + related VMs/history.
+**Key files:** `src/api/types.ts` (wire + app types), `src/api/client.ts`, `src/api/mock.ts`
+**Notes:** Dynamic imports keep mock data tree-shakeable in production builds. The `getOverviewStats` function fetches `/stats` + `/vms` + `/nodes` in parallel to derive per-status counts not available from `/stats` alone.
 
 ### React Query Polling
 
 **Context:** Real-time data without WebSockets.
-**Approach:** Each hook uses `refetchInterval` for automatic polling. Events poll at 10s, detail views at 15s, list views at 30s.
+**Approach:** Each hook uses `refetchInterval` for automatic polling. Detail views poll at 15s, list views and overview stats at 30s.
 **Key files:** `src/hooks/`
 **Notes:** `staleTime: 10_000` and `retry: 2` configured globally in providers.tsx.
 
@@ -83,12 +81,12 @@ src/
 **Key files:** `node_modules/@aleph-front/ds/`, `src/components/`
 **Notes:** DS is installed from npm (pinned version). The `@ac/*` path alias must be mapped in tsconfig.json (and vitest.config.ts) for DS internal imports to resolve. DS color tokens use `error`/`success`/`warning` naming (not Tailwind's `destructive`). Always verify token vars exist in DS `tokens.css` before use.
 
-### Sparkline Charts (Recharts)
+### Status Mapping
 
-**Context:** Stat cards need to show 24h trend data at a glance.
-**Approach:** Recharts `<AreaChart>` rendered in a `<ResponsiveContainer>` inside each `StatCard`. A `StatsSnapshot` type extends `OverviewStats` with a timestamp. Mock layer generates 24 hourly data points with hand-crafted trend patterns. `extractHistory()` helper maps snapshot arrays to the `{ value }` shape Recharts expects.
-**Key files:** `src/components/stats-bar.tsx`, `src/api/types.ts` (`StatsSnapshot`), `src/hooks/use-stats-history.ts`
-**Notes:** Animation is disabled (`isAnimationActive={false}`) to prevent re-animation on poll refresh. Colors use DS `--color-*-400` tokens for dark-mode contrast. The chart bleeds to card edges via negative margins (`-mx-3 -mb-2`).
+**Context:** The DS `StatusDot` component accepts a fixed set of variants (`"healthy" | "degraded" | "error" | "offline" | "unknown"`), but the API returns different node statuses (`"Healthy" | "Unreachable" | "Unknown" | "removed"`).
+**Approach:** `nodeStatusToDot()` maps API node statuses to the closest DS StatusDot variant: `unreachable → error`, `removed → offline`.
+**Key files:** `src/lib/status-map.ts`
+**Notes:** VM statuses don't need mapping — they're displayed as text badges, not StatusDots.
 
 ### Dark Theme Default
 

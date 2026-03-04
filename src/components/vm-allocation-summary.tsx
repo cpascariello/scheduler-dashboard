@@ -5,11 +5,11 @@ import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useOverviewStats } from "@/hooks/use-overview-stats";
-import type { VMStatus } from "@/api/types";
+import type { VmStatus } from "@/api/types";
 
-type VMStatusRow = {
+type VmStatusRow = {
   label: string;
-  status: VMStatus;
+  status: VmStatus;
   count: number;
   variant: "default" | "success" | "warning" | "error" | "info";
 };
@@ -31,9 +31,8 @@ export function VMAllocationSummary() {
 
   if (!stats) return null;
 
-  const rows: VMStatusRow[] = [
+  const rows: VmStatusRow[] = [
     { label: "Scheduled", status: "scheduled", count: stats.scheduledVMs, variant: "info" },
-    { label: "Observed", status: "observed", count: stats.observedVMs, variant: "success" },
     { label: "Orphaned", status: "orphaned", count: stats.orphanedVMs, variant: "warning" },
     { label: "Missing", status: "missing", count: stats.missingVMs, variant: "error" },
     { label: "Unschedulable", status: "unschedulable", count: stats.unschedulableVMs, variant: "error" },

@@ -14,14 +14,15 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useNodes } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
 import { truncateHash, relativeTime } from "@/lib/format";
+import { nodeStatusToDot } from "@/lib/status-map";
 import type { Node, NodeStatus } from "@/api/types";
 
 const STATUS_FILTERS: { label: string; value: NodeStatus | undefined }[] = [
   { label: "All", value: undefined },
   { label: "Healthy", value: "healthy" },
-  { label: "Degraded", value: "degraded" },
-  { label: "Offline", value: "offline" },
+  { label: "Unreachable", value: "unreachable" },
   { label: "Unknown", value: "unknown" },
+  { label: "Removed", value: "removed" },
 ];
 
 const STATUS_VARIANT: Record<
@@ -29,15 +30,17 @@ const STATUS_VARIANT: Record<
   "default" | "success" | "warning" | "error" | "info"
 > = {
   healthy: "success",
-  degraded: "warning",
-  offline: "error",
+  unreachable: "error",
   unknown: "default",
+  removed: "warning",
 };
 
 const columns: Column<Node>[] = [
   {
     header: "",
-    accessor: (r) => <StatusDot status={r.status} size="sm" />,
+    accessor: (r) => (
+      <StatusDot status={nodeStatusToDot(r.status)} size="sm" />
+    ),
     width: "40px",
     align: "center",
   },
@@ -69,18 +72,18 @@ const columns: Column<Node>[] = [
   {
     header: "CPU",
     accessor: (r) => (
-      <ResourceBar value={r.resources.cpuUsage} label="CPU" />
+      <ResourceBar value={r.resources?.cpuUsagePct ?? 0} label="CPU" />
     ),
     sortable: true,
-    sortValue: (r) => r.resources.cpuUsage,
+    sortValue: (r) => r.resources?.cpuUsagePct ?? 0,
   },
   {
     header: "Memory",
     accessor: (r) => (
-      <ResourceBar value={r.resources.memoryUsage} label="Memory" />
+      <ResourceBar value={r.resources?.memoryUsagePct ?? 0} label="Memory" />
     ),
     sortable: true,
-    sortValue: (r) => r.resources.memoryUsage,
+    sortValue: (r) => r.resources?.memoryUsagePct ?? 0,
   },
   {
     header: "VMs",
@@ -92,14 +95,14 @@ const columns: Column<Node>[] = [
     align: "center",
   },
   {
-    header: "Last Seen",
+    header: "Updated",
     accessor: (r) => (
       <span className="text-xs text-muted-foreground">
-        {relativeTime(r.lastSeen)}
+        {relativeTime(r.updatedAt)}
       </span>
     ),
     sortable: true,
-    sortValue: (r) => new Date(r.lastSeen).getTime(),
+    sortValue: (r) => new Date(r.updatedAt).getTime(),
   },
 ];
 
