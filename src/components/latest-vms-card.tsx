@@ -11,6 +11,7 @@ import {
   TooltipContent,
 } from "@aleph-front/ds/tooltip";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { CardHeader } from "@/components/card-header";
 import { useVMs } from "@/hooks/use-vms";
 import { useVMCreationTimes } from "@/hooks/use-vm-creation-times";
 import { relativeTimeFromUnix } from "@/lib/format";
@@ -25,7 +26,11 @@ export function LatestVMsCard() {
 
   if (isLoading) {
     return (
-      <Card title="Latest VMs" padding="md" className="flex-1">
+      <Card variant="noise" padding="lg" className="card-glow flex-1">
+        <CardHeader
+          title="Latest VMs"
+          info="Most recently created virtual machines across the network"
+        />
         <div className="space-y-3">
           {Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-10 w-full" />
@@ -39,7 +44,11 @@ export function LatestVMsCard() {
 
   if (allVMs.length === 0) {
     return (
-      <Card title="Latest VMs" padding="md" className="flex-1">
+      <Card variant="noise" padding="lg" className="card-glow flex-1">
+        <CardHeader
+          title="Latest VMs"
+          info="Most recently created virtual machines across the network"
+        />
         <p className="text-sm text-muted-foreground">No VMs found.</p>
       </Card>
     );
@@ -60,7 +69,12 @@ export function LatestVMsCard() {
     .slice(0, MAX_ROWS);
 
   return (
-    <Card title="Latest VMs" padding="md" className="flex-1">
+    <Card variant="noise" padding="lg" className="card-glow flex-1">
+      <CardHeader
+        title="Latest VMs"
+        info="Most recently created virtual machines across the network"
+      />
+
       <TooltipProvider>
         <ul className="grid grid-cols-[auto_1fr_auto] gap-x-6">
           {sorted.map((vm) => {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { CardHeader } from "@/components/card-header";
 import { useOverviewStats } from "@/hooks/use-overview-stats";
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
 import type { VmStatus } from "@/api/types";
@@ -19,7 +20,11 @@ export function VMAllocationSummary() {
 
   if (isLoading) {
     return (
-      <Card title="VM Allocation" padding="md" className="flex-1">
+      <Card variant="noise" padding="lg" className="card-glow flex-1">
+        <CardHeader
+          title="VM Allocation"
+          info="Breakdown of virtual machines by scheduling status"
+        />
         <div className="space-y-2">
           {Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-5 w-full" />
@@ -39,13 +44,18 @@ export function VMAllocationSummary() {
   ];
 
   return (
-    <Card title="VM Allocation" padding="md" className="flex-1">
+    <Card variant="noise" padding="lg" className="card-glow flex-1">
+      <CardHeader
+        title="VM Allocation"
+        info="Breakdown of virtual machines by scheduling status"
+      />
+
       <ul className="space-y-2">
         {rows.map((row) => (
           <li key={row.label}>
             <Link
               href={`/vms?status=${row.status}`}
-              className="flex items-center justify-between rounded-md px-1.5 py-1 text-sm transition-colors hover:bg-muted"
+              className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted"
               style={{ transitionDuration: "var(--duration-fast)" }}
             >
               <div className="flex items-center gap-2">
@@ -59,7 +69,7 @@ export function VMAllocationSummary() {
         ))}
       </ul>
 
-      <div className="mt-3 border-t border-edge pt-2">
+      <div className="mt-4 border-t border-edge pt-3">
         <div className="flex items-center justify-between text-sm font-medium">
           <span>Total</span>
           <span className="tabular-nums">{stats.totalVMs}</span>

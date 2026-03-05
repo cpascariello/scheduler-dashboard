@@ -17,3 +17,43 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   font-style: italic;
 }
+
+/* ── Redesign utilities ──────────────────────── */
+
+.card-glow {
+  transition: box-shadow var(--duration-fast);
+}
+
+.card-glow:hover {
+  box-shadow: var(--shadow-brand);
+}
+
+.gradient-underline {
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-400),
+    var(--color-primary-600)
+  );
+  height: 2px;
+  border-radius: 1px;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    var(--stat-tint, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0.07;
+  pointer-events: none;
+}

@@ -11,6 +11,7 @@ import {
   TooltipContent,
 } from "@aleph-front/ds/tooltip";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { CardHeader } from "@/components/card-header";
 import { useNodes } from "@/hooks/use-nodes";
 import { truncateHash } from "@/lib/format";
 import { nodeStatusToDot } from "@/lib/status-map";
@@ -28,7 +29,11 @@ export function TopNodesCard() {
 
   if (isLoading) {
     return (
-      <Card title="Top Nodes" padding="md" className="flex-1">
+      <Card variant="noise" padding="lg" className="card-glow flex-1">
+        <CardHeader
+          title="Top Nodes"
+          info="Nodes ranked by number of VMs currently assigned"
+        />
         <div className="space-y-3">
           {Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-10 w-full" />
@@ -45,7 +50,11 @@ export function TopNodesCard() {
 
   if (topNodes.length === 0) {
     return (
-      <Card title="Top Nodes" padding="md" className="flex-1">
+      <Card variant="noise" padding="lg" className="card-glow flex-1">
+        <CardHeader
+          title="Top Nodes"
+          info="Nodes ranked by number of VMs currently assigned"
+        />
         <p className="text-sm text-muted-foreground">
           No nodes with VMs found.
         </p>
@@ -56,7 +65,12 @@ export function TopNodesCard() {
   const maxCount = topNodes[0]?.vmCount ?? 1;
 
   return (
-    <Card title="Top Nodes" padding="md" className="flex-1">
+    <Card variant="noise" padding="lg" className="card-glow flex-1">
+      <CardHeader
+        title="Top Nodes"
+        info="Nodes ranked by number of VMs currently assigned"
+      />
+
       <TooltipProvider>
         <ol className="grid grid-cols-[auto_auto_1fr] gap-x-3">
           {topNodes.map((node, i) => {
@@ -70,18 +84,15 @@ export function TopNodesCard() {
                     transitionDuration: "var(--duration-fast)",
                   }}
                 >
-                  {/* Rank */}
                   <span className="text-right text-xs tabular-nums text-muted-foreground">
                     {i + 1}
                   </span>
 
-                  {/* Status */}
                   <StatusDot
                     status={nodeStatusToDot(node.status)}
                     size="sm"
                   />
 
-                  {/* Name + bar */}
                   <div className="min-w-0">
                     <div className="flex items-baseline justify-between gap-2">
                       <Tooltip>
@@ -99,7 +110,6 @@ export function TopNodesCard() {
                       </span>
                     </div>
 
-                    {/* Proportional bar */}
                     <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full rounded-full transition-all"
