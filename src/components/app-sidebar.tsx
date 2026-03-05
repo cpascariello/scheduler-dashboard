@@ -95,13 +95,13 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
       <aside
         className={`
           fixed inset-y-0 left-0 z-50 flex w-64 flex-col
-          border-r border-edge bg-surface
+          bg-background
           transition-transform duration-200 ease-out
           ${open ? "translate-x-0" : "-translate-x-full"}
           md:static md:z-auto md:translate-x-0 md:transition-none
         `}
       >
-        <div className="flex h-14 shrink-0 items-center gap-2 border-b border-edge px-5">
+        <div className="flex h-14 shrink-0 items-center gap-2 px-5">
           <div className="size-7 rounded-lg bg-gradient-brand" />
           <span className="text-sm font-bold tracking-tight text-foreground">
             Aleph Cloud
@@ -138,7 +138,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
         </nav>
 
         {/* Bottom utility link */}
-        <div className="border-t border-edge px-3 py-4">
+        <div className="px-3 py-4">
           <Link
             href="/status"
             className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
@@ -165,7 +165,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
           </Link>
         </div>
 
-        <div className="border-t border-edge px-5 py-3">
+        <div className="px-5 py-3">
           <p className="text-xs text-muted-foreground">
             Scheduler Dashboard
           </p>
