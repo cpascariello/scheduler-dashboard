@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card } from "@aleph-front/ds/card";
 import { StatusDot } from "@aleph-front/ds/status-dot";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { CardHeader } from "@/components/card-header";
 import { useOverviewStats } from "@/hooks/use-overview-stats";
 import { nodeStatusToDot } from "@/lib/status-map";
 import type { NodeStatus } from "@/api/types";
@@ -41,7 +42,11 @@ export function NodeHealthSummary() {
 
   if (isLoading) {
     return (
-      <Card title="Node Health" padding="md" className="flex-1">
+      <Card padding="lg" className="card-glow flex-1">
+        <CardHeader
+          title="Node Health"
+          info="Distribution of compute nodes by health status"
+        />
         <Skeleton className="h-4 w-full" />
         <div className="mt-3 space-y-2">
           <Skeleton className="h-4 w-32" />
@@ -68,7 +73,12 @@ export function NodeHealthSummary() {
   ];
 
   return (
-    <Card title="Node Health" padding="md" className="flex-1">
+    <Card padding="lg" className="card-glow flex-1">
+      <CardHeader
+        title="Node Health"
+        info="Distribution of compute nodes by health status"
+      />
+
       <div className="flex h-3 gap-0.5 overflow-hidden rounded-md bg-muted">
         {segments.map((seg) => (
           <Segment
@@ -80,14 +90,14 @@ export function NodeHealthSummary() {
         ))}
       </div>
 
-      <ul className="mt-3 space-y-1.5">
+      <ul className="mt-4 space-y-1.5">
         {segments
           .filter((s) => s.count > 0)
           .map((seg) => (
             <li key={seg.label}>
               <Link
                 href={`/nodes?status=${seg.status}`}
-                className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm transition-colors hover:bg-muted"
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted"
                 style={{ transitionDuration: "var(--duration-fast)" }}
               >
                 <StatusDot status={nodeStatusToDot(seg.status)} size="sm" />
