@@ -103,7 +103,7 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
         </h4>
         {vm.allocatedNode ? (
           <Link
-            href={`/nodes?selected=${vm.allocatedNode}`}
+            href={`/nodes?view=${vm.allocatedNode}`}
             className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
           >
             {truncateHash(vm.allocatedNode)}
@@ -125,7 +125,7 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
             {vm.observedNodes.map((nodeHash) => (
               <li key={nodeHash}>
                 <Link
-                  href={`/nodes?selected=${nodeHash}`}
+                  href={`/nodes?view=${nodeHash}`}
                   className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
                 >
                   {truncateHash(nodeHash)}
@@ -192,6 +192,15 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           </ul>
         </div>
       )}
+
+      <div className="mt-4 border-t border-edge pt-3">
+        <Link
+          href={`/vms?view=${vm.hash}`}
+          className="text-sm font-medium text-primary-300 hover:underline"
+        >
+          View full details →
+        </Link>
+      </div>
     </Card>
   );
 }

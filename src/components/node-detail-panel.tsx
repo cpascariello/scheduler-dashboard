@@ -142,7 +142,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
                 className="flex items-center justify-between text-sm"
               >
                 <Link
-                  href={`/vms?selected=${vm.hash}`}
+                  href={`/vms?view=${vm.hash}`}
                   className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
                 >
                   {truncateHash(vm.hash)}
@@ -182,6 +182,15 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
           </ul>
         </div>
       )}
+
+      <div className="mt-4 border-t border-edge pt-3">
+        <Link
+          href={`/nodes?view=${node.hash}`}
+          className="text-sm font-medium text-primary-300 hover:underline"
+        >
+          View full details →
+        </Link>
+      </div>
     </Card>
   );
 }
