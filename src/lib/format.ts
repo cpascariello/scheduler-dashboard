@@ -34,3 +34,14 @@ export function truncateHash(hash: string, chars = 8): string {
 export function formatPercent(value: number): string {
   return `${Math.round(value)}%`;
 }
+
+export function formatDateTime(isoDate: string): string {
+  const date = new Date(isoDate);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
