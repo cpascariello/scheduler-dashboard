@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { Table, type Column } from "@aleph-front/ds/table";
 import { Badge } from "@aleph-front/ds/badge";
 import {
@@ -9,21 +9,49 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@aleph-front/ds/tooltip";
+import { Checkbox } from "@aleph-front/ds/checkbox";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVMs } from "@/hooks/use-vms";
+import { useDebounce } from "@/hooks/use-debounce";
+import { CollapsibleSection } from "@/components/collapsible-section";
 import { truncateHash } from "@/lib/format";
+import {
+  textSearch,
+  countByStatus,
+  applyVmAdvancedFilters,
+  type VmAdvancedFilters,
+} from "@/lib/filters";
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
-import type { VM, VmStatus } from "@/api/types";
+import type { VM, VmStatus, VmType } from "@/api/types";
 
-const STATUS_FILTERS: { label: string; value: VmStatus | undefined }[] = [
-  { label: "All", value: undefined },
-  { label: "Scheduled", value: "scheduled" },
-  { label: "Unscheduled", value: "unscheduled" },
-  { label: "Orphaned", value: "orphaned" },
-  { label: "Missing", value: "missing" },
-  { label: "Unschedulable", value: "unschedulable" },
-  { label: "Unknown", value: "unknown" },
+const ALL_STATUSES: (VmStatus | undefined)[] = [
+  undefined,
+  "scheduled",
+  "unscheduled",
+  "orphaned",
+  "missing",
+  "unschedulable",
+  "unknown",
 ];
+
+const STATUS_LABELS: Record<string, string> = {
+  all: "All",
+  scheduled: "Scheduled",
+  unscheduled: "Unscheduled",
+  orphaned: "Orphaned",
+  missing: "Missing",
+  unschedulable: "Unschedulable",
+  unknown: "Unknown",
+};
+
+const ALL_VM_TYPES: VmType[] = [
+  "MicroVm",
+  "PersistentProgram",
+  "Instance",
+];
+const ALL_PAYMENT_STATUSES = ["validated", "invalidated"] as const;
+
+const VM_SEARCH_FIELDS = (v: VM) => [v.hash, v.allocatedNode];
 
 function isDiscrepancy(vm: VM): boolean {
   return (
@@ -84,7 +112,11 @@ const columns: Column<VM>[] = [
   {
     header: "Status",
     accessor: (r) => (
-      <Badge variant={VM_STATUS_VARIANT[r.status]} size="sm" className="capitalize">
+      <Badge
+        variant={VM_STATUS_VARIANT[r.status]}
+        size="sm"
+        className="capitalize"
+      >
         {r.status}
       </Badge>
     ),
@@ -95,7 +127,7 @@ const columns: Column<VM>[] = [
     header: "vCPUs",
     accessor: (r) => (
       <span className="text-xs tabular-nums">
-        {r.requirements.vcpus ?? "—"}
+        {r.requirements.vcpus ?? "\u2014"}
       </span>
     ),
     sortable: true,
@@ -106,7 +138,9 @@ const columns: Column<VM>[] = [
     header: "Memory",
     accessor: (r) => (
       <span className="text-xs tabular-nums">
-        {r.requirements.memoryMb != null ? `${r.requirements.memoryMb} MB` : "—"}
+        {r.requirements.memoryMb != null
+          ? `${r.requirements.memoryMb} MB`
+          : "\u2014"}
       </span>
     ),
     sortable: true,
@@ -117,16 +151,139 @@ const columns: Column<VM>[] = [
 
 type VMTableProps = {
   onSelectVM: (hash: string) => void;
-  initialStatus?: VmStatus | undefined;
-  selectedKey?: string | undefined;
+  initialStatus?: VmStatus;
+  initialQuery?: string;
+  selectedKey?: string;
 };
 
-export function VMTable({ onSelectVM, initialStatus, selectedKey }: VMTableProps) {
-  const [statusFilter, setStatusFilter] = useState<VmStatus | undefined>(
-    initialStatus,
-  );
-  const filters = statusFilter ? { status: statusFilter } : undefined;
-  const { data: vms, isLoading } = useVMs(filters);
+export function VMTable({
+  onSelectVM,
+  initialStatus,
+  initialQuery,
+  selectedKey,
+}: VMTableProps) {
+  const [, startTransition] = useTransition();
+
+  // Search
+  const [searchInput, setSearchInput] = useState(initialQuery ?? "");
+  const debouncedQuery = useDebounce(searchInput, 300);
+
+  // Status filter
+  const [statusFilter, setStatusFilter] = useState<
+    VmStatus | undefined
+  >(initialStatus);
+
+  // Advanced filters
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [advanced, setAdvanced] = useState<VmAdvancedFilters>({});
+
+  const hasActiveAdvanced =
+    (advanced.vmTypes != null &&
+      advanced.vmTypes.size < ALL_VM_TYPES.length) ||
+    advanced.paymentStatuses != null ||
+    advanced.hasAllocatedNode ||
+    advanced.minVcpus != null ||
+    advanced.minMemoryMb != null;
+
+  // Data — fetch full dataset
+  const { data: allVms, isLoading } = useVMs();
+
+  // Filter pipeline
+  const { displayedRows, filteredCounts, unfilteredCounts } =
+    useMemo(() => {
+      const all = allVms ?? [];
+      const uCounts = countByStatus(all, (v) => v.status);
+
+      const afterSearch = textSearch(
+        all,
+        debouncedQuery,
+        VM_SEARCH_FIELDS,
+      );
+      const afterAdvanced = applyVmAdvancedFilters(
+        afterSearch,
+        advanced,
+      );
+      const fCounts = countByStatus(afterAdvanced, (v) => v.status);
+
+      const afterStatus = statusFilter
+        ? afterAdvanced.filter((v) => v.status === statusFilter)
+        : afterAdvanced;
+
+      return {
+        displayedRows: afterStatus,
+        filteredCounts: fCounts,
+        unfilteredCounts: uCounts,
+      };
+    }, [allVms, debouncedQuery, advanced, statusFilter]);
+
+  const hasNonStatusFilters =
+    debouncedQuery.trim() !== "" || hasActiveAdvanced;
+
+  function formatCount(status: VmStatus | undefined): string {
+    const key = status ?? "all";
+    const filtered =
+      key === "all"
+        ? Object.values(filteredCounts).reduce((a, b) => a + b, 0)
+        : (filteredCounts[key] ?? 0);
+    const unfiltered =
+      key === "all"
+        ? Object.values(unfilteredCounts).reduce((a, b) => a + b, 0)
+        : (unfilteredCounts[key] ?? 0);
+
+    if (hasNonStatusFilters && filtered !== unfiltered) {
+      return `${filtered}/${unfiltered}`;
+    }
+    return `${unfiltered}`;
+  }
+
+  function toggleVmType(type: VmType) {
+    startTransition(() => {
+      setAdvanced((prev) => {
+        const current =
+          prev.vmTypes ?? new Set<VmType>(ALL_VM_TYPES);
+        const next = new Set(current);
+        if (next.has(type)) {
+          next.delete(type);
+        } else {
+          next.add(type);
+        }
+        const { vmTypes: _, ...rest } = prev;
+        return next.size === ALL_VM_TYPES.length
+          ? rest
+          : { ...rest, vmTypes: next };
+      });
+    });
+  }
+
+  function togglePaymentStatus(ps: string) {
+    startTransition(() => {
+      setAdvanced((prev) => {
+        const current =
+          prev.paymentStatuses ??
+          new Set<string>(ALL_PAYMENT_STATUSES);
+        const next = new Set(current);
+        if (next.has(ps)) {
+          next.delete(ps);
+        } else {
+          next.add(ps);
+        }
+        const { paymentStatuses: _, ...rest } = prev;
+        return next.size === ALL_PAYMENT_STATUSES.length
+          ? rest
+          : { ...rest, paymentStatuses: next };
+      });
+    });
+  }
+
+  function updateAdvanced(
+    updater: (prev: VmAdvancedFilters) => VmAdvancedFilters,
+  ) {
+    startTransition(() => setAdvanced(updater));
+  }
+
+  function clearAdvanced() {
+    startTransition(() => setAdvanced({}));
+  }
 
   if (isLoading) {
     return (
@@ -140,26 +297,208 @@ export function VMTable({ onSelectVM, initialStatus, selectedKey }: VMTableProps
 
   return (
     <TooltipProvider>
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        {STATUS_FILTERS.map((filter) => (
-          <button
-            key={filter.label}
-            type="button"
-            onClick={() => setStatusFilter(filter.value)}
-            className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-              statusFilter === filter.value
-                ? "bg-primary-600/10 text-primary-500"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
-            style={{ transitionDuration: "var(--duration-fast)" }}
+      {/* Search bar + Filters toggle */}
+      <div className="mb-3 flex items-center gap-2">
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            {filter.label}
-          </button>
-        ))}
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search hash, node..."
+            className="h-8 w-full rounded-md border border-border bg-background pl-9 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-500"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          className={`relative flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors ${
+            filtersOpen
+              ? "border-primary-500 bg-primary-600/10 text-primary-500"
+              : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+        >
+          Filters
+          {hasActiveAdvanced && !filtersOpen && (
+            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-primary-500" />
+          )}
+        </button>
       </div>
+
+      {/* Status pills */}
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {ALL_STATUSES.map((status) => {
+          const key = status ?? "all";
+          const label = STATUS_LABELS[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() =>
+                startTransition(() => setStatusFilter(status))
+              }
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                statusFilter === status
+                  ? "bg-primary-600/10 text-primary-500"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+              style={{ transitionDuration: "var(--duration-fast)" }}
+            >
+              {label}{" "}
+              <span className="tabular-nums opacity-70">
+                ({formatCount(status)})
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Collapsible advanced filters */}
+      <CollapsibleSection open={filtersOpen}>
+        <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-border bg-muted/30 p-3">
+          {/* VM Type multi-select */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="font-medium">Type:</span>
+            {ALL_VM_TYPES.map((type) => {
+              const selected =
+                !advanced.vmTypes || advanced.vmTypes.has(type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => toggleVmType(type)}
+                  className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${
+                    selected
+                      ? "bg-primary-600/10 text-primary-500"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {type}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Payment Status multi-select */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="font-medium">Payment:</span>
+            {ALL_PAYMENT_STATUSES.map((ps) => {
+              const selected =
+                !advanced.paymentStatuses ||
+                advanced.paymentStatuses.has(ps);
+              return (
+                <button
+                  key={ps}
+                  type="button"
+                  onClick={() => togglePaymentStatus(ps)}
+                  className={`rounded-md px-2 py-0.5 text-xs font-medium capitalize transition-colors ${
+                    selected
+                      ? "bg-primary-600/10 text-primary-500"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {ps}
+                </button>
+              );
+            })}
+          </div>
+
+          <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-muted-foreground select-none">
+            <Checkbox
+              size="xs"
+              checked={advanced.hasAllocatedNode ?? false}
+              onCheckedChange={(v) =>
+                updateAdvanced((p) => {
+                  const { hasAllocatedNode: _, ...rest } = p;
+                  return v === true
+                    ? { ...rest, hasAllocatedNode: true }
+                    : rest;
+                })
+              }
+            />
+            Has Node
+          </label>
+
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>vCPUs &ge;</span>
+            <input
+              type="number"
+              min={0}
+              value={advanced.minVcpus ?? ""}
+              onChange={(e) =>
+                updateAdvanced((p) => {
+                  const { minVcpus: _, ...rest } = p;
+                  return e.target.value
+                    ? { ...rest, minVcpus: Number(e.target.value) }
+                    : rest;
+                })
+              }
+              className="h-7 w-16 rounded border border-border bg-background px-2 text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-primary-500"
+            />
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Mem &ge;</span>
+            <input
+              type="number"
+              min={0}
+              value={advanced.minMemoryMb ?? ""}
+              onChange={(e) =>
+                updateAdvanced((p) => {
+                  const { minMemoryMb: _, ...rest } = p;
+                  return e.target.value
+                    ? { ...rest, minMemoryMb: Number(e.target.value) }
+                    : rest;
+                })
+              }
+              className="h-7 w-16 rounded border border-border bg-background px-2 text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-primary-500"
+              placeholder="MB"
+            />
+          </div>
+
+          {hasActiveAdvanced && (
+            <button
+              type="button"
+              onClick={clearAdvanced}
+              className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      </CollapsibleSection>
+
       <Table
         columns={columns}
-        data={vms ?? []}
+        data={displayedRows}
         keyExtractor={(r) => r.hash}
         onRowClick={(r) => onSelectVM(r.hash)}
         activeKey={selectedKey}
