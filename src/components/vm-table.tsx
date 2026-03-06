@@ -12,6 +12,7 @@ import {
 import { Checkbox } from "@aleph-front/ds/checkbox";
 import { Button } from "@aleph-front/ds/button";
 import { Input } from "@aleph-front/ds/input";
+import { Slider } from "@aleph-front/ds/slider";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVMs } from "@/hooks/use-vms";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -21,6 +22,8 @@ import {
   textSearch,
   countByStatus,
   applyVmAdvancedFilters,
+  VM_VCPUS_MAX,
+  VM_MEMORY_MB_MAX,
   type VmAdvancedFilters,
 } from "@/lib/filters";
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
@@ -184,8 +187,12 @@ export function VMTable({
       advanced.vmTypes.size < ALL_VM_TYPES.length) ||
     advanced.paymentStatuses != null ||
     advanced.hasAllocatedNode ||
-    advanced.minVcpus != null ||
-    advanced.minMemoryMb != null;
+    (advanced.vcpusRange != null &&
+      (advanced.vcpusRange[0] > 0 ||
+        advanced.vcpusRange[1] < VM_VCPUS_MAX)) ||
+    (advanced.memoryMbRange != null &&
+      (advanced.memoryMbRange[0] > 0 ||
+        advanced.memoryMbRange[1] < VM_MEMORY_MB_MAX));
 
   // Data — fetch full dataset
   const { data: allVms, isLoading } = useVMs();
@@ -289,9 +296,9 @@ export function VMTable({
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {Array.from({ length: 8 }, (_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
+          <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
     );
@@ -300,10 +307,10 @@ export function VMTable({
   return (
     <TooltipProvider>
       {/* Search bar + Filters toggle */}
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-3">
         <div className="relative flex-1">
           <svg
-            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
@@ -316,17 +323,17 @@ export function VMTable({
             <path d="m21 21-4.3-4.3" />
           </svg>
           <Input
-            size="sm"
+            size="md"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search hash, node..."
-            className="pl-10 pr-9"
+            className="pl-12 pr-10"
           />
           {searchInput && (
             <button
               type="button"
               onClick={() => setSearchInput("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <svg
                 className="h-4 w-4"
@@ -342,19 +349,19 @@ export function VMTable({
         </div>
         <Button
           variant="text"
-          size="xs"
+          size="sm"
           onClick={() => setFiltersOpen((v) => !v)}
           className="relative"
         >
           Filters
           {hasActiveAdvanced && !filtersOpen && (
-            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-primary-500" />
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500" />
           )}
         </Button>
       </div>
 
       {/* Status pills */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex flex-wrap gap-2">
         {ALL_STATUSES.map((status) => {
           const key = status ?? "all";
           const label = STATUS_LABELS[key];
@@ -365,15 +372,14 @@ export function VMTable({
               onClick={() =>
                 startTransition(() => setStatusFilter(status))
               }
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
                 statusFilter === status
-                  ? "bg-primary-600/10 text-primary-500"
+                  ? "bg-primary-600/15 text-primary-400"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
-              style={{ transitionDuration: "var(--duration-fast)" }}
             >
               {label}{" "}
-              <span className="tabular-nums opacity-70">
+              <span className="tabular-nums opacity-60">
                 ({formatCount(status)})
               </span>
             </button>
@@ -383,117 +389,152 @@ export function VMTable({
 
       {/* Collapsible advanced filters */}
       <CollapsibleSection open={filtersOpen}>
-        <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-border bg-muted/30 p-3">
-          {/* VM Type multi-select */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="font-medium">Type:</span>
-            {ALL_VM_TYPES.map((type) => {
-              const selected =
-                !advanced.vmTypes || advanced.vmTypes.has(type);
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => toggleVmType(type)}
-                  className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${
-                    selected
-                      ? "bg-primary-600/10 text-primary-500"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {type}
-                </button>
-              );
-            })}
+        <div className="mb-4 space-y-5 rounded-xl border border-border bg-muted/30 p-5">
+          {/* Toggle pills + checkbox row */}
+          <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
+            {/* VM Type multi-select */}
+            <div className="space-y-1.5">
+              <span className="text-sm font-semibold text-muted-foreground">
+                Type
+              </span>
+              <div className="flex gap-1.5">
+                {ALL_VM_TYPES.map((type) => {
+                  const selected =
+                    !advanced.vmTypes || advanced.vmTypes.has(type);
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => toggleVmType(type)}
+                      className={`rounded-full px-3 py-1 text-sm font-bold transition-colors ${
+                        selected
+                          ? "bg-primary-600/15 text-primary-400"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Payment Status multi-select */}
+            <div className="space-y-1.5">
+              <span className="text-sm font-semibold text-muted-foreground">
+                Payment
+              </span>
+              <div className="flex gap-1.5">
+                {ALL_PAYMENT_STATUSES.map((ps) => {
+                  const selected =
+                    !advanced.paymentStatuses ||
+                    advanced.paymentStatuses.has(ps);
+                  return (
+                    <button
+                      key={ps}
+                      type="button"
+                      onClick={() => togglePaymentStatus(ps)}
+                      className={`rounded-full px-3 py-1 text-sm font-bold capitalize transition-colors ${
+                        selected
+                          ? "bg-primary-600/15 text-primary-400"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {ps}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Has Node checkbox */}
+            <div className="space-y-1.5">
+              <span className="text-sm font-semibold text-muted-foreground">
+                &nbsp;
+              </span>
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-muted-foreground select-none">
+                <Checkbox
+                  size="sm"
+                  checked={advanced.hasAllocatedNode ?? false}
+                  onCheckedChange={(v) =>
+                    updateAdvanced((p) => {
+                      const { hasAllocatedNode: _, ...rest } = p;
+                      return v === true
+                        ? { ...rest, hasAllocatedNode: true }
+                        : rest;
+                    })
+                  }
+                />
+                Has Node
+              </label>
+            </div>
           </div>
 
-          {/* Payment Status multi-select */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="font-medium">Payment:</span>
-            {ALL_PAYMENT_STATUSES.map((ps) => {
-              const selected =
-                !advanced.paymentStatuses ||
-                advanced.paymentStatuses.has(ps);
-              return (
-                <button
-                  key={ps}
-                  type="button"
-                  onClick={() => togglePaymentStatus(ps)}
-                  className={`rounded-md px-2 py-0.5 text-xs font-medium capitalize transition-colors ${
-                    selected
-                      ? "bg-primary-600/10 text-primary-500"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {ps}
-                </button>
-              );
-            })}
+          {/* Range sliders */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground">
+                <span>vCPUs</span>
+                <span className="tabular-nums text-xs">
+                  {advanced.vcpusRange?.[0] ?? 0}–
+                  {advanced.vcpusRange?.[1] ?? VM_VCPUS_MAX}
+                </span>
+              </div>
+              <Slider
+                size="sm"
+                min={0}
+                max={VM_VCPUS_MAX}
+                step={1}
+                value={
+                  advanced.vcpusRange ?? [0, VM_VCPUS_MAX]
+                }
+                onValueChange={(val) =>
+                  updateAdvanced((p) => ({
+                    ...p,
+                    vcpusRange: val as [number, number],
+                  }))
+                }
+                showTooltip
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground">
+                <span>Memory</span>
+                <span className="tabular-nums text-xs">
+                  {advanced.memoryMbRange?.[0] ?? 0} MB–
+                  {advanced.memoryMbRange?.[1] ?? VM_MEMORY_MB_MAX} MB
+                </span>
+              </div>
+              <Slider
+                size="sm"
+                min={0}
+                max={VM_MEMORY_MB_MAX}
+                step={256}
+                value={
+                  advanced.memoryMbRange ?? [0, VM_MEMORY_MB_MAX]
+                }
+                onValueChange={(val) =>
+                  updateAdvanced((p) => ({
+                    ...p,
+                    memoryMbRange: val as [number, number],
+                  }))
+                }
+                showTooltip
+              />
+            </div>
           </div>
 
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-muted-foreground select-none">
-            <Checkbox
-              size="xs"
-              checked={advanced.hasAllocatedNode ?? false}
-              onCheckedChange={(v) =>
-                updateAdvanced((p) => {
-                  const { hasAllocatedNode: _, ...rest } = p;
-                  return v === true
-                    ? { ...rest, hasAllocatedNode: true }
-                    : rest;
-                })
-              }
-            />
-            Has Node
-          </label>
-
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>vCPUs &ge;</span>
-            <Input
-              size="sm"
-              type="number"
-              min={0}
-              value={advanced.minVcpus ?? ""}
-              onChange={(e) =>
-                updateAdvanced((p) => {
-                  const { minVcpus: _, ...rest } = p;
-                  return e.target.value
-                    ? { ...rest, minVcpus: Number(e.target.value) }
-                    : rest;
-                })
-              }
-              className="w-18 tabular-nums"
-            />
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>Mem &ge;</span>
-            <Input
-              size="sm"
-              type="number"
-              min={0}
-              value={advanced.minMemoryMb ?? ""}
-              onChange={(e) =>
-                updateAdvanced((p) => {
-                  const { minMemoryMb: _, ...rest } = p;
-                  return e.target.value
-                    ? { ...rest, minMemoryMb: Number(e.target.value) }
-                    : rest;
-                })
-              }
-              className="w-18 tabular-nums"
-              placeholder="MB"
-            />
-          </div>
-
+          {/* Clear all */}
           {hasActiveAdvanced && (
-            <Button
-              variant="text"
-              size="xs"
-              onClick={clearAdvanced}
-              className="ml-auto"
-            >
-              Clear all
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="text"
+                size="xs"
+                onClick={clearAdvanced}
+              >
+                Clear all
+              </Button>
+            </div>
           )}
         </div>
       </CollapsibleSection>

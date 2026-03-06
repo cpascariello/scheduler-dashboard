@@ -13,6 +13,7 @@ import { Checkbox } from "@aleph-front/ds/checkbox";
 import { Badge } from "@aleph-front/ds/badge";
 import { Button } from "@aleph-front/ds/button";
 import { Input } from "@aleph-front/ds/input";
+import { Slider } from "@aleph-front/ds/slider";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useNodes } from "@/hooks/use-nodes";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -23,6 +24,7 @@ import {
   textSearch,
   countByStatus,
   applyNodeAdvancedFilters,
+  isRangeActive,
   type NodeAdvancedFilters,
 } from "@/lib/filters";
 import {
@@ -170,9 +172,10 @@ export function NodeTable({
     advanced.hasVms ||
     advanced.staked ||
     advanced.supportsIpv6 ||
-    advanced.minCpu != null ||
-    advanced.minMemory != null ||
-    advanced.minDisk != null;
+    (advanced.cpuRange != null && isRangeActive(advanced.cpuRange)) ||
+    (advanced.memoryRange != null &&
+      isRangeActive(advanced.memoryRange)) ||
+    (advanced.diskRange != null && isRangeActive(advanced.diskRange));
 
   // Data — fetch full dataset, no status in query key
   const { data: allNodes, isLoading } = useNodes();
@@ -245,9 +248,9 @@ export function NodeTable({
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
+          <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
     );
@@ -256,10 +259,10 @@ export function NodeTable({
   return (
     <TooltipProvider>
       {/* Search bar + Filters toggle */}
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-3">
         <div className="relative flex-1">
           <svg
-            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
@@ -272,17 +275,17 @@ export function NodeTable({
             <path d="m21 21-4.3-4.3" />
           </svg>
           <Input
-            size="sm"
+            size="md"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search hash, owner, name..."
-            className="pl-10 pr-9"
+            className="pl-12 pr-10"
           />
           {searchInput && (
             <button
               type="button"
               onClick={() => setSearchInput("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <svg
                 className="h-4 w-4"
@@ -298,19 +301,19 @@ export function NodeTable({
         </div>
         <Button
           variant="text"
-          size="xs"
+          size="sm"
           onClick={() => setFiltersOpen((v) => !v)}
           className="relative"
         >
           Filters
           {hasActiveAdvanced && !filtersOpen && (
-            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-primary-500" />
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500" />
           )}
         </Button>
       </div>
 
       {/* Status pills */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex flex-wrap gap-2">
         {ALL_STATUSES.map((status) => {
           const key = status ?? "all";
           const label = STATUS_LABELS[key];
@@ -321,15 +324,14 @@ export function NodeTable({
               onClick={() =>
                 startTransition(() => setStatusFilter(status))
               }
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
                 statusFilter === status
-                  ? "bg-primary-600/10 text-primary-500"
+                  ? "bg-primary-600/15 text-primary-400"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
-              style={{ transitionDuration: "var(--duration-fast)" }}
             >
               {label}{" "}
-              <span className="tabular-nums opacity-70">
+              <span className="tabular-nums opacity-60">
                 ({formatCount(status)})
               </span>
             </button>
@@ -339,119 +341,140 @@ export function NodeTable({
 
       {/* Collapsible advanced filters */}
       <CollapsibleSection open={filtersOpen}>
-        <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-border bg-muted/30 p-3">
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-muted-foreground select-none">
-            <Checkbox
-              size="xs"
-              checked={advanced.hasVms ?? false}
-              onCheckedChange={(v) =>
-                updateAdvanced((p) => {
-                  const { hasVms: _, ...rest } = p;
-                  return v === true ? { ...rest, hasVms: true } : rest;
-                })
-              }
-            />
-            Has VMs
-          </label>
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-muted-foreground select-none">
-            <Checkbox
-              size="xs"
-              checked={advanced.staked ?? false}
-              onCheckedChange={(v) =>
-                updateAdvanced((p) => {
-                  const { staked: _, ...rest } = p;
-                  return v === true ? { ...rest, staked: true } : rest;
-                })
-              }
-            />
-            Staked
-          </label>
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-muted-foreground select-none">
-            <Checkbox
-              size="xs"
-              checked={advanced.supportsIpv6 ?? false}
-              onCheckedChange={(v) =>
-                updateAdvanced((p) => {
-                  const { supportsIpv6: _, ...rest } = p;
-                  return v === true
-                    ? { ...rest, supportsIpv6: true }
-                    : rest;
-                })
-              }
-            />
-            IPv6
-          </label>
-
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>CPU &ge;</span>
-            <Input
-              size="sm"
-              type="number"
-              min={0}
-              max={100}
-              value={advanced.minCpu ?? ""}
-              onChange={(e) =>
-                updateAdvanced((p) => {
-                  const { minCpu: _, ...rest } = p;
-                  return e.target.value
-                    ? { ...rest, minCpu: Number(e.target.value) }
-                    : rest;
-                })
-              }
-              className="w-18 tabular-nums"
-              placeholder="%"
-            />
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>Mem &ge;</span>
-            <Input
-              size="sm"
-              type="number"
-              min={0}
-              max={100}
-              value={advanced.minMemory ?? ""}
-              onChange={(e) =>
-                updateAdvanced((p) => {
-                  const { minMemory: _, ...rest } = p;
-                  return e.target.value
-                    ? { ...rest, minMemory: Number(e.target.value) }
-                    : rest;
-                })
-              }
-              className="w-18 tabular-nums"
-              placeholder="%"
-            />
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>Disk &ge;</span>
-            <Input
-              size="sm"
-              type="number"
-              min={0}
-              max={100}
-              value={advanced.minDisk ?? ""}
-              onChange={(e) =>
-                updateAdvanced((p) => {
-                  const { minDisk: _, ...rest } = p;
-                  return e.target.value
-                    ? { ...rest, minDisk: Number(e.target.value) }
-                    : rest;
-                })
-              }
-              className="w-18 tabular-nums"
-              placeholder="%"
-            />
+        <div className="mb-4 space-y-5 rounded-xl border border-border bg-muted/30 p-5">
+          {/* Checkboxes row */}
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-muted-foreground select-none">
+              <Checkbox
+                size="sm"
+                checked={advanced.hasVms ?? false}
+                onCheckedChange={(v) =>
+                  updateAdvanced((p) => {
+                    const { hasVms: _, ...rest } = p;
+                    return v === true
+                      ? { ...rest, hasVms: true }
+                      : rest;
+                  })
+                }
+              />
+              Has VMs
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-muted-foreground select-none">
+              <Checkbox
+                size="sm"
+                checked={advanced.staked ?? false}
+                onCheckedChange={(v) =>
+                  updateAdvanced((p) => {
+                    const { staked: _, ...rest } = p;
+                    return v === true
+                      ? { ...rest, staked: true }
+                      : rest;
+                  })
+                }
+              />
+              Staked
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-muted-foreground select-none">
+              <Checkbox
+                size="sm"
+                checked={advanced.supportsIpv6 ?? false}
+                onCheckedChange={(v) =>
+                  updateAdvanced((p) => {
+                    const { supportsIpv6: _, ...rest } = p;
+                    return v === true
+                      ? { ...rest, supportsIpv6: true }
+                      : rest;
+                  })
+                }
+              />
+              IPv6
+            </label>
           </div>
 
+          {/* Range sliders */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground">
+                <span>CPU</span>
+                <span className="tabular-nums text-xs">
+                  {advanced.cpuRange?.[0] ?? 0}%–
+                  {advanced.cpuRange?.[1] ?? 100}%
+                </span>
+              </div>
+              <Slider
+                size="sm"
+                min={0}
+                max={100}
+                step={1}
+                value={advanced.cpuRange ?? [0, 100]}
+                onValueChange={(val) =>
+                  updateAdvanced((p) => ({
+                    ...p,
+                    cpuRange: val as [number, number],
+                  }))
+                }
+                showTooltip
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground">
+                <span>Memory</span>
+                <span className="tabular-nums text-xs">
+                  {advanced.memoryRange?.[0] ?? 0}%–
+                  {advanced.memoryRange?.[1] ?? 100}%
+                </span>
+              </div>
+              <Slider
+                size="sm"
+                min={0}
+                max={100}
+                step={1}
+                value={advanced.memoryRange ?? [0, 100]}
+                onValueChange={(val) =>
+                  updateAdvanced((p) => ({
+                    ...p,
+                    memoryRange: val as [number, number],
+                  }))
+                }
+                showTooltip
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground">
+                <span>Disk</span>
+                <span className="tabular-nums text-xs">
+                  {advanced.diskRange?.[0] ?? 0}%–
+                  {advanced.diskRange?.[1] ?? 100}%
+                </span>
+              </div>
+              <Slider
+                size="sm"
+                min={0}
+                max={100}
+                step={1}
+                value={advanced.diskRange ?? [0, 100]}
+                onValueChange={(val) =>
+                  updateAdvanced((p) => ({
+                    ...p,
+                    diskRange: val as [number, number],
+                  }))
+                }
+                showTooltip
+              />
+            </div>
+          </div>
+
+          {/* Clear all */}
           {hasActiveAdvanced && (
-            <Button
-              variant="text"
-              size="xs"
-              onClick={clearAdvanced}
-              className="ml-auto"
-            >
-              Clear all
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="text"
+                size="xs"
+                onClick={clearAdvanced}
+              >
+                Clear all
+              </Button>
+            </div>
           )}
         </div>
       </CollapsibleSection>

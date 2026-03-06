@@ -118,7 +118,7 @@ describe("applyNodeAdvancedFilters", () => {
     expect(result).toHaveLength(1);
   });
 
-  it("filters by minCpu", () => {
+  it("filters by cpuRange", () => {
     const nodes = [
       makeNode({
         resources: {
@@ -148,9 +148,18 @@ describe("applyNodeAdvancedFilters", () => {
       }),
       makeNode({ resources: null }),
     ];
-    const result = applyNodeAdvancedFilters(nodes, { minCpu: 50 });
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuRange: [50, 100],
+    });
     expect(result).toHaveLength(1);
     expect(result[0]?.resources?.cpuUsagePct).toBe(80);
+  });
+
+  it("does not filter when cpuRange spans full 0-100", () => {
+    const nodes = [makeNode(), makeNode()];
+    expect(
+      applyNodeAdvancedFilters(nodes, { cpuRange: [0, 100] }),
+    ).toHaveLength(2);
   });
 
   it("combines multiple filters with AND logic", () => {
@@ -216,7 +225,7 @@ describe("applyVmAdvancedFilters", () => {
     expect(result).toHaveLength(1);
   });
 
-  it("filters by minVcpus", () => {
+  it("filters by vcpusRange", () => {
     const vms = [
       makeVm({ requirements: { vcpus: 4, memoryMb: 1024, diskMb: 0 } }),
       makeVm({ requirements: { vcpus: 1, memoryMb: 1024, diskMb: 0 } }),
@@ -224,17 +233,21 @@ describe("applyVmAdvancedFilters", () => {
         requirements: { vcpus: null, memoryMb: null, diskMb: null },
       }),
     ];
-    const result = applyVmAdvancedFilters(vms, { minVcpus: 2 });
+    const result = applyVmAdvancedFilters(vms, {
+      vcpusRange: [2, 32],
+    });
     expect(result).toHaveLength(1);
     expect(result[0]?.requirements.vcpus).toBe(4);
   });
 
-  it("filters by minMemoryMb", () => {
+  it("filters by memoryMbRange", () => {
     const vms = [
       makeVm({ requirements: { vcpus: 2, memoryMb: 2048, diskMb: 0 } }),
       makeVm({ requirements: { vcpus: 2, memoryMb: 512, diskMb: 0 } }),
     ];
-    const result = applyVmAdvancedFilters(vms, { minMemoryMb: 1024 });
+    const result = applyVmAdvancedFilters(vms, {
+      memoryMbRange: [1024, 65536],
+    });
     expect(result).toHaveLength(1);
   });
 
