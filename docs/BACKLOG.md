@@ -15,6 +15,16 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
+### 2026-03-06 - Clickable stat cards on overview page
+**Source:** User request
+**Description:** Stat cards (Healthy, Unreachable, Scheduled, etc.) should be clickable and navigate to the corresponding filtered list page (e.g. clicking "Healthy" goes to `/nodes/?status=healthy`). Currently they're display-only.
+**Priority:** Medium
+
+### 2026-03-06 - Remove tooltip from hash in Latest VMs card
+**Source:** User request
+**Description:** On the overview page's Latest VMs card, the hash column shows a tooltip on hover (from `CopyableText`). Remove the tooltip — the hash is already visible and the tooltip adds noise in this compact card context.
+**Priority:** Low
+
 ### 2026-03-06 - VM detail: show owner wallet address
 **Source:** User feedback during UI fixes
 **Description:** Add the owner (wallet address) to the VM detail view. The Aleph message API (`api2.aleph.im`) returns a `sender` field per message — this is the owner. Could reuse the `AlephMessageInfo` data already fetched, or fetch it on the detail view.
