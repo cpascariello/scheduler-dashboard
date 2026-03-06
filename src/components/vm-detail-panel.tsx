@@ -7,6 +7,7 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVM } from "@/hooks/use-vms";
 import { useVMMessageInfo } from "@/hooks/use-vm-creation-times";
 import { CopyableText } from "@aleph-front/ds/copyable-text";
+import { useNode } from "@/hooks/use-nodes";
 import { relativeTime, truncateHash } from "@/lib/format";
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
 
@@ -18,6 +19,7 @@ type VMDetailPanelProps = {
 export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
   const { data: vm, isLoading } = useVM(hash);
   const { data: messageInfo } = useVMMessageInfo([hash]);
+  const { data: allocatedNodeData } = useNode(vm?.allocatedNode ?? "");
 
   if (isLoading) {
     return (
@@ -98,15 +100,22 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           Allocated Node
         </h4>
         {vm.allocatedNode ? (
-          <Link
-            href={`/nodes?view=${vm.allocatedNode}`}
-            className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-          >
-            {truncateHash(vm.allocatedNode)}
-            <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-            </svg>
-          </Link>
+          <div className="flex items-center justify-between gap-2">
+            <Link
+              href={`/nodes?view=${vm.allocatedNode}`}
+              className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
+            >
+              {truncateHash(vm.allocatedNode)}
+              <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
+              </svg>
+            </Link>
+            {allocatedNodeData?.name && (
+              <span className="truncate text-xs text-muted-foreground">
+                {allocatedNodeData.name}
+              </span>
+            )}
+          </div>
         ) : (
           <span className="text-sm text-muted-foreground">Not allocated</span>
         )}
