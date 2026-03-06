@@ -35,6 +35,8 @@ function NodesContent() {
       ? { field: "vms" as const, direction: sortDirection as "asc" | "desc" }
       : undefined;
 
+  const queryParam = searchParams.get("q") ?? "";
+
   const selectedParam = searchParams.get("selected");
   const [selectedNode, setSelectedNode] = useState<string | null>(
     selectedParam,
@@ -49,10 +51,11 @@ function NodesContent() {
       <div className="flex-1 min-w-0">
         <NodeTable
           onSelectNode={setSelectedNode}
-          initialStatus={initialStatus}
+          {...(initialStatus ? { initialStatus } : {})}
           initialHasVms={hasVms}
-          initialSort={initialSort}
-          selectedKey={selectedNode ?? undefined}
+          {...(initialSort ? { initialSort } : {})}
+          initialQuery={queryParam}
+          {...(selectedNode ? { selectedKey: selectedNode } : {})}
         />
       </div>
       {selectedNode && (

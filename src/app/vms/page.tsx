@@ -27,6 +27,8 @@ function VMsContent() {
       ? (statusParam as VmStatus)
       : undefined;
 
+  const queryParam = searchParams.get("q") ?? "";
+
   const selectedParam = searchParams.get("selected");
   const [selectedVM, setSelectedVM] = useState<string | null>(selectedParam);
 
@@ -39,8 +41,9 @@ function VMsContent() {
       <div className="flex-1 min-w-0">
         <VMTable
           onSelectVM={setSelectedVM}
-          initialStatus={initialStatus}
-          selectedKey={selectedVM ?? undefined}
+          {...(initialStatus ? { initialStatus } : {})}
+          initialQuery={queryParam}
+          {...(selectedVM ? { selectedKey: selectedVM } : {})}
         />
       </div>
       {selectedVM && (
