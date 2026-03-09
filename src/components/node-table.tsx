@@ -421,7 +421,7 @@ export function NodeTable({
           </div>
 
           {/* Content: three-column layout */}
-          <div className="grid grid-cols-1 gap-8 p-6 pb-8 sm:grid-cols-2 sm:p-8 sm:pb-10 lg:grid-cols-3 lg:gap-10">
+          <div className="grid grid-cols-1 gap-8 p-6 pb-8 sm:grid-cols-2 sm:p-8 sm:pb-10 lg:grid-cols-4 lg:gap-10">
             {/* Properties */}
             <div>
               <span className="mb-4 block text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
@@ -509,46 +509,48 @@ export function NodeTable({
                   </span>
                 </label>
               </div>
-              <div className="mt-4 border-t border-white/[0.04] pt-3">
-                <span className="mb-2.5 block text-xs font-normal text-muted-foreground/50">
-                  CPU Vendor
-                </span>
-                <div className="space-y-2.5">
-                  {(
-                    [
-                      ["AuthenticAMD", "AMD"],
-                      ["GenuineIntel", "Intel"],
-                      ["unknown", "Unknown"],
-                    ] as const
-                  ).map(([value, label]) => (
-                    <label
-                      key={value}
-                      className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none"
-                    >
-                      <Checkbox
-                        size="sm"
-                        checked={advanced.cpuVendors?.has(value) ?? false}
-                        onCheckedChange={(checked) =>
-                          updateAdvanced((p) => {
-                            const next = new Set(p.cpuVendors);
-                            if (checked === true) {
-                              next.add(value);
-                            } else {
-                              next.delete(value);
-                            }
-                            return next.size > 0
-                              ? { ...p, cpuVendors: next }
-                              : (() => {
-                                  const { cpuVendors: _, ...rest } = p;
-                                  return rest;
-                                })();
-                          })
-                        }
-                      />
-                      <span>{label}</span>
-                    </label>
-                  ))}
-                </div>
+            </div>
+
+            {/* CPU Vendor */}
+            <div>
+              <span className="mb-4 block text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
+                CPU Vendor
+              </span>
+              <div className="space-y-2.5">
+                {(
+                  [
+                    ["AuthenticAMD", "AMD"],
+                    ["GenuineIntel", "Intel"],
+                    ["unknown", "Unknown"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <label
+                    key={value}
+                    className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none"
+                  >
+                    <Checkbox
+                      size="sm"
+                      checked={advanced.cpuVendors?.has(value) ?? false}
+                      onCheckedChange={(checked) =>
+                        updateAdvanced((p) => {
+                          const next = new Set(p.cpuVendors);
+                          if (checked === true) {
+                            next.add(value);
+                          } else {
+                            next.delete(value);
+                          }
+                          return next.size > 0
+                            ? { ...p, cpuVendors: next }
+                            : (() => {
+                                const { cpuVendors: _, ...rest } = p;
+                                return rest;
+                              })();
+                        })
+                      }
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
