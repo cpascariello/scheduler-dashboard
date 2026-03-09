@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #34 - 2026-03-09
+**Context:** Adding CPU info to the nodes page. The API returns `cpu_vendor` (CPUID string like "AuthenticAMD"/"GenuineIntel"), `cpu_architecture` (e.g. "x86_64"), and `cpu_features` (e.g. ["sev", "sev_snp"]). The vendor filter initially included an "Unknown" option for nodes with null cpu_vendor.
+**Decision:** Map CPUID vendor strings to display labels (AMD, Intel) via `formatCpuLabel()`. Show CPU column in table, vendor multi-select filter (AMD/Intel only), CPU section in detail panel/view. Features shown only in detail views (conditional). Remove "Unknown" from vendor filter options.
+**Rationale:** CPUID strings aren't user-friendly ("AuthenticAMD" vs "AMD"). Features are too niche for the table column but useful in detail context (e.g. SEV-SNP indicates confidential computing capability). "Unknown" was removed from the vendor filter because all 54 null-vendor nodes are Unreachable — with the default Healthy status filter, checking "Unknown" produced zero results, which is confusing. Users filter for specific hardware (AMD/Intel), not for "nodes that haven't reported CPU info." Nodes with unknown CPU still appear when no vendor filter is active.
+**Alternatives considered:** Including "Unknown" with auto-status-switch (breaks filter independence), architecture-based filter instead of vendor (only x86_64 in current data)
+
 ## Decision #33 - 2026-03-09
 **Context:** Adding GPU info to the dashboard. The API returns `gpus: { used: [...], available: [...] }` on nodes and `gpu_requirements: [...]` on VMs. Each GPU object has vendor, model, device_name, device_class, device_id.
 **Decision:** Keep only vendor, model, and deviceName in the app type (`GpuDevice`). Drop device_class and device_id (PCI identifiers). Display as badge with `formatGpuLabel` (groups by model, count prefix). Simple "Has GPU" / "Requires GPU" boolean checkbox filters.
