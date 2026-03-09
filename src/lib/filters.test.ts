@@ -261,26 +261,14 @@ describe("applyNodeAdvancedFilters", () => {
     expect(result[0]?.cpuVendor).toBe("AuthenticAMD");
   });
 
-  it("filters by cpuVendors — includes null as 'unknown'", () => {
-    const nodes = [
-      makeNode({ cpuVendor: "AuthenticAMD" }),
-      makeNode({ cpuVendor: null }),
-    ];
-    const result = applyNodeAdvancedFilters(nodes, {
-      cpuVendors: new Set(["unknown"]),
-    });
-    expect(result).toHaveLength(1);
-    expect(result[0]?.cpuVendor).toBeNull();
-  });
-
-  it("does not filter when cpuVendors includes all options", () => {
+  it("does not filter when cpuVendors includes all known vendors", () => {
     const nodes = [
       makeNode({ cpuVendor: "AuthenticAMD" }),
       makeNode({ cpuVendor: "GenuineIntel" }),
       makeNode({ cpuVendor: null }),
     ];
     const result = applyNodeAdvancedFilters(nodes, {
-      cpuVendors: new Set(["AuthenticAMD", "GenuineIntel", "unknown"]),
+      cpuVendors: new Set(["AuthenticAMD", "GenuineIntel"]),
     });
     expect(result).toHaveLength(3);
   });

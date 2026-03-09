@@ -40,7 +40,7 @@ export const NODE_VM_COUNT_MAX = 100;
 export const NODE_VCPUS_MAX = 128;
 export const NODE_MEMORY_GB_MAX = 512;
 
-const ALL_CPU_VENDORS = new Set(["AuthenticAMD", "GenuineIntel", "unknown"]);
+const ALL_CPU_VENDORS = new Set(["AuthenticAMD", "GenuineIntel"]);
 
 export type NodeAdvancedFilters = {
   staked?: boolean;

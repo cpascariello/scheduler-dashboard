@@ -226,7 +226,7 @@ export function NodeTable({
     advanced.confidentialComputing,
     advanced.cpuVendors != null &&
       advanced.cpuVendors.size > 0 &&
-      advanced.cpuVendors.size < 3,
+      advanced.cpuVendors.size < 2,
     advanced.vmCountRange != null &&
       isRangeActive(advanced.vmCountRange, NODE_VM_COUNT_MAX),
     advanced.vcpusTotalRange != null &&
@@ -521,7 +521,6 @@ export function NodeTable({
                   [
                     ["AuthenticAMD", "AMD"],
                     ["GenuineIntel", "Intel"],
-                    ["unknown", "Unknown"],
                   ] as const
                 ).map(([value, label]) => (
                   <label
