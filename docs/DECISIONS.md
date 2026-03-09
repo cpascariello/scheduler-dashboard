@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #32 - 2026-03-09
+**Context:** New Rust scheduler v1 API now returns paginated responses (max 200 items/page). v0 is incompatible (different schema with `node_id`/`url` instead of `node_hash`/`address`). API reference doc had incorrect paths (showed v0 paths with v1 schema).
+**Decision:** Stay on /api/v1/, add `fetchAllPages()` helper to fetch all pages in parallel and return full arrays. No component changes needed.
+**Rationale:** Minimal change to existing code — list consumers still get full arrays. Detail endpoints unchanged. Avoids rewriting all components for pagination UI. `fetchAllPages` makes at most 3 parallel requests for current data sizes (~543 nodes, ~462 VMs at 200/page).
+**Alternatives considered:** Switch to v0 (incompatible schema), implement proper pagination UI (deferred — much larger scope), request increased page_size cap (fragile)
+
 ## Decision #31 - 2026-03-06
 **Context:** The dashboard had a local `CopyableHash` component for displaying truncated hashes with copy-to-clipboard. The DS now ships `CopyableText` with the same functionality plus middle-ellipsis, clip-path animation, Phosphor icons, and size variants.
 **Decision:** Replace local `CopyableHash` with DS `CopyableText` (`@aleph-front/ds/copyable-text`). Delete the local component and its CSS keyframe animation.

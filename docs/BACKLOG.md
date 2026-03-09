@@ -15,6 +15,16 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
+### 2026-03-09 - Pagination UI for large datasets
+**Source:** API pagination migration (fix/api-pagination)
+**Description:** Currently fetching all pages to return full arrays. For scalability, implement proper pagination UI (page controls or infinite scroll) so we don't fetch all 500+ nodes/VMs every time. Also add server-side search once the API supports query params for it.
+**Priority:** Medium
+
+### 2026-03-09 - Surface new API fields (GPU, confidential, CPU)
+**Source:** API pagination migration (fix/api-pagination)
+**Description:** New server provides: nodes — `confidential_computing_enabled`, `cpu_architecture`, `cpu_vendor`, `cpu_features`, `gpus` {used, available}; VMs — `requires_confidential`, `gpu_requirements`, `cpu_architecture`, `cpu_vendor`, `cpu_features`. Add columns/filters/detail fields for these.
+**Priority:** Low
+
 ### 2026-03-06 - Clickable stat cards on overview page
 **Source:** User request
 **Description:** Stat cards (Healthy, Unreachable, Scheduled, etc.) should be clickable and navigate to the corresponding filtered list page (e.g. clicking "Healthy" goes to `/nodes/?status=healthy`). Currently they're display-only.
