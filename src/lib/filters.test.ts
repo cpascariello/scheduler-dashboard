@@ -20,6 +20,7 @@ const makeNode = (overrides: Partial<Node> = {}): Node => ({
   supportsIpv6: null,
   discoveredAt: null,
   gpus: { used: [], available: [] },
+  confidentialComputing: false,
   ...overrides,
 });
 
@@ -36,6 +37,7 @@ const makeVm = (overrides: Partial<VM> = {}): VM => ({
   lastObservedAt: null,
   paymentType: null,
   gpuRequirements: [],
+  requiresConfidential: false,
   ...overrides,
 });
 
