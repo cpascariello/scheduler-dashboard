@@ -15,15 +15,25 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
-### 2026-03-09 - Pagination UI for large datasets
-**Source:** API pagination migration (fix/api-pagination)
-**Description:** Currently fetching all pages to return full arrays. For scalability, implement proper pagination UI (page controls or infinite scroll) so we don't fetch all 500+ nodes/VMs every time. Also add server-side search once the API supports query params for it.
+### 2026-03-09 - GPU info on nodes
+**Source:** API pagination migration — new fields already in API responses
+**Description:** Nodes have `gpus: {used, available}`. Show GPU model/count in node table column + detail view, add "has GPU" filter to advanced filters.
 **Priority:** Medium
 
-### 2026-03-09 - Surface new API fields (GPU, confidential, CPU)
-**Source:** API pagination migration (fix/api-pagination)
-**Description:** New server provides: nodes — `confidential_computing_enabled`, `cpu_architecture`, `cpu_vendor`, `cpu_features`, `gpus` {used, available}; VMs — `requires_confidential`, `gpu_requirements`, `cpu_architecture`, `cpu_vendor`, `cpu_features`. Add columns/filters/detail fields for these.
-**Priority:** Low
+### 2026-03-09 - GPU requirements on VMs
+**Source:** API pagination migration — new fields already in API responses
+**Description:** VMs have `gpu_requirements`. Show in VM detail view, add filter for GPU-requiring VMs.
+**Priority:** Medium
+
+### 2026-03-09 - Confidential computing indicators
+**Source:** API pagination migration — new fields already in API responses
+**Description:** Nodes have `confidential_computing_enabled`, VMs have `requires_confidential`. Add badge/indicator on both tables and detail views, checkbox filter on both pages.
+**Priority:** Medium
+
+### 2026-03-09 - CPU architecture info
+**Source:** API pagination migration — new fields already in API responses
+**Description:** Both nodes and VMs have `cpu_architecture`, `cpu_vendor`, `cpu_features`. Add architecture column/filter to node table (x86/ARM), show details in detail views.
+**Priority:** Medium
 
 ### 2026-03-06 - Clickable stat cards on overview page
 **Source:** User request
@@ -74,6 +84,50 @@ Ideas and scope creep captured for later consideration.
 **Source:** Manual deployment friction
 **Description:** Investigate using the Aleph CLI to automatically push the `out/` directory to IPFS after build. Could be integrated into a GitHub Actions workflow or a local deploy script.
 **Priority:** Medium
+
+---
+
+## Paused (waiting on backend)
+
+### 2026-03-09 - Pagination UI for large datasets
+**Source:** API pagination migration (fix/api-pagination)
+**Description:** Currently fetching all pages to return full arrays. For scalability, implement proper pagination UI (page controls or infinite scroll) so we don't fetch all 500+ nodes/VMs every time.
+**Blocked on:** Expanded `/stats` endpoint with per-status breakdowns (so overview page doesn't need full lists)
+
+### 2026-03-09 - Server-side search
+**Source:** API pagination migration analysis
+**Description:** Push search to API instead of client-side filtering. Would replace `textSearch()` in `filters.ts` with a `?search=` query param. Already have `useDebounce` hook ready.
+**Blocked on:** Olivier adding search query params to v1 list endpoints
+
+### 2026-03-09 - Expanded `/stats` endpoint
+**Source:** API pagination migration analysis
+**Description:** Request per-status breakdowns in `/stats` response (unreachable/unknown/removed nodes, scheduled/orphaned/missing/unschedulable VMs). Currently `getOverviewStats()` fetches all nodes + all VMs just to count by status — wasteful and won't scale.
+**Blocked on:** Backend change from Olivier
+
+---
+
+## Investigate
+
+### 2026-03-09 - Node map / geo view
+**Description:** Visualize node locations on a map. Feasibility depends on whether IPv6 or address fields can be geolocated.
+
+### 2026-03-09 - Allocation timeline
+**Description:** Visual timeline of VM migrations using history data. Show scheduled/migrated events per VM as a timeline component.
+
+### 2026-03-09 - Health trends dashboard
+**Description:** Track node health transitions over time, show uptime percentage per node. Likely needs a backend `/stats/history` or `/nodes/:hash/health` endpoint.
+
+### 2026-03-09 - Resource capacity planning
+**Description:** Cluster-wide utilization view — aggregate vCPU/memory/disk across all nodes, show remaining headroom. Data already available from node resources.
+
+### 2026-03-09 - Alerts / anomaly indicators
+**Description:** Flag nodes losing VMs or going unreachable frequently. Client-side heuristic from history data — detect patterns like repeated status changes.
+
+### 2026-03-09 - Aleph Cloud hosting architecture research
+**Description:** The current static export + client-side polling model won't scale long-term (fetching all pages on every poll, no persistent state, no indexing). Research how to run a proper frontend + backend on Aleph Cloud. Key questions: Can we run a backend VM on Aleph that indexes scheduler data and serves it via API? Can we use Aleph messages (STORE, AGGREGATE, POST) to persist historical snapshots, user preferences, or pre-computed stats? What's the deployment model — VM instance for the backend, static IPFS for the frontend, or both on a single instance? Look at existing Aleph Cloud apps (explorer, account) for patterns.
+
+### 2026-03-09 - Bookmarkable filter URLs
+**Description:** Write active filters back to URL search params (currently read-once on mount). Enables sharing filtered views via URL.
 
 ---
 
