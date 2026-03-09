@@ -40,11 +40,14 @@ export const NODE_VM_COUNT_MAX = 100;
 export const NODE_VCPUS_MAX = 128;
 export const NODE_MEMORY_GB_MAX = 512;
 
+const ALL_CPU_VENDORS = new Set(["AuthenticAMD", "GenuineIntel", "unknown"]);
+
 export type NodeAdvancedFilters = {
   staked?: boolean;
   supportsIpv6?: boolean;
   hasGpu?: boolean;
   confidentialComputing?: boolean;
+  cpuVendors?: Set<string>;
   vmCountRange?: [number, number];
   vcpusTotalRange?: [number, number];
   memoryTotalGbRange?: [number, number];
@@ -68,6 +71,16 @@ export function applyNodeAdvancedFilters(
   }
   if (filters.confidentialComputing) {
     result = result.filter((n) => n.confidentialComputing);
+  }
+  if (
+    filters.cpuVendors &&
+    filters.cpuVendors.size > 0 &&
+    filters.cpuVendors.size < ALL_CPU_VENDORS.size
+  ) {
+    result = result.filter((n) => {
+      const vendor = n.cpuVendor ?? "unknown";
+      return filters.cpuVendors!.has(vendor);
+    });
   }
   if (
     filters.vmCountRange &&

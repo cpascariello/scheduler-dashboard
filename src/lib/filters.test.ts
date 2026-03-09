@@ -248,6 +248,54 @@ describe("applyNodeAdvancedFilters", () => {
     expect(result[0]?.confidentialComputing).toBe(true);
   });
 
+  it("filters by cpuVendors — single vendor", () => {
+    const nodes = [
+      makeNode({ cpuVendor: "AuthenticAMD" }),
+      makeNode({ cpuVendor: "GenuineIntel" }),
+      makeNode({ cpuVendor: null }),
+    ];
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuVendors: new Set(["AuthenticAMD"]),
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0]?.cpuVendor).toBe("AuthenticAMD");
+  });
+
+  it("filters by cpuVendors — includes null as 'unknown'", () => {
+    const nodes = [
+      makeNode({ cpuVendor: "AuthenticAMD" }),
+      makeNode({ cpuVendor: null }),
+    ];
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuVendors: new Set(["unknown"]),
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0]?.cpuVendor).toBeNull();
+  });
+
+  it("does not filter when cpuVendors includes all options", () => {
+    const nodes = [
+      makeNode({ cpuVendor: "AuthenticAMD" }),
+      makeNode({ cpuVendor: "GenuineIntel" }),
+      makeNode({ cpuVendor: null }),
+    ];
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuVendors: new Set(["AuthenticAMD", "GenuineIntel", "unknown"]),
+    });
+    expect(result).toHaveLength(3);
+  });
+
+  it("shows all when cpuVendors is empty set", () => {
+    const nodes = [
+      makeNode({ cpuVendor: "AuthenticAMD" }),
+      makeNode({ cpuVendor: null }),
+    ];
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuVendors: new Set(),
+    });
+    expect(result).toHaveLength(2);
+  });
+
   it("returns all when no filters active", () => {
     const nodes = [makeNode(), makeNode()];
     expect(applyNodeAdvancedFilters(nodes, {})).toHaveLength(2);
