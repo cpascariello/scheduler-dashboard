@@ -73,8 +73,8 @@ src/
 ### API Client
 
 **Context:** Dashboard fetches live data from the scheduler API.
-**Approach:** Fetches from `NEXT_PUBLIC_API_URL` (default: `http://localhost:8081`). Runtime URL override via `?api=` query parameter. API endpoints are prefixed with `/api/v1`. Wire types (`Api*Row`) use snake_case matching the raw JSON; transform functions convert to camelCase app types. Detail endpoints (`getNode`, `getVM`) use `Promise.all` for parallel fetching of the resource + related VMs/history.
-**Key files:** `src/api/types.ts` (wire + app types), `src/api/client.ts`
+**Approach:** Fetches from `NEXT_PUBLIC_API_URL` (default: `http://localhost:8081`). Runtime URL override via `?api=` query parameter. API endpoints are prefixed with `/api/v1`. Wire types (`Api*Row`) use snake_case matching the raw JSON; transform functions convert to camelCase app types. List endpoints return paginated responses (`{items: T[], pagination: {page, page_size, total_items, total_pages}}`). The `fetchAllPages()` helper fetches page 1 to learn `total_pages`, then fetches remaining pages in parallel (max 200 items/page). Public functions (`getNodes`, `getVMs`, `getOverviewStats`) return full arrays — pagination is encapsulated in the client layer. Detail endpoints (`getNode`, `getVM`) use `fetchApi` for the bare object + `fetchAllPages` for related VMs/history.
+**Key files:** `src/api/types.ts` (wire + app + pagination types), `src/api/client.ts`
 **Notes:** The `getOverviewStats` function fetches `/stats` + `/vms` + `/nodes` in parallel to derive per-status counts not available from `/stats` alone.
 
 ### Progressive Loading from Multiple APIs
@@ -165,7 +165,7 @@ src/
 ### API Status Page
 
 **Context:** Need a diagnostic page to verify all scheduler endpoints are reachable.
-**Approach:** Standalone client component at `/status` that fires fetch requests to all 7 API endpoints on mount. Uses a two-phase strategy: first hits independent endpoints (stats, nodes list, vms list), then resolves `:hash` placeholders from list results for dependent endpoints (node/vm detail + history). `Promise.allSettled` ensures one failure doesn't block others. StatusDot shows health, HTTP codes displayed alongside. Base URL comes from `NEXT_PUBLIC_API_URL` with `?api=` query param override. Sidebar link is separated from main nav via `border-t` to signal it's a utility page, not primary navigation.
+**Approach:** Standalone client component at `/status` that fires fetch requests to all 8 API endpoints on mount. Checks `/health` (root-level) first, then uses a two-phase strategy: hits independent endpoints (stats, nodes list, vms list), then resolves `:hash` placeholders from list results for dependent endpoints (node/vm detail + history). `Promise.allSettled` ensures one failure doesn't block others. StatusDot shows health, HTTP codes displayed alongside. Base URL comes from `NEXT_PUBLIC_API_URL` with `?api=` query param override. Sidebar link is separated from main nav via `border-t` to signal it's a utility page, not primary navigation.
 **Key files:** `src/app/status/page.tsx`, `src/components/app-sidebar.tsx`
 
 ### Adding a New API Endpoint
