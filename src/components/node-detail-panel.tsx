@@ -9,7 +9,7 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { CopyableText } from "@aleph-front/ds/copyable-text";
 import { useNode } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
-import { relativeTime, truncateHash } from "@/lib/format";
+import { relativeTime, truncateHash, formatCpuLabel } from "@/lib/format";
 import {
   nodeStatusToDot,
   NODE_STATUS_VARIANT,
@@ -131,6 +131,30 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
           </div>
         </div>
       )}
+
+      <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          CPU
+        </h4>
+        <dl className="space-y-1 text-sm">
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Architecture</dt>
+            <dd className="text-xs">{node.cpuArchitecture ?? "Unknown"}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Vendor</dt>
+            <dd className="text-xs">
+              {formatCpuLabel(node.cpuVendor, null)}
+            </dd>
+          </div>
+          {node.cpuFeatures.length > 0 && (
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Features</dt>
+              <dd className="text-xs">{node.cpuFeatures.join(", ")}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
 
       {(node.gpus.used.length > 0 || node.gpus.available.length > 0) && (
         <div className="mt-4 space-y-1.5 border-t border-edge pt-3">

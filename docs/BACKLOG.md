@@ -15,11 +15,6 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
-### 2026-03-09 - CPU architecture info
-**Source:** API pagination migration — new fields already in API responses
-**Description:** Both nodes and VMs have `cpu_architecture`, `cpu_vendor`, `cpu_features`. Add architecture column/filter to node table (x86/ARM), show details in detail views.
-**Priority:** Medium
-
 ### 2026-03-06 - Clickable stat cards on overview page
 **Source:** User request
 **Description:** Stat cards (Healthy, Unreachable, Scheduled, etc.) should be clickable and navigate to the corresponding filtered list page (e.g. clicking "Healthy" goes to `/nodes/?status=healthy`). Currently they're display-only.
@@ -135,5 +130,6 @@ Ideas and scope creep captured for later consideration.
 - ✅ 2026-03-09 - GPU info on nodes — GPU badge column, Has GPU filter, GPU card in detail view/panel
 - ✅ 2026-03-09 - GPU requirements on VMs — Requires GPU filter, GPU row in detail view/panel
 - ✅ 2026-03-09 - Confidential computing indicators — ShieldCheck icon in tables, checkbox filters, detail panel/view rows
+- ✅ 2026-03-09 - CPU info on nodes — CPU column, vendor filter (AMD/Intel), CPU section in detail panel/view
 
 </details>

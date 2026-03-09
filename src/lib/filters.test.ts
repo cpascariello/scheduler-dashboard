@@ -21,6 +21,9 @@ const makeNode = (overrides: Partial<Node> = {}): Node => ({
   discoveredAt: null,
   gpus: { used: [], available: [] },
   confidentialComputing: false,
+  cpuArchitecture: null,
+  cpuVendor: null,
+  cpuFeatures: [],
   ...overrides,
 });
 
@@ -243,6 +246,42 @@ describe("applyNodeAdvancedFilters", () => {
     });
     expect(result).toHaveLength(1);
     expect(result[0]?.confidentialComputing).toBe(true);
+  });
+
+  it("filters by cpuVendors — single vendor", () => {
+    const nodes = [
+      makeNode({ cpuVendor: "AuthenticAMD" }),
+      makeNode({ cpuVendor: "GenuineIntel" }),
+      makeNode({ cpuVendor: null }),
+    ];
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuVendors: new Set(["AuthenticAMD"]),
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0]?.cpuVendor).toBe("AuthenticAMD");
+  });
+
+  it("does not filter when cpuVendors includes all known vendors", () => {
+    const nodes = [
+      makeNode({ cpuVendor: "AuthenticAMD" }),
+      makeNode({ cpuVendor: "GenuineIntel" }),
+      makeNode({ cpuVendor: null }),
+    ];
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuVendors: new Set(["AuthenticAMD", "GenuineIntel"]),
+    });
+    expect(result).toHaveLength(3);
+  });
+
+  it("shows all when cpuVendors is empty set", () => {
+    const nodes = [
+      makeNode({ cpuVendor: "AuthenticAMD" }),
+      makeNode({ cpuVendor: null }),
+    ];
+    const result = applyNodeAdvancedFilters(nodes, {
+      cpuVendors: new Set(),
+    });
+    expect(result).toHaveLength(2);
   });
 
   it("returns all when no filters active", () => {

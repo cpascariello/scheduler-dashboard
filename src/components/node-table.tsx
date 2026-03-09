@@ -20,7 +20,7 @@ import { useNodes } from "@/hooks/use-nodes";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CollapsibleSection } from "@/components/collapsible-section";
 import { CopyableText } from "@aleph-front/ds/copyable-text";
-import { relativeTime, formatGpuLabel } from "@/lib/format";
+import { relativeTime, formatGpuLabel, formatCpuLabel } from "@/lib/format";
 import {
   textSearch,
   countByStatus,
@@ -134,6 +134,16 @@ const columns: Column<Node>[] = [
     align: "right",
   },
   {
+    header: "CPU",
+    accessor: (r) => (
+      <span className="text-xs">
+        {formatCpuLabel(r.cpuVendor, r.cpuArchitecture)}
+      </span>
+    ),
+    sortable: true,
+    sortValue: (r) => formatCpuLabel(r.cpuVendor, r.cpuArchitecture),
+  },
+  {
     header: "GPU",
     accessor: (r) => {
       const allGpus = [...r.gpus.used, ...r.gpus.available];
@@ -214,6 +224,9 @@ export function NodeTable({
     advanced.supportsIpv6,
     advanced.hasGpu,
     advanced.confidentialComputing,
+    advanced.cpuVendors != null &&
+      advanced.cpuVendors.size > 0 &&
+      advanced.cpuVendors.size < 2,
     advanced.vmCountRange != null &&
       isRangeActive(advanced.vmCountRange, NODE_VM_COUNT_MAX),
     advanced.vcpusTotalRange != null &&
@@ -336,8 +349,11 @@ export function NodeTable({
           size="sm"
           onClick={() => setFiltersOpen((v) => !v)}
           className="relative"
+          aria-label="Toggle filters"
         >
-          Filters
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M6 8h12M9 12h6M11 16h2" />
+          </svg>
           {activeAdvancedCount > 0 && !filtersOpen && (
             <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500" />
           )}
@@ -408,7 +424,7 @@ export function NodeTable({
           </div>
 
           {/* Content: three-column layout */}
-          <div className="grid grid-cols-1 gap-8 p-6 pb-8 sm:grid-cols-2 sm:p-8 sm:pb-10 lg:grid-cols-3 lg:gap-10">
+          <div className="grid grid-cols-1 gap-8 p-6 pb-8 sm:grid-cols-2 sm:p-8 sm:pb-10 lg:grid-cols-4 lg:gap-10">
             {/* Properties */}
             <div>
               <span className="mb-4 block text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
@@ -495,6 +511,48 @@ export function NodeTable({
                     </span>
                   </span>
                 </label>
+              </div>
+            </div>
+
+            {/* CPU Vendor */}
+            <div>
+              <span className="mb-4 block text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
+                CPU Vendor
+              </span>
+              <div className="space-y-2.5">
+                {(
+                  [
+                    ["AuthenticAMD", "AMD"],
+                    ["GenuineIntel", "Intel"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <label
+                    key={value}
+                    className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none"
+                  >
+                    <Checkbox
+                      size="sm"
+                      checked={advanced.cpuVendors?.has(value) ?? false}
+                      onCheckedChange={(checked) =>
+                        updateAdvanced((p) => {
+                          const next = new Set(p.cpuVendors);
+                          if (checked === true) {
+                            next.add(value);
+                          } else {
+                            next.delete(value);
+                          }
+                          return next.size > 0
+                            ? { ...p, cpuVendors: next }
+                            : (() => {
+                                const { cpuVendors: _, ...rest } = p;
+                                return rest;
+                              })();
+                        })
+                      }
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
