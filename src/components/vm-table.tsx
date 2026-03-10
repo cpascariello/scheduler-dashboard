@@ -11,14 +11,13 @@ import {
 } from "@aleph-front/ds/tooltip";
 import { ShieldCheck } from "@phosphor-icons/react";
 import { Checkbox } from "@aleph-front/ds/checkbox";
-import { Button } from "@aleph-front/ds/button";
-import { Input } from "@aleph-front/ds/input";
 import { Slider } from "@aleph-front/ds/slider";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVMs } from "@/hooks/use-vms";
 import { useVMMessageInfo } from "@/hooks/use-vm-creation-times";
 import { useDebounce } from "@/hooks/use-debounce";
-import { CollapsibleSection } from "@/components/collapsible-section";
+import { FilterToolbar } from "@/components/filter-toolbar";
+import { FilterPanel } from "@/components/filter-panel";
 import { CopyableText } from "@aleph-front/ds/copyable-text";
 import {
   textSearch,
@@ -31,25 +30,15 @@ import {
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
 import type { AlephMessageInfo, VM, VmStatus, VmType } from "@/api/types";
 
-const ALL_STATUSES: (VmStatus | undefined)[] = [
-  undefined,
-  "scheduled",
-  "unscheduled",
-  "orphaned",
-  "missing",
-  "unschedulable",
-  "unknown",
+const STATUS_PILLS: { value: VmStatus | undefined; label: string }[] = [
+  { value: undefined, label: "All" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "unscheduled", label: "Unscheduled" },
+  { value: "orphaned", label: "Orphaned" },
+  { value: "missing", label: "Missing" },
+  { value: "unschedulable", label: "Unschedulable" },
+  { value: "unknown", label: "Unknown" },
 ];
-
-const STATUS_LABELS: Record<string, string> = {
-  all: "All",
-  scheduled: "Scheduled",
-  unscheduled: "Unscheduled",
-  orphaned: "Orphaned",
-  missing: "Missing",
-  unschedulable: "Unschedulable",
-  unknown: "Unknown",
-};
 
 const ALL_VM_TYPES: VmType[] = [
   "microvm",
@@ -383,109 +372,25 @@ export function VMTable({
 
   return (
     <TooltipProvider>
-      {/* Status pills + Filters toggle + Search */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {ALL_STATUSES.map((status) => {
-          const key = status ?? "all";
-          const label = STATUS_LABELS[key];
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() =>
-                startTransition(() => setStatusFilter(status))
-              }
-              className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
-                statusFilter === status
-                  ? "bg-primary-600/15 text-primary-400"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
-            >
-              {label}{" "}
-              <span className="tabular-nums opacity-60">
-                ({formatCount(status)})
-              </span>
-            </button>
-          );
-        })}
-        <Button
-          variant="text"
-          size="sm"
-          onClick={() => setFiltersOpen((v) => !v)}
-          className="relative"
-        >
-          Filters
-          {activeAdvancedCount > 0 && !filtersOpen && (
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500" />
-          )}
-        </Button>
-        <div className="relative ml-auto w-64">
-          <svg
-            className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-          <Input
-            size="md"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search hash, name, node..."
-            className="pl-12 pr-10"
-          />
-          {searchInput && (
-            <button
-              type="button"
-              onClick={() => setSearchInput("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+      <FilterToolbar
+        statuses={STATUS_PILLS}
+        activeStatus={statusFilter}
+        onStatusChange={(s) => startTransition(() => setStatusFilter(s))}
+        formatCount={formatCount}
+        filtersOpen={filtersOpen}
+        onFiltersToggle={() => setFiltersOpen((v) => !v)}
+        activeFilterCount={activeAdvancedCount}
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        searchPlaceholder="Search hash, name, node..."
+      />
 
-      {/* Collapsible advanced filters */}
-      <CollapsibleSection open={filtersOpen}>
-        <div className="stat-card mb-4 border border-white/[0.06] bg-white/[0.03]">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3">
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
-              Advanced Filters
-            </span>
-            <Button
-              variant="text"
-              size="xs"
-              onClick={clearAdvanced}
-              disabled={activeAdvancedCount === 0}
-              className="disabled:opacity-30"
-            >
-              Reset
-              {activeAdvancedCount > 0 && (
-                <span className="ml-1 tabular-nums">
-                  ({activeAdvancedCount})
-                </span>
-              )}
-            </Button>
-          </div>
-
-          {/* Content: three-column layout */}
-          <div className="grid grid-cols-1 gap-8 p-6 pb-8 sm:grid-cols-2 sm:p-8 sm:pb-10 lg:grid-cols-3 lg:gap-10">
+      <FilterPanel
+        open={filtersOpen}
+        activeCount={activeAdvancedCount}
+        onReset={clearAdvanced}
+      >
+        <div className="grid grid-cols-1 gap-8 p-6 pb-8 sm:grid-cols-2 sm:p-8 sm:pb-10 lg:grid-cols-3 lg:gap-10">
             {/* VM Type */}
             <div>
               <span className="mb-4 block text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
@@ -673,9 +578,8 @@ export function VMTable({
                 </div>
               </div>
             </div>
-          </div>
         </div>
-      </CollapsibleSection>
+      </FilterPanel>
 
       <Table
         columns={buildColumns(messageInfo)}
