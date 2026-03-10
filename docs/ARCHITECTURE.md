@@ -40,7 +40,8 @@ src/
 │   ├── use-vm-creation-times.ts  # useVMMessageInfo (api2, 5min stale, no polling)
 │   ├── use-overview-stats.ts  # useOverviewStats (30s polling)
 │   ├── use-health.ts       # useHealth — /health endpoint polling (30s)
-│   └── use-debounce.ts     # useDebounce hook (generic, configurable delay)
+│   ├── use-debounce.ts     # useDebounce hook (generic, configurable delay)
+│   └── use-pagination.ts   # usePagination hook (client-side page/pageSize state + slice)
 ├── components/
 │   ├── app-shell.tsx       # Layout: sidebar + header + content
 │   ├── app-sidebar.tsx     # Navigation sidebar
@@ -55,6 +56,7 @@ src/
 │   ├── collapsible-section.tsx # CSS grid-template-rows animated expand/collapse
 │   ├── filter-toolbar.tsx  # Shared: status pills + filter toggle + search input
 │   ├── filter-panel.tsx    # Shared: collapsible glassmorphism panel chrome + reset
+│   ├── table-pagination.tsx # Shared: DS Pagination + page-size dropdown + "Showing X–Y of Z"
 │   ├── node-table.tsx      # Nodes table with search, filters, count badges
 │   ├── node-detail-panel.tsx # Node detail side panel (quick-peek)
 │   ├── node-detail-view.tsx # Node full-width detail view (?view= param)
@@ -147,6 +149,13 @@ src/
 **Approach:** Four-stage pipeline applied in `useMemo`: (1) `textSearch` matches query against configurable fields, (2) `applyNodeAdvancedFilters` / `applyVmAdvancedFilters` applies checkbox and range filters, (3) `countByStatus` computes per-status counts on the filtered set (for badge display), (4) status filter selects a single status. Status is applied last so count badges show accurate per-status breakdowns after search+advanced filters. All filters are client-side post-fetch — none go in the React Query key. State setters wrapped in `useTransition` for responsive UI. Search input debounced at 300ms via `useDebounce`. The `CollapsibleSection` component uses CSS `grid-template-rows` animation for smooth expand/collapse. Filter panel uses a 3-column layout (`lg:grid-cols-3`) with glassmorphism card styling.
 **Key files:** `src/lib/filters.ts` (pure filter functions + types), `src/lib/filters.test.ts`, `src/hooks/use-debounce.ts`, `src/components/collapsible-section.tsx`, `src/components/filter-toolbar.tsx`, `src/components/filter-panel.tsx`, `src/components/node-table.tsx`, `src/components/vm-table.tsx`
 **Notes:** The visual shell (status pills, filter toggle button, search input, glassmorphism panel chrome with reset) is shared via `FilterToolbar` and `FilterPanel` — both tables compose these with their own status config, filter content, and grid layout. `FilterToolbar` is generic over the status type. Multi-select filters (VM type, payment status, CPU vendor) treat "all selected" and "none selected" identically as "no filter." Count badges show `filtered/total` format when non-status filters are active. The `VmType` values are lowercase (`"microvm"`, `"persistent_program"`, `"instance"`) matching the API wire format. Boolean checkbox filters: Staked, IPv6, Has GPU, Confidential (nodes); Allocated to a node, Requires GPU, Requires Confidential (VMs). Multi-select: CPU Vendor (AMD, Intel) on nodes. Filter panel uses a 4-column layout on nodes (`lg:grid-cols-4`: Properties, CPU Vendor, Workload, Hardware).
+
+### Client-Side Pagination
+
+**Context:** Both list pages render hundreds of rows. Displaying all at once hurts scroll performance and makes scanning difficult.
+**Approach:** `usePagination(items)` hook owns `page` and `pageSize` state, returns a sliced `pageItems` array. Pagination is the **last step** in the filter pipeline: `allData → search → advancedFilters → statusFilter → sort → paginate → Table`. A `useEffect` resets to page 1 when any filter input changes. The `TablePagination` component composes the DS `Pagination` with a page-size dropdown (25/50/100) and a "Showing X–Y of Z" label. Hidden when total pages ≤ 1.
+**Key files:** `src/hooks/use-pagination.ts`, `src/components/table-pagination.tsx`, `src/components/node-table.tsx`, `src/components/vm-table.tsx`
+**Notes:** Page clamping happens via `setState` during render (React's idiomatic pattern for derived-state corrections) to avoid an extra render cycle. Data fetching is unchanged — `fetchAllPages` still retrieves all records; pagination is purely a display concern.
 
 ### Responsive Layout
 
