@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 import { Table, type Column } from "@aleph-front/ds/table";
 import { StatusDot } from "@aleph-front/ds/status-dot";
 import {
@@ -14,6 +14,8 @@ import { Checkbox } from "@aleph-front/ds/checkbox";
 import { Badge } from "@aleph-front/ds/badge";
 import { Slider } from "@aleph-front/ds/slider";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { usePagination } from "@/hooks/use-pagination";
+import { TablePagination } from "@/components/table-pagination";
 import { useNodes } from "@/hooks/use-nodes";
 import { useDebounce } from "@/hooks/use-debounce";
 import { FilterToolbar } from "@/components/filter-toolbar";
@@ -267,6 +269,15 @@ export function NodeTable({
         return (a.vmCount - b.vmCount) * dir;
       })
     : displayedRows;
+
+  const {
+    page, pageSize, totalPages, startItem, endItem,
+    totalItems, pageItems, setPage, setPageSize, pageSizeOptions,
+  } = usePagination(sortedRows);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, advanced, statusFilter, setPage]);
 
   const hasNonStatusFilters =
     debouncedQuery.trim() !== "" || activeAdvancedCount > 0;
@@ -565,10 +576,22 @@ export function NodeTable({
 
       <Table
         columns={columns}
-        data={sortedRows}
+        data={pageItems}
         keyExtractor={(r) => r.hash}
         onRowClick={(r) => onSelectNode(r.hash)}
         activeKey={selectedKey}
+      />
+
+      <TablePagination
+        page={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        startItem={startItem}
+        endItem={endItem}
+        totalItems={totalItems}
+        pageSizeOptions={pageSizeOptions}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
       />
     </TooltipProvider>
   );

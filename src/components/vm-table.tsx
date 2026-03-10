@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 import { Table, type Column } from "@aleph-front/ds/table";
 import { Badge } from "@aleph-front/ds/badge";
 import {
@@ -13,6 +13,8 @@ import { ShieldCheck } from "@phosphor-icons/react";
 import { Checkbox } from "@aleph-front/ds/checkbox";
 import { Slider } from "@aleph-front/ds/slider";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { usePagination } from "@/hooks/use-pagination";
+import { TablePagination } from "@/components/table-pagination";
 import { useVMs } from "@/hooks/use-vms";
 import { useVMMessageInfo } from "@/hooks/use-vm-creation-times";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -290,6 +292,15 @@ export function VMTable({
         unfilteredCounts: uCounts,
       };
     }, [allVms, debouncedQuery, advanced, statusFilter, messageInfo]);
+
+  const {
+    page, pageSize, totalPages, startItem, endItem,
+    totalItems, pageItems, setPage, setPageSize, pageSizeOptions,
+  } = usePagination(displayedRows);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, advanced, statusFilter, setPage]);
 
   const hasNonStatusFilters =
     debouncedQuery.trim() !== "" || activeAdvancedCount > 0;
@@ -583,10 +594,22 @@ export function VMTable({
 
       <Table
         columns={buildColumns(messageInfo)}
-        data={displayedRows}
+        data={pageItems}
         keyExtractor={(r) => r.hash}
         onRowClick={(r) => onSelectVM(r.hash)}
         activeKey={selectedKey}
+      />
+
+      <TablePagination
+        page={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        startItem={startItem}
+        endItem={endItem}
+        totalItems={totalItems}
+        pageSizeOptions={pageSizeOptions}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
       />
     </TooltipProvider>
   );
