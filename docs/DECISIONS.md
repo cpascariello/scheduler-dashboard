@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #36 - 2026-03-10
+**Context:** Both list pages display 400–500+ rows at once, making scanning difficult. The DS now ships a `Pagination` component (v0.6.0).
+**Decision:** Client-side pagination with `usePagination` hook, DS `Pagination` component, page-size dropdown (25/50/100, default 50), in-memory state only (no URL persistence).
+**Rationale:** Pagination is a display concern — data fetching stays unchanged (`fetchAllPages` returns full arrays). In-memory state is simpler than URL params, and filter changes already reset to page 1 so bookmarkable pagination has limited value. The dropdown uses a native `<select>` rather than button group to keep chrome minimal. 50 rows default balances scannability with scroll length.
+**Alternatives considered:** URL-persisted page state (adds complexity, limited benefit since filters reset page), infinite scroll (harder to jump to specific pages, no clear position indicator), server-side pagination (blocked on expanded `/stats` endpoint for overview page)
+
 ## Decision #35 - 2026-03-09
 **Context:** Setting up automated IPFS deployment. The Aleph CLI doesn't expose the `address` parameter on `file upload` / `file pin`, which is needed for delegated billing (CI wallet signs, main wallet pays). The CLI always checks the signer's balance, failing with "insufficient funds" even when the main wallet has credits.
 **Decision:** Use the Aleph Python SDK directly via `scripts/deploy-ipfs.py` instead of the CLI. Pass `address=owner_wallet` to `create_store()` for delegated billing. Use `aiohttp.FormData` with explicit `filename=` for IPFS directory uploads. Manual trigger (`workflow_dispatch`) only.
