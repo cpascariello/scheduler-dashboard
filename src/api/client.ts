@@ -303,6 +303,11 @@ async function fetchMessageBatch(
   return data.messages;
 }
 
+export async function checkHealth(): Promise<boolean> {
+  const res = await fetch(`${getBaseUrl()}/health`);
+  return res.ok;
+}
+
 export async function getMessagesByHashes(
   hashes: string[],
 ): Promise<Map<string, AlephMessageInfo>> {

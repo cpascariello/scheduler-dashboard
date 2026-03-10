@@ -3,6 +3,9 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoFull } from "@aleph-front/ds/logo";
+import { StatusDot } from "@aleph-front/ds/status-dot";
+import { useHealth } from "@/hooks/use-health";
 
 const NAV_ITEMS = [
   { label: "Overview", href: "/", icon: "grid" },
@@ -72,6 +75,8 @@ type AppSidebarProps = {
 
 export function AppSidebar({ open, onClose }: AppSidebarProps) {
   const pathname = usePathname();
+  const { data: healthy, isLoading: healthLoading } = useHealth();
+  const healthStatus = healthLoading ? "unknown" as const : healthy ? "healthy" as const : "error" as const;
   const prevPathname = useRef(pathname);
 
   useEffect(() => {
@@ -101,11 +106,8 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
           md:static md:z-auto md:translate-x-0 md:transition-none
         `}
       >
-        <div className="flex h-14 shrink-0 items-center gap-2 px-5">
-          <div className="size-7 rounded-lg bg-gradient-brand" />
-          <span className="text-sm font-bold tracking-tight text-foreground">
-            Aleph Cloud
-          </span>
+        <div className="flex h-14 shrink-0 items-center px-5">
+          <LogoFull className="h-5 text-foreground" />
         </div>
 
         <nav className="flex-1 px-3 py-4">
@@ -162,6 +164,29 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
               />
             </svg>
             API Status
+            <span className="relative ml-auto flex size-5 items-center justify-center">
+              <StatusDot
+                status={healthStatus}
+                size="sm"
+              />
+              <svg
+                className="absolute inset-0"
+                viewBox="0 0 20 20"
+                fill="none"
+              >
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="7.5"
+                  stroke={healthStatus === "healthy" ? "var(--color-success-500)" : healthStatus === "error" ? "var(--color-error-500)" : "var(--color-neutral-400)"}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeDasharray="47.12"
+                  className="poll-ring opacity-80"
+                  transform="rotate(-90 10 10)"
+                />
+              </svg>
+            </span>
           </Link>
         </div>
 
