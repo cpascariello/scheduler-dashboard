@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { useVM } from "@/hooks/use-vms";
 import { useNode } from "@/hooks/use-nodes";
+import { useVMMessageInfo } from "@/hooks/use-vm-creation-times";
 import {
   relativeTime,
   truncateHash,
@@ -41,6 +42,7 @@ function MetaItem({
 
 export function VMDetailView({ hash }: VMDetailViewProps) {
   const { data: vm, isLoading, error } = useVM(hash);
+  const { data: messageInfo } = useVMMessageInfo([hash]);
   const { data: allocatedNodeData } = useNode(vm?.allocatedNode ?? "");
 
   if (isLoading) {
@@ -130,6 +132,19 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
               </Tooltip>
             </TooltipProvider>
           </MetaItem>
+          {messageInfo?.get(vm.hash)?.sender && (
+            <MetaItem label="Owner">
+              <Link
+                href={`/wallet?address=${messageInfo.get(vm.hash)!.sender}`}
+                className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
+              >
+                {truncateHash(messageInfo.get(vm.hash)!.sender, 16)}
+                <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
+                </svg>
+              </Link>
+            </MetaItem>
+          )}
           <MetaItem label="Type">{vm.type}</MetaItem>
           {vm.paymentType && (
             <MetaItem label="Payment type">
