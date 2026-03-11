@@ -100,24 +100,28 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
             )}
           </dd>
         </div>
-        {node.owner && (
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Owner</dt>
-            <dd>
-              <Link
-                href={`/wallet?address=${node.owner}`}
-                className="font-mono text-xs text-primary-300 hover:underline"
-              >
-                {truncateHash(node.owner, 12)}
-              </Link>
-            </dd>
-          </div>
-        )}
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Updated</dt>
           <dd className="text-xs">{relativeTime(node.updatedAt)}</dd>
         </div>
       </dl>
+
+      {node.owner && (
+        <div className="mt-4 space-y-1.5 border-t border-edge pt-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Owner
+          </h4>
+          <Link
+            href={`/wallet?address=${node.owner}`}
+            className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
+          >
+            {truncateHash(node.owner, 12)}
+            <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
+            </svg>
+          </Link>
+        </div>
+      )}
 
       {node.resources && (
         <div className="mt-4 space-y-2 border-t border-edge pt-3">

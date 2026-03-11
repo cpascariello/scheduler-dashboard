@@ -365,14 +365,11 @@ function ScopeTags({ scope }: { scope: AuthorizationScope }) {
   if (tags.length === 0) tags.push("full access");
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-1.5">
       {tags.map((tag) => (
-        <span
-          key={tag}
-          className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] text-muted-foreground"
-        >
+        <Badge key={tag} variant="default" size="sm">
           {tag}
-        </span>
+        </Badge>
       ))}
     </div>
   );
@@ -421,7 +418,7 @@ function PermissionsCard({
                   </span>
                 )}
               </div>
-              <div className="mt-1">
+              <div className="mt-2">
                 {scopes.map((scope, i) => (
                   <ScopeTags key={i} scope={scope} />
                 ))}
@@ -518,6 +515,18 @@ function WalletContent() {
         />
       )}
 
+      {/* Permissions */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <PermissionsCard
+          title="Permissions Granted"
+          data={granted}
+        />
+        <PermissionsCard
+          title="Permissions Received"
+          data={received}
+        />
+      </div>
+
       {/* Nodes */}
       <NodesSection nodes={nodes} />
 
@@ -531,18 +540,6 @@ function WalletContent() {
         onRefresh={refreshActivity}
         dataUpdatedAt={dataUpdatedAt}
       />
-
-      {/* Permissions */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PermissionsCard
-          title="Permissions Granted"
-          data={granted}
-        />
-        <PermissionsCard
-          title="Permissions Received"
-          data={received}
-        />
-      </div>
     </div>
   );
 }

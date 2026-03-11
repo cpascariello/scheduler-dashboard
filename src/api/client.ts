@@ -392,6 +392,7 @@ export async function getMessagesByHashes(
       map.set(msg.item_hash, {
         time: msg.time,
         name: msg.content?.metadata?.name ?? null,
+        sender: msg.sender,
         explorerUrl: `https://explorer.aleph.cloud/address/${msg.chain}/${msg.sender}/message/${msg.type}/${msg.item_hash}`,
       });
     }

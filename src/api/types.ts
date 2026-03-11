@@ -236,6 +236,7 @@ export type AlephMessage = {
 export type AlephMessageInfo = {
   time: number;
   name: string | null;
+  sender: string;
   explorerUrl: string;
 };
 
