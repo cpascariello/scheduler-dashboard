@@ -35,3 +35,12 @@ export const VM_STATUS_VARIANT: Record<VmStatus, BadgeVariant> = {
   unschedulable: "warning",
   unknown: "default",
 };
+
+export const MESSAGE_TYPE_VARIANT: Record<string, BadgeVariant> = {
+  INSTANCE: "info",
+  PROGRAM: "success",
+  STORE: "default",
+  AGGREGATE: "warning",
+  POST: "default",
+  FORGET: "error",
+};

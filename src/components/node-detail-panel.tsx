@@ -100,6 +100,19 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
             )}
           </dd>
         </div>
+        {node.owner && (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Owner</dt>
+            <dd>
+              <Link
+                href={`/wallet?address=${node.owner}`}
+                className="font-mono text-xs text-primary-300 hover:underline"
+              >
+                {truncateHash(node.owner, 12)}
+              </Link>
+            </dd>
+          </div>
+        )}
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Updated</dt>
           <dd className="text-xs">{relativeTime(node.updatedAt)}</dd>

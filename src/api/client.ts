@@ -6,6 +6,7 @@ import type {
   ApiNodeRow,
   ApiStats,
   ApiVmRow,
+  AuthorizationResponse,
   GpuDevice,
   HistoryRow,
   Node,
@@ -321,6 +322,59 @@ async function fetchMessageBatch(
 export async function checkHealth(): Promise<boolean> {
   const res = await fetch(`${getBaseUrl()}/health`);
   return res.ok;
+}
+
+export async function getWalletMessages(
+  address: string,
+  messageTypes?: string[],
+): Promise<AlephMessage[]> {
+  const params = new URLSearchParams({ addresses: address });
+  if (messageTypes && messageTypes.length > 0) {
+    params.set("message_types", messageTypes.join(","));
+  }
+  const allMessages: AlephMessage[] = [];
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    params.set("pagination", String(perPage));
+    params.set("page", String(page));
+    const url = `${getAlephBaseUrl()}/api/v0/messages.json?${params}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(
+        `Aleph API error: ${res.status} for messages.json`,
+      );
+    }
+    const data = (await res.json()) as {
+      messages: AlephMessage[];
+      pagination_total: number;
+      pagination_per_page: number;
+    };
+    allMessages.push(...data.messages);
+    if (
+      allMessages.length >= data.pagination_total ||
+      data.messages.length < perPage
+    ) {
+      break;
+    }
+    page++;
+  }
+  return allMessages;
+}
+
+export async function getAuthorizations(
+  address: string,
+  direction: "granted" | "received",
+): Promise<AuthorizationResponse> {
+  const url = `${getAlephBaseUrl()}/api/v0/authorizations/${direction}/${address}.json`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(
+      `Aleph API error: ${res.status} for authorizations/${direction}`,
+    );
+  }
+  return res.json() as Promise<AuthorizationResponse>;
 }
 
 export async function getMessagesByHashes(
