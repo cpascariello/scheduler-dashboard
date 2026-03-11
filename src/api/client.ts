@@ -220,10 +220,12 @@ export async function getNode(
 ): Promise<NodeDetail> {
   const [rawNode, rawVms, rawHistory] = await Promise.all([
     fetchApi<ApiNodeRow>(`/api/v1/nodes/${hash}`),
-    fetchAllPages<ApiVmRow>(`/api/v1/vms?node=${hash}`),
+    fetchAllPages<ApiVmRow>(`/api/v1/vms?node=${hash}`).catch(
+      () => [] as ApiVmRow[],
+    ),
     fetchAllPages<ApiHistoryRow>(
       `/api/v1/nodes/${hash}/history`,
-    ),
+    ).catch(() => [] as ApiHistoryRow[]),
   ]);
   return {
     ...transformNode(rawNode),
@@ -248,7 +250,7 @@ export async function getVM(hash: string): Promise<VmDetail> {
     fetchApi<ApiVmRow>(`/api/v1/vms/${hash}`),
     fetchAllPages<ApiHistoryRow>(
       `/api/v1/vms/${hash}/history`,
-    ),
+    ).catch(() => [] as ApiHistoryRow[]),
   ]);
   return {
     ...transformVm(rawVm),
