@@ -21,6 +21,7 @@ type StatProps = {
   tint?: string | undefined;
   icon?: React.ReactNode;
   href?: string;
+  className?: string;
 };
 
 function DonutRing({
@@ -140,18 +141,18 @@ function StatCard({
 }
 
 function Stat(props: StatProps) {
-  const { href, ...cardProps } = props;
+  const { href, className, ...cardProps } = props;
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           {href ? (
-            <Link href={href} className="block">
+            <Link href={href} className={`block ${className ?? ""}`}>
               <StatCard {...cardProps} />
             </Link>
           ) : (
-            <div>
+            <div className={className}>
               <StatCard {...cardProps} />
             </div>
           )}
@@ -225,10 +226,10 @@ export function StatsBar() {
       <p className="col-span-2 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">
         Nodes
       </p>
-      <p className="col-span-2 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 max-lg:hidden">
+      <p className="col-span-2 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 max-lg:hidden lg:pl-4">
         Virtual Machines
       </p>
-      <p className="col-span-1 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 max-lg:hidden">
+      <p className="col-span-1 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 max-lg:hidden lg:pl-4">
         Issues
       </p>
 
@@ -264,6 +265,7 @@ export function StatsBar() {
         subtitle="Virtual machines currently scheduled across the network"
         isLoading={isLoading}
         href="/vms"
+        className="lg:pl-4"
       />
       <Stat
         label="Orphaned"
@@ -293,6 +295,7 @@ export function StatsBar() {
         isLoading={isLoading}
         icon={iconWarning}
         href="/issues?perspective=vms"
+        className="lg:pl-4"
         {...(hasIssues
           ? {
               color: "var(--color-warning-400)",
@@ -342,6 +345,7 @@ export function StatsBar() {
         isLoading={isLoading}
         icon={iconWarning}
         href="/vms?status=missing"
+        className="lg:pl-4"
         {...(hasMissing
           ? {
               color: "var(--color-error-400)",
@@ -374,6 +378,7 @@ export function StatsBar() {
         isLoading={isLoading}
         icon={iconWarning}
         href="/issues?perspective=nodes"
+        className="lg:pl-4"
         {...(hasIssues
           ? {
               color: "var(--color-warning-400)",
