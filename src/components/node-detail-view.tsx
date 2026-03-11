@@ -135,9 +135,12 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
           )}
           {node.owner && (
             <MetaItem label="Owner">
-              <span className="font-mono text-xs">
+              <Link
+                href={`/wallet?address=${node.owner}`}
+                className="font-mono text-xs text-primary-300 hover:underline"
+              >
                 {truncateHash(node.owner, 16)}
-              </span>
+              </Link>
             </MetaItem>
           )}
           {node.supportsIpv6 != null && (

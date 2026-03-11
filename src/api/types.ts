@@ -238,3 +238,30 @@ export type AlephMessageInfo = {
   name: string | null;
   explorerUrl: string;
 };
+
+// --- Aleph Message types (extended for wallet view) ---
+
+export type AlephMessageType =
+  | "INSTANCE"
+  | "PROGRAM"
+  | "STORE"
+  | "AGGREGATE"
+  | "POST"
+  | "FORGET";
+
+// --- Authorization API ---
+
+export type AuthorizationScope = {
+  alias?: string;
+  types?: string[];
+  channels?: string[];
+  post_types?: string[];
+  aggregate_keys?: string[];
+};
+
+export type AuthorizationResponse = {
+  authorizations: Record<string, AuthorizationScope[]>;
+  pagination_page: number;
+  pagination_total: number;
+  address: string;
+};

@@ -62,6 +62,10 @@ export function formatCpuLabel(
   return "Unknown";
 }
 
+export function explorerWalletUrl(address: string): string {
+  return `https://explorer.aleph.cloud/address/ETH/${address}`;
+}
+
 export function formatGpuLabel(
   gpus: { model: string; deviceName: string }[],
 ): string {
