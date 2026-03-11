@@ -193,6 +193,18 @@ function applyNodeFilters(
   return result;
 }
 
+function countAffectedNodes(vms: VM[]): number {
+  const nodeHashes = new Set<string>();
+  for (const vm of vms) {
+    if (vm.status === "orphaned") {
+      for (const n of vm.observedNodes) nodeHashes.add(n);
+    } else if (vm.status === "missing" && vm.allocatedNode) {
+      nodeHashes.add(vm.allocatedNode);
+    }
+  }
+  return nodeHashes.size;
+}
+
 // --- Public API ---
 
 export async function getNodes(
@@ -272,6 +284,7 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     ).length,
     totalVcpusAllocated: stats.total_vcpus_allocated,
     totalVcpusCapacity: stats.total_vcpus_capacity,
+    affectedNodes: countAffectedNodes(vms),
   };
 }
 
