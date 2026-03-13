@@ -27,10 +27,11 @@ type NodeIssueFilter = "hasOrphaned" | "hasMissing" | undefined;
 const STATUS_PILLS: {
   value: NodeIssueFilter;
   label: string;
+  tooltip?: string;
 }[] = [
   { value: undefined, label: "All" },
-  { value: "hasOrphaned", label: "Has Orphaned" },
-  { value: "hasMissing", label: "Has Missing" },
+  { value: "hasOrphaned", label: "Has Orphaned", tooltip: "Nodes running VMs not in the schedule" },
+  { value: "hasMissing", label: "Has Missing", tooltip: "Nodes with scheduled VMs not found on them" },
 ];
 
 const SEARCH_FIELDS = (n: IssueNode) => [
@@ -41,39 +42,44 @@ const SEARCH_FIELDS = (n: IssueNode) => [
 
 const columns: Column<IssueNode>[] = [
   {
-    header: "Node",
+    header: "Status",
     accessor: (r) => (
       <span className="inline-flex items-center gap-2">
         <StatusDot status={nodeStatusToDot(r.node.status)} size="sm" />
-        <span>
-          {r.node.name ? (
-            <span className="text-sm font-medium">{r.node.name}</span>
-          ) : null}
-          <CopyableText
-            text={r.node.hash}
-            startChars={8}
-            endChars={8}
-            size="sm"
-            {...(r.node.name ? { className: "ml-1.5" } : {})}
-          />
-        </span>
+        <Badge fill="outline"
+          variant={NODE_STATUS_VARIANT[r.node.status]}
+          size="sm"
+        >
+          {r.node.status}
+        </Badge>
       </span>
     ),
     sortable: true,
-    sortValue: (r) => r.node.name ?? r.node.hash,
+    sortValue: (r) => r.node.status,
   },
   {
-    header: "Status",
+    header: "Node Hash",
     accessor: (r) => (
-      <Badge fill="outline"
-        variant={NODE_STATUS_VARIANT[r.node.status]}
+      <CopyableText
+        text={r.node.hash}
+        startChars={8}
+        endChars={8}
         size="sm"
-      >
-        {r.node.status}
-      </Badge>
+      />
     ),
     sortable: true,
-    sortValue: (r) => r.node.status,
+    sortValue: (r) => r.node.hash,
+  },
+  {
+    header: "Name",
+    accessor: (r) =>
+      r.node.name ? (
+        <span className="text-sm font-medium">{r.node.name}</span>
+      ) : (
+        <span className="text-xs text-muted-foreground">{"\u2014"}</span>
+      ),
+    sortable: true,
+    sortValue: (r) => r.node.name ?? "",
   },
   {
     header: "Orphaned",

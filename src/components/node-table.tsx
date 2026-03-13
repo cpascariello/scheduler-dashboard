@@ -38,12 +38,12 @@ import {
 } from "@/lib/status-map";
 import type { Node, NodeStatus } from "@/api/types";
 
-const STATUS_PILLS: { value: NodeStatus | undefined; label: string }[] = [
+const STATUS_PILLS: { value: NodeStatus | undefined; label: string; tooltip?: string }[] = [
   { value: undefined, label: "All" },
-  { value: "healthy", label: "Healthy" },
-  { value: "unreachable", label: "Unreachable" },
-  { value: "unknown", label: "Unknown" },
-  { value: "removed", label: "Removed" },
+  { value: "healthy", label: "Healthy", tooltip: "Online and responding normally" },
+  { value: "unreachable", label: "Unreachable", tooltip: "Not responding to health checks" },
+  { value: "unknown", label: "Unknown", tooltip: "Status could not be determined" },
+  { value: "removed", label: "Removed", tooltip: "Deregistered from the scheduler" },
 ];
 
 const NODE_SEARCH_FIELDS = (n: Node) => [n.hash, n.owner, n.name];

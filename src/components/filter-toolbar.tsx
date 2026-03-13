@@ -1,10 +1,17 @@
 import { type ReactNode } from "react";
 import { Button } from "@aleph-front/ds/button";
 import { Input } from "@aleph-front/ds/input";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@aleph-front/ds/tooltip";
 
 type StatusPill<S> = {
   value: S;
   label: string;
+  tooltip?: string;
 };
 
 type FilterToolbarProps<S> = {
@@ -34,7 +41,26 @@ export function FilterToolbar<S>({
   searchPlaceholder,
   leading,
 }: FilterToolbarProps<S>): ReactNode {
+  const pillButton = (s: StatusPill<S>, i: number) => (
+    <button
+      key={i}
+      type="button"
+      onClick={() => onStatusChange(s.value)}
+      className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
+        activeStatus === s.value
+          ? "bg-primary-600/15 text-primary-400"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+      }`}
+    >
+      {s.label}{" "}
+      <span className="tabular-nums opacity-60">
+        ({formatCount(s.value)})
+      </span>
+    </button>
+  );
+
   return (
+    <TooltipProvider>
     <div className="mb-4 flex flex-wrap items-center gap-2">
       {leading && (
         <>
@@ -42,23 +68,18 @@ export function FilterToolbar<S>({
           <div className="mx-2 h-6 w-px bg-white/[0.08]" />
         </>
       )}
-      {statuses.map((s, i) => (
-        <button
-          key={i}
-          type="button"
-          onClick={() => onStatusChange(s.value)}
-          className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
-            activeStatus === s.value
-              ? "bg-primary-600/15 text-primary-400"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`}
-        >
-          {s.label}{" "}
-          <span className="tabular-nums opacity-60">
-            ({formatCount(s.value)})
-          </span>
-        </button>
-      ))}
+      {statuses.map((s, i) =>
+        s.tooltip ? (
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              {pillButton(s, i)}
+            </TooltipTrigger>
+            <TooltipContent>{s.tooltip}</TooltipContent>
+          </Tooltip>
+        ) : (
+          pillButton(s, i)
+        ),
+      )}
       <Button
         variant="text"
         size="sm"
@@ -123,5 +144,6 @@ export function FilterToolbar<S>({
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 }
