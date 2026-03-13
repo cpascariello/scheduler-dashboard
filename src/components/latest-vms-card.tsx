@@ -4,12 +4,6 @@ import Link from "next/link";
 import { Button } from "@aleph-front/ds/button";
 import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@aleph-front/ds/tooltip";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { CardHeader } from "@/components/card-header";
 import { useVMs } from "@/hooks/use-vms";
@@ -75,49 +69,42 @@ export function LatestVMsCard() {
         info="Most recently created virtual machines across the network"
       />
 
-      <TooltipProvider>
-        <ul className="grid grid-cols-[auto_1fr_auto] gap-x-6">
-          {sorted.map((vm) => {
-            const msgInfo = messageInfo?.get(vm.hash);
-            const createdAt = msgInfo?.time;
-            return (
-              <li key={vm.hash} className="contents">
-                <Link
-                  href={`/vms?selected=${vm.hash}`}
-                  className="col-span-full grid min-h-12 grid-cols-subgrid items-center rounded-md border-b border-black/[0.06] px-2 py-1.5 transition-colors last:border-b-0 hover:bg-muted dark:border-white/[0.06]"
-                  style={{
-                    transitionDuration: "var(--duration-fast)",
-                  }}
+      <ul className="grid grid-cols-[auto_1fr_auto] gap-x-6">
+        {sorted.map((vm) => {
+          const msgInfo = messageInfo?.get(vm.hash);
+          const createdAt = msgInfo?.time;
+          return (
+            <li key={vm.hash} className="contents">
+              <Link
+                href={`/vms?selected=${vm.hash}`}
+                className="col-span-full grid min-h-12 grid-cols-subgrid items-center rounded-md border-b border-black/[0.06] px-2 py-1.5 transition-colors last:border-b-0 hover:bg-muted dark:border-white/[0.06]"
+                style={{
+                  transitionDuration: "var(--duration-fast)",
+                }}
+              >
+                <Badge fill="outline"
+                  variant={VM_STATUS_VARIANT[vm.status]}
+                  size="sm"
                 >
-                  <Badge fill="outline"
-                    variant={VM_STATUS_VARIANT[vm.status]}
-                    size="sm"
-                  >
-                    {vm.status}
-                  </Badge>
+                  {vm.status}
+                </Badge>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="block min-w-0 truncate font-mono text-xs text-muted-foreground">
-                        {vm.hash}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>{vm.hash}</TooltipContent>
-                  </Tooltip>
+                <span className="block min-w-0 truncate font-mono text-xs text-muted-foreground">
+                  {vm.hash}
+                </span>
 
-                  <span className="text-xs tabular-nums text-muted-foreground">
-                    {createdAt != null ? (
-                      relativeTimeFromUnix(createdAt)
-                    ) : (
-                      <Skeleton className="h-4 w-12" />
-                    )}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </TooltipProvider>
+                <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+                  {createdAt != null ? (
+                    relativeTimeFromUnix(createdAt)
+                  ) : (
+                    <Skeleton className="h-4 w-12" />
+                  )}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
 
       <div className="mt-6 pt-3">
         <Button variant="text" size="xs" asChild>
