@@ -395,20 +395,14 @@ function PermissionsCard({
           {entries.map(([addr, scopes]) => (
             <li key={addr}>
               <div className="flex items-center gap-2">
-                <Link
+                <CopyableText
+                  text={addr}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/wallet?address=${addr}`}
-                  className="font-mono text-xs text-primary-300 hover:underline"
-                >
-                  {truncateHash(addr, 12)}
-                </Link>
-                <a
-                  href={explorerWalletUrl(addr)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground/60 hover:text-muted-foreground"
-                >
-                  <ArrowSquareOut size={12} />
-                </a>
+                  className="text-primary-400"
+                />
                 {scopes[0]?.alias && (
                   <span className="text-xs text-muted-foreground">
                     ({scopes[0].alias})

@@ -111,15 +111,14 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
           <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Owner
           </h4>
-          <Link
+          <CopyableText
+            text={node.owner}
+            startChars={8}
+            endChars={8}
+            size="sm"
             href={`/wallet?address=${node.owner}`}
-            className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-          >
-            {truncateHash(node.owner, 12)}
-            <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-            </svg>
-          </Link>
+            className="text-primary-400"
+          />
         </div>
       )}
 
