@@ -18,6 +18,11 @@ Each entry includes:
 
 ---
 
+## Decision #44 - 2026-03-13
+**Context:** Badge fill style across the dashboard
+**Decision:** Use `fill="outline"` on all Badge instances instead of the default `fill="solid"`.
+**Rationale:** Outline badges are lighter and less visually dominant, better suited for dense data tables and detail panels where many badges appear together. Solid fill competed with status indicators and action buttons for visual attention.
+
 ## Decision #43 - 2026-03-11
 **Context:** Wallet view — whether to add a sidebar nav entry for the wallet page
 **Decision:** No sidebar entry. Wallet is a utility page reached via clicking wallet addresses.

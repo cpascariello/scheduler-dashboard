@@ -95,14 +95,14 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
         <h2 className="text-xl font-bold">
           {node.name ?? truncateHash(node.hash, 16)}
         </h2>
-        <Badge
+        <Badge fill="outline"
           variant={NODE_STATUS_VARIANT[node.status]}
           size="sm"
           className="capitalize"
         >
           {node.status}
         </Badge>
-        <Badge
+        <Badge fill="outline"
           variant={node.staked ? "success" : "default"}
           size="sm"
         >
@@ -237,13 +237,13 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
             {node.gpus.used.map((gpu, i) => (
               <li key={`used-${i}`} className="flex items-center justify-between text-sm">
                 <span>{gpu.vendor} {gpu.model || gpu.deviceName}</span>
-                <Badge variant="warning" size="sm">in use</Badge>
+                <Badge fill="outline" variant="warning" size="sm">in use</Badge>
               </li>
             ))}
             {node.gpus.available.map((gpu, i) => (
               <li key={`avail-${i}`} className="flex items-center justify-between text-sm">
                 <span>{gpu.vendor} {gpu.model || gpu.deviceName}</span>
-                <Badge variant="success" size="sm">available</Badge>
+                <Badge fill="outline" variant="success" size="sm">available</Badge>
               </li>
             ))}
           </ul>
@@ -281,7 +281,7 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
                     />
                   </svg>
                 </Link>
-                <Badge
+                <Badge fill="outline"
                   variant={VM_STATUS_VARIANT[vm.status]}
                   size="sm"
                   className="capitalize"

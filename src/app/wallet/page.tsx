@@ -114,7 +114,7 @@ function NodesSection({ nodes }: { nodes: Node[] }) {
                       status={nodeStatusToDot(node.status)}
                       size="sm"
                     />
-                    <Badge
+                    <Badge fill="outline"
                       variant={NODE_STATUS_VARIANT[node.status]}
                       size="sm"
                       className="capitalize"
@@ -181,13 +181,13 @@ function VMsSection({ vms }: { vms: WalletVM[] }) {
                   {vm.name ?? "—"}
                 </td>
                 <td className="py-2 pr-4">
-                  <Badge variant="default" size="sm">
+                  <Badge fill="outline" variant="default" size="sm">
                     {vm.type}
                   </Badge>
                 </td>
                 <td className="py-2 pr-4">
                   {vm.schedulerStatus ? (
-                    <Badge
+                    <Badge fill="outline"
                       variant={
                         VM_STATUS_VARIANT[vm.schedulerStatus]
                       }
@@ -197,7 +197,7 @@ function VMsSection({ vms }: { vms: WalletVM[] }) {
                       {vm.schedulerStatus}
                     </Badge>
                   ) : (
-                    <Badge variant="default" size="sm">
+                    <Badge fill="outline" variant="default" size="sm">
                       not tracked
                     </Badge>
                   )}
@@ -286,7 +286,7 @@ function ActivitySection({
                       {relativeTimeFromUnix(item.time)}
                     </td>
                     <td className="py-2 pr-4">
-                      <Badge
+                      <Badge fill="outline"
                         variant={
                           MESSAGE_TYPE_VARIANT[item.type] ??
                           "default"
@@ -312,7 +312,7 @@ function ActivitySection({
                     </td>
                     <td className="py-2">
                       {item.schedulerStatus ? (
-                        <Badge
+                        <Badge fill="outline"
                           variant={
                             VM_STATUS_VARIANT[
                               item.schedulerStatus
@@ -367,7 +367,7 @@ function ScopeTags({ scope }: { scope: AuthorizationScope }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {tags.map((tag) => (
-        <Badge key={tag} variant="default" size="sm">
+        <Badge fill="outline" key={tag} variant="default" size="sm">
           {tag}
         </Badge>
       ))}

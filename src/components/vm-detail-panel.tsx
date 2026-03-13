@@ -69,13 +69,13 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Type</dt>
           <dd>
-            <Badge variant="default" size="sm">{vm.type}</Badge>
+            <Badge fill="outline" variant="default" size="sm">{vm.type}</Badge>
           </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge variant={VM_STATUS_VARIANT[vm.status]} size="sm" className="capitalize">
+            <Badge fill="outline" variant={VM_STATUS_VARIANT[vm.status]} size="sm" className="capitalize">
               {vm.status}
             </Badge>
           </dd>
@@ -84,7 +84,7 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Payment</dt>
             <dd>
-              <Badge
+              <Badge fill="outline"
                 variant={vm.paymentStatus === "validated" ? "success" : "error"}
                 size="sm"
                 className="capitalize"

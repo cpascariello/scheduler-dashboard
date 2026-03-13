@@ -60,7 +60,7 @@ const columns: Column<Node>[] = [
   {
     header: "Status",
     accessor: (r) => (
-      <Badge
+      <Badge fill="outline"
         variant={NODE_STATUS_VARIANT[r.status]}
         size="sm"
         className="capitalize"
@@ -142,7 +142,7 @@ const columns: Column<Node>[] = [
       const allGpus = [...r.gpus.used, ...r.gpus.available];
       if (allGpus.length === 0) return null;
       return (
-        <Badge variant="default" size="sm">
+        <Badge fill="outline" variant="default" size="sm">
           {formatGpuLabel(allGpus)}
         </Badge>
       );

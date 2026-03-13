@@ -89,7 +89,7 @@ export function LatestVMsCard() {
                     transitionDuration: "var(--duration-fast)",
                   }}
                 >
-                  <Badge
+                  <Badge fill="outline"
                     variant={VM_STATUS_VARIANT[vm.status]}
                     size="sm"
                     className="capitalize"

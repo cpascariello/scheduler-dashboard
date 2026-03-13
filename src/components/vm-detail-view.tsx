@@ -91,10 +91,10 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
         <h2 className="font-mono text-xl font-bold">
           {truncateHash(hash, 16)}
         </h2>
-        <Badge variant="default" size="sm">
+        <Badge fill="outline" variant="default" size="sm">
           {vm.type}
         </Badge>
-        <Badge
+        <Badge fill="outline"
           variant={VM_STATUS_VARIANT[vm.status]}
           size="sm"
           className="capitalize"
@@ -102,7 +102,7 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
           {vm.status}
         </Badge>
         {vm.paymentStatus && (
-          <Badge
+          <Badge fill="outline"
             variant={
               vm.paymentStatus === "validated" ? "success" : "error"
             }

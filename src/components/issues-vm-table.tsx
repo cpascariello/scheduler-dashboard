@@ -51,7 +51,7 @@ const columns: Column<IssueVM>[] = [
   {
     header: "Status",
     accessor: (r) => (
-      <Badge
+      <Badge fill="outline"
         variant={VM_STATUS_VARIANT[r.status]}
         size="sm"
         className="capitalize"
@@ -162,7 +162,7 @@ function IssuesVmDetailPanel({ vm, onClose }: IssuesVmDetailPanelProps) {
 
       {/* Status badge */}
       <div className="mb-4">
-        <Badge
+        <Badge fill="outline"
           variant={VM_STATUS_VARIANT[vm.status]}
           size="sm"
           className="capitalize"
@@ -235,7 +235,7 @@ function IssuesVmDetailPanel({ vm, onClose }: IssuesVmDetailPanelProps) {
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Type</dt>
             <dd>
-              <Badge variant="default" size="sm">
+              <Badge fill="outline" variant="default" size="sm">
                 {vm.type}
               </Badge>
             </dd>

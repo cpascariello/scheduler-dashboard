@@ -105,7 +105,7 @@ function buildColumns(
   {
     header: "Status",
     accessor: (r) => (
-      <Badge
+      <Badge fill="outline"
         variant={VM_STATUS_VARIANT[r.status]}
         size="sm"
         className="capitalize"
@@ -159,7 +159,7 @@ function buildColumns(
   {
     header: "Type",
     accessor: (r) => (
-      <Badge variant="default" size="sm">
+      <Badge fill="outline" variant="default" size="sm">
         {r.type}
       </Badge>
     ),

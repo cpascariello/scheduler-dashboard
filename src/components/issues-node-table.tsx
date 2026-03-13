@@ -65,7 +65,7 @@ const columns: Column<IssueNode>[] = [
   {
     header: "Status",
     accessor: (r) => (
-      <Badge
+      <Badge fill="outline"
         variant={NODE_STATUS_VARIANT[r.node.status]}
         size="sm"
         className="capitalize"
@@ -187,7 +187,7 @@ function IssuesNodeDetailPanel({
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge
+            <Badge fill="outline"
               variant={NODE_STATUS_VARIANT[node.status]}
               size="sm"
               className="capitalize"
@@ -265,7 +265,7 @@ function IssuesNodeDetailPanel({
                   />
                 </svg>
               </Link>
-              <Badge
+              <Badge fill="outline"
                 variant={VM_STATUS_VARIANT[vm.status]}
                 size="sm"
                 className="capitalize"

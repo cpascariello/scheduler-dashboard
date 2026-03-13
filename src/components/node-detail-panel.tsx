@@ -74,7 +74,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge variant={NODE_STATUS_VARIANT[node.status]} size="sm" className="capitalize">
+            <Badge fill="outline" variant={NODE_STATUS_VARIANT[node.status]} size="sm" className="capitalize">
               {node.status}
             </Badge>
           </dd>
@@ -82,7 +82,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Staked</dt>
           <dd>
-            <Badge variant={node.staked ? "success" : "default"} size="sm">
+            <Badge fill="outline" variant={node.staked ? "success" : "default"} size="sm">
               {node.staked ? "Yes" : "No"}
             </Badge>
           </dd>
@@ -182,7 +182,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
             {[...node.gpus.used, ...node.gpus.available].map((gpu, i) => (
               <li key={i} className="flex items-center justify-between text-sm">
                 <span className="text-xs">{gpu.vendor} {gpu.model || gpu.deviceName}</span>
-                <Badge
+                <Badge fill="outline"
                   variant={i < node.gpus.used.length ? "warning" : "success"}
                   size="sm"
                 >
@@ -214,7 +214,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
                   </svg>
                 </Link>
-                <Badge variant={VM_STATUS_VARIANT[vm.status]} size="sm" className="capitalize">
+                <Badge fill="outline" variant={VM_STATUS_VARIANT[vm.status]} size="sm" className="capitalize">
                   {vm.status}
                 </Badge>
               </li>
