@@ -32,14 +32,14 @@ import {
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
 import type { AlephMessageInfo, VM, VmStatus, VmType } from "@/api/types";
 
-const STATUS_PILLS: { value: VmStatus | undefined; label: string }[] = [
+const STATUS_PILLS: { value: VmStatus | undefined; label: string; tooltip?: string }[] = [
   { value: undefined, label: "All" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "unscheduled", label: "Unscheduled" },
-  { value: "orphaned", label: "Orphaned" },
-  { value: "missing", label: "Missing" },
-  { value: "unschedulable", label: "Unschedulable" },
-  { value: "unknown", label: "Unknown" },
+  { value: "scheduled", label: "Scheduled", tooltip: "Assigned to a node and running" },
+  { value: "unscheduled", label: "Unscheduled", tooltip: "Waiting to be assigned to a node" },
+  { value: "orphaned", label: "Orphaned", tooltip: "Running on a node but not in the schedule" },
+  { value: "missing", label: "Missing", tooltip: "In the schedule but not found on any node" },
+  { value: "unschedulable", label: "Unschedulable", tooltip: "No node meets this VM's requirements" },
+  { value: "unknown", label: "Unknown", tooltip: "Status could not be determined" },
 ];
 
 const ALL_VM_TYPES: VmType[] = [
@@ -453,68 +453,70 @@ export function VMTable({
                   </label>
                 ))}
               </div>
-              <div className="border-t border-white/[0.04] pt-1.5" />
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none">
-                <Checkbox
-                  size="sm"
-                  checked={advanced.hasAllocatedNode ?? false}
-                  onCheckedChange={(v) =>
-                    updateAdvanced((p) => {
-                      const { hasAllocatedNode: _, ...rest } =
-                        p;
-                      return v === true
-                        ? { ...rest, hasAllocatedNode: true }
-                        : rest;
-                    })
-                  }
-                />
-                <span>
-                  Allocated to a node
-                  <span className="ml-1.5 text-xs font-normal text-muted-foreground/50">
-                    — running on a CRN
+              <div className="mt-2.5 border-t border-white/[0.04] pt-2.5" />
+              <div className="space-y-2.5">
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none">
+                  <Checkbox
+                    size="sm"
+                    checked={advanced.hasAllocatedNode ?? false}
+                    onCheckedChange={(v) =>
+                      updateAdvanced((p) => {
+                        const { hasAllocatedNode: _, ...rest } =
+                          p;
+                        return v === true
+                          ? { ...rest, hasAllocatedNode: true }
+                          : rest;
+                      })
+                    }
+                  />
+                  <span>
+                    Allocated to a node
+                    <span className="ml-1.5 text-xs font-normal text-muted-foreground/50">
+                      — running on a CRN
+                    </span>
                   </span>
-                </span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none">
-                <Checkbox
-                  size="sm"
-                  checked={advanced.requiresGpu ?? false}
-                  onCheckedChange={(v) =>
-                    updateAdvanced((p) => {
-                      const { requiresGpu: _, ...rest } = p;
-                      return v === true
-                        ? { ...rest, requiresGpu: true }
-                        : rest;
-                    })
-                  }
-                />
-                <span>
-                  Requires GPU
-                  <span className="ml-1.5 text-xs font-normal text-muted-foreground/50">
-                    — needs GPU hardware
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none">
+                  <Checkbox
+                    size="sm"
+                    checked={advanced.requiresGpu ?? false}
+                    onCheckedChange={(v) =>
+                      updateAdvanced((p) => {
+                        const { requiresGpu: _, ...rest } = p;
+                        return v === true
+                          ? { ...rest, requiresGpu: true }
+                          : rest;
+                      })
+                    }
+                  />
+                  <span>
+                    Requires GPU
+                    <span className="ml-1.5 text-xs font-normal text-muted-foreground/50">
+                      — needs GPU hardware
+                    </span>
                   </span>
-                </span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none">
-                <Checkbox
-                  size="sm"
-                  checked={advanced.requiresConfidential ?? false}
-                  onCheckedChange={(v) =>
-                    updateAdvanced((p) => {
-                      const { requiresConfidential: _, ...rest } = p;
-                      return v === true
-                        ? { ...rest, requiresConfidential: true }
-                        : rest;
-                    })
-                  }
-                />
-                <span>
-                  Requires Confidential
-                  <span className="ml-1.5 text-xs font-normal text-muted-foreground/50">
-                    — requires TEE
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-muted-foreground select-none">
+                  <Checkbox
+                    size="sm"
+                    checked={advanced.requiresConfidential ?? false}
+                    onCheckedChange={(v) =>
+                      updateAdvanced((p) => {
+                        const { requiresConfidential: _, ...rest } = p;
+                        return v === true
+                          ? { ...rest, requiresConfidential: true }
+                          : rest;
+                      })
+                    }
+                  />
+                  <span>
+                    Requires Confidential
+                    <span className="ml-1.5 text-xs font-normal text-muted-foreground/50">
+                      — requires TEE
+                    </span>
                   </span>
-                </span>
-              </label>
+                </label>
+              </div>
             </div>
 
             {/* Requirements */}

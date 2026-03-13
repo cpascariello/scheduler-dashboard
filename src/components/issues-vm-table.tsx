@@ -20,11 +20,11 @@ import { getIssueDescription } from "@/hooks/use-issues";
 
 type StatusFilter = DiscrepancyStatus | undefined;
 
-const STATUS_PILLS: { value: StatusFilter; label: string }[] = [
+const STATUS_PILLS: { value: StatusFilter; label: string; tooltip?: string }[] = [
   { value: undefined, label: "All" },
-  { value: "orphaned", label: "Orphaned" },
-  { value: "missing", label: "Missing" },
-  { value: "unschedulable", label: "Unschedulable" },
+  { value: "orphaned", label: "Orphaned", tooltip: "Running on a node but not in the schedule" },
+  { value: "missing", label: "Missing", tooltip: "In the schedule but not found on any node" },
+  { value: "unschedulable", label: "Unschedulable", tooltip: "No node meets this VM's requirements" },
 ];
 
 const SEARCH_FIELDS = (v: IssueVM) => [
@@ -34,19 +34,6 @@ const SEARCH_FIELDS = (v: IssueVM) => [
 ];
 
 const columns: Column<IssueVM>[] = [
-  {
-    header: "VM Hash",
-    accessor: (r) => (
-      <CopyableText
-        text={r.hash}
-        startChars={8}
-        endChars={8}
-        size="sm"
-      />
-    ),
-    sortable: true,
-    sortValue: (r) => r.hash,
-  },
   {
     header: "Status",
     accessor: (r) => (
@@ -59,6 +46,19 @@ const columns: Column<IssueVM>[] = [
     ),
     sortable: true,
     sortValue: (r) => r.status,
+  },
+  {
+    header: "VM Hash",
+    accessor: (r) => (
+      <CopyableText
+        text={r.hash}
+        startChars={8}
+        endChars={8}
+        size="sm"
+      />
+    ),
+    sortable: true,
+    sortValue: (r) => r.hash,
   },
   {
     header: "Issue",

@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #46 - 2026-03-13
+**Context:** Status filter pills (Unscheduled vs Unschedulable, Has Orphaned vs Has Missing) use API terminology that isn't immediately clear to operators.
+**Decision:** Add hover tooltips to all status pills across all pages (VMs, Nodes, Issues VM, Issues Node) explaining what each status means. Keep the API label names unchanged.
+**Rationale:** Renaming labels would create a disconnect between the UI and API values, making debugging harder. Tooltips add clarity without changing the data model. The confusing pair (Unscheduled = waiting for assignment, Unschedulable = no node meets requirements) is now disambiguated on hover.
+**Alternatives considered:** Renaming "Unschedulable" to "Blocked" (clearer but inconsistent with API), adding a legend section (takes space, always visible)
+
 ## Decision #45 - 2026-03-13
 **Context:** CopyableText styling consistency across the dashboard
 **Decision:** Standardize all CopyableText: equal `startChars`/`endChars` (min 8), default color for copy-only, `text-primary-400` when an `href` is present, no other text color overrides.
