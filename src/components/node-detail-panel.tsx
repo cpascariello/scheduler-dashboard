@@ -9,7 +9,7 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { CopyableText } from "@aleph-front/ds/copyable-text";
 import { useNode } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
-import { relativeTime, truncateHash, formatCpuLabel } from "@/lib/format";
+import { relativeTime, formatCpuLabel } from "@/lib/format";
 import {
   nodeStatusToDot,
   NODE_STATUS_VARIANT,
@@ -42,9 +42,11 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-center gap-2">
           <StatusDot status={nodeStatusToDot(node.status)} />
-          <h3 className="text-sm font-bold">
-            {node.name ?? truncateHash(node.hash, 12)}
-          </h3>
+          {node.name ? (
+            <h3 className="text-sm font-bold">{node.name}</h3>
+          ) : (
+            <CopyableText text={node.hash} startChars={8} endChars={8} size="sm" />
+          )}
         </div>
         <button
           type="button"
@@ -204,15 +206,14 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
                 key={vm.hash}
                 className="flex items-center justify-between text-sm"
               >
-                <Link
+                <CopyableText
+                  text={vm.hash}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/vms?view=${vm.hash}`}
-                  className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-                >
-                  {truncateHash(vm.hash)}
-                  <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-                  </svg>
-                </Link>
+                  className="text-primary-400"
+                />
                 <Badge fill="outline" variant={VM_STATUS_VARIANT[vm.status]} size="sm">
                   {vm.status}
                 </Badge>

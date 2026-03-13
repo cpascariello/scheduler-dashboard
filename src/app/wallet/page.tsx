@@ -2,8 +2,6 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowSquareOut } from "@phosphor-icons/react";
 import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
 import { Button } from "@aleph-front/ds/button";
@@ -23,7 +21,6 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   relativeTime,
   relativeTimeFromUnix,
-  truncateHash,
   explorerWalletUrl,
 } from "@/lib/format";
 import {
@@ -98,12 +95,14 @@ function NodesSection({ nodes }: { nodes: Node[] }) {
             {nodes.map((node) => (
               <tr key={node.hash} className="group">
                 <td className="py-2 pr-4">
-                  <Link
+                  <CopyableText
+                    text={node.hash}
+                    startChars={8}
+                    endChars={8}
+                    size="sm"
                     href={`/nodes?view=${node.hash}`}
-                    className="font-mono text-xs text-primary-300 hover:underline"
-                  >
-                    {truncateHash(node.hash)}
-                  </Link>
+                    className="text-primary-400"
+                  />
                 </td>
                 <td className="py-2 pr-4 text-xs">
                   {node.name ?? "—"}
@@ -163,18 +162,13 @@ function VMsSection({ vms }: { vms: WalletVM[] }) {
             {vms.map((vm) => (
               <tr key={vm.hash}>
                 <td className="py-2 pr-4">
-                  {vm.schedulerStatus ? (
-                    <Link
-                      href={`/vms?view=${vm.hash}`}
-                      className="font-mono text-xs text-primary-300 hover:underline"
-                    >
-                      {truncateHash(vm.hash)}
-                    </Link>
-                  ) : (
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {truncateHash(vm.hash)}
-                    </span>
-                  )}
+                  <CopyableText
+                    text={vm.hash}
+                    startChars={8}
+                    endChars={8}
+                    size="sm"
+                    {...(vm.schedulerStatus ? { href: `/vms?view=${vm.hash}`, className: "text-primary-400" } : {})}
+                  />
                 </td>
                 <td className="py-2 pr-4 text-xs">
                   {vm.name ?? "—"}
@@ -298,15 +292,14 @@ function ActivitySection({
                       {item.name ?? "—"}
                     </td>
                     <td className="py-2 pr-4">
-                      <a
+                      <CopyableText
+                        text={item.hash}
+                        startChars={8}
+                        endChars={8}
+                        size="sm"
                         href={item.explorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-mono text-xs text-primary-300 hover:underline"
-                      >
-                        {truncateHash(item.hash)}
-                        <ArrowSquareOut size={12} />
-                      </a>
+                        className="text-primary-400"
+                      />
                     </td>
                     <td className="py-2">
                       {item.schedulerStatus ? (

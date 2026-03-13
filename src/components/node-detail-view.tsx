@@ -17,7 +17,6 @@ import { useNode } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
 import {
   relativeTime,
-  truncateHash,
   formatDateTime,
   formatCpuLabel,
 } from "@/lib/format";
@@ -93,9 +92,11 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
       </div>
       <div className="flex items-center gap-3">
         <StatusDot status={nodeStatusToDot(node.status)} />
-        <h2 className="text-xl font-bold">
-          {node.name ?? truncateHash(node.hash, 16)}
-        </h2>
+        {node.name ? (
+          <h2 className="text-xl font-bold">{node.name}</h2>
+        ) : (
+          <CopyableText text={node.hash} startChars={8} endChars={8} size="md" />
+        )}
         <Badge fill="outline"
           variant={NODE_STATUS_VARIANT[node.status]}
           size="sm"
@@ -261,25 +262,14 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
                 key={vm.hash}
                 className="flex items-center justify-between text-sm"
               >
-                <Link
+                <CopyableText
+                  text={vm.hash}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/vms?view=${vm.hash}`}
-                  className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-                >
-                  {truncateHash(vm.hash)}
-                  <svg
-                    className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7 17L17 7M7 7h10v10"
-                    />
-                  </svg>
-                </Link>
+                  className="text-primary-400"
+                />
                 <Badge fill="outline"
                   variant={VM_STATUS_VARIANT[vm.status]}
                   size="sm"
@@ -321,12 +311,14 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
                       {row.action.replace(/_/g, " ")}
                     </td>
                     <td className="py-1.5 pr-4">
-                      <Link
+                      <CopyableText
+                        text={row.vmHash}
+                        startChars={8}
+                        endChars={8}
+                        size="sm"
                         href={`/vms?view=${row.vmHash}`}
-                        className="font-mono text-xs text-primary-300 hover:underline"
-                      >
-                        {truncateHash(row.vmHash)}
-                      </Link>
+                        className="text-primary-400"
+                      />
                     </td>
                     <td className="py-1.5 pr-4 text-muted-foreground">
                       {row.reason ?? "—"}
