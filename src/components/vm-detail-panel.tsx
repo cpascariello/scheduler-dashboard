@@ -9,7 +9,7 @@ import { useVM } from "@/hooks/use-vms";
 import { useVMMessageInfo } from "@/hooks/use-vm-creation-times";
 import { CopyableText } from "@aleph-front/ds/copyable-text";
 import { useNode } from "@/hooks/use-nodes";
-import { relativeTime, truncateHash } from "@/lib/format";
+import { relativeTime } from "@/lib/format";
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
 
 type VMDetailPanelProps = {
@@ -38,9 +38,7 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
   return (
     <Card padding="md" variant="ghost" className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] lg:sticky lg:top-0 lg:w-96">
       <div className="mb-4 flex items-start justify-between">
-        <h3 className="text-sm font-bold font-mono">
-          {truncateHash(vm.hash, 12)}
-        </h3>
+        <CopyableText text={vm.hash} startChars={8} endChars={8} size="sm" />
         <button
           type="button"
           onClick={onClose}
@@ -59,8 +57,8 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           <dd className="min-w-0 truncate font-mono text-xs">
             <CopyableText
               text={vm.hash}
-              startChars={16}
-              endChars={6}
+              startChars={10}
+              endChars={10}
               size="sm"
               {...(messageInfo?.get(vm.hash)?.explorerUrl ? { href: messageInfo.get(vm.hash)!.explorerUrl } : {})}
             />
@@ -69,13 +67,13 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Type</dt>
           <dd>
-            <Badge variant="default" size="sm">{vm.type}</Badge>
+            <Badge fill="outline" variant="default" size="sm">{vm.type}</Badge>
           </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge variant={VM_STATUS_VARIANT[vm.status]} size="sm" className="capitalize">
+            <Badge fill="outline" variant={VM_STATUS_VARIANT[vm.status]} size="sm">
               {vm.status}
             </Badge>
           </dd>
@@ -84,10 +82,9 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Payment</dt>
             <dd>
-              <Badge
+              <Badge fill="outline"
                 variant={vm.paymentStatus === "validated" ? "success" : "error"}
                 size="sm"
-                className="capitalize"
               >
                 {vm.paymentStatus}
               </Badge>
@@ -101,15 +98,13 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Owner
           </h4>
-          <Link
+          <CopyableText
+            text={messageInfo.get(vm.hash)!.sender}
+            startChars={8}
+            endChars={8}
+            size="sm"
             href={`/wallet?address=${messageInfo.get(vm.hash)!.sender}`}
-            className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-          >
-            {truncateHash(messageInfo.get(vm.hash)!.sender, 12)}
-            <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-            </svg>
-          </Link>
+          />
         </div>
       )}
 
@@ -119,15 +114,13 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
         </h4>
         {vm.allocatedNode ? (
           <div className="flex items-center justify-between gap-2">
-            <Link
+            <CopyableText
+              text={vm.allocatedNode}
+              startChars={8}
+              endChars={8}
+              size="sm"
               href={`/nodes?view=${vm.allocatedNode}`}
-              className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-            >
-              {truncateHash(vm.allocatedNode)}
-              <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-              </svg>
-            </Link>
+            />
             {allocatedNodeData?.name && (
               <span className="truncate text-xs text-muted-foreground">
                 {allocatedNodeData.name}
@@ -147,15 +140,13 @@ export function VMDetailPanel({ hash, onClose }: VMDetailPanelProps) {
           <ul className="space-y-1">
             {vm.observedNodes.slice(0, 6).map((nodeHash) => (
               <li key={nodeHash}>
-                <Link
+                <CopyableText
+                  text={nodeHash}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/nodes?view=${nodeHash}`}
-                  className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-                >
-                  {truncateHash(nodeHash)}
-                  <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-                  </svg>
-                </Link>
+                />
               </li>
             ))}
           </ul>

@@ -19,7 +19,7 @@ import {
   NODE_STATUS_VARIANT,
   VM_STATUS_VARIANT,
 } from "@/lib/status-map";
-import { relativeTime, truncateHash } from "@/lib/format";
+import { relativeTime } from "@/lib/format";
 import type { IssueNode, IssueVM } from "@/hooks/use-issues";
 
 type NodeIssueFilter = "hasOrphaned" | "hasMissing" | undefined;
@@ -52,9 +52,9 @@ const columns: Column<IssueNode>[] = [
           <CopyableText
             text={r.node.hash}
             startChars={8}
-            endChars={4}
+            endChars={8}
             size="sm"
-            className={r.node.name ? "ml-1.5 text-muted-foreground" : ""}
+            {...(r.node.name ? { className: "ml-1.5" } : {})}
           />
         </span>
       </span>
@@ -65,10 +65,9 @@ const columns: Column<IssueNode>[] = [
   {
     header: "Status",
     accessor: (r) => (
-      <Badge
+      <Badge fill="outline"
         variant={NODE_STATUS_VARIANT[r.node.status]}
         size="sm"
-        className="capitalize"
       >
         {r.node.status}
       </Badge>
@@ -146,9 +145,11 @@ function IssuesNodeDetailPanel({
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-center gap-2">
           <StatusDot status={nodeStatusToDot(node.status)} />
-          <h3 className="text-sm font-bold">
-            {node.name ?? truncateHash(node.hash, 12)}
-          </h3>
+          {node.name ? (
+            <h3 className="text-sm font-bold">{node.name}</h3>
+          ) : (
+            <CopyableText text={node.hash} startChars={8} endChars={8} size="sm" />
+          )}
         </div>
         <button
           type="button"
@@ -178,8 +179,8 @@ function IssuesNodeDetailPanel({
           <dd className="min-w-0 truncate font-mono text-xs">
             <CopyableText
               text={node.hash}
-              startChars={16}
-              endChars={6}
+              startChars={10}
+              endChars={10}
               size="sm"
             />
           </dd>
@@ -187,10 +188,9 @@ function IssuesNodeDetailPanel({
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge
+            <Badge fill="outline"
               variant={NODE_STATUS_VARIANT[node.status]}
               size="sm"
-              className="capitalize"
             >
               {node.status}
             </Badge>
@@ -246,29 +246,16 @@ function IssuesNodeDetailPanel({
               key={vm.hash}
               className="flex items-center justify-between text-sm"
             >
-              <Link
+              <CopyableText
+                text={vm.hash}
+                startChars={8}
+                endChars={8}
+                size="sm"
                 href={`/vms?view=${vm.hash}`}
-                className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-              >
-                {truncateHash(vm.hash)}
-                <svg
-                  className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7 17L17 7M7 7h10v10"
-                  />
-                </svg>
-              </Link>
-              <Badge
+              />
+              <Badge fill="outline"
                 variant={VM_STATUS_VARIANT[vm.status]}
                 size="sm"
-                className="capitalize"
               >
                 {vm.status}
               </Badge>

@@ -90,14 +90,6 @@ const PAYMENT_OPTIONS: {
 
 const VM_BASE_SEARCH_FIELDS = (v: VM) => [v.hash, v.allocatedNode];
 
-function isDiscrepancy(vm: VM): boolean {
-  return (
-    vm.status === "orphaned" ||
-    vm.status === "missing" ||
-    vm.status === "unschedulable"
-  );
-}
-
 function buildColumns(
   msgInfo: Map<string, AlephMessageInfo> | undefined,
 ): Column<VM>[] {
@@ -105,10 +97,9 @@ function buildColumns(
   {
     header: "Status",
     accessor: (r) => (
-      <Badge
+      <Badge fill="outline"
         variant={VM_STATUS_VARIANT[r.status]}
         size="sm"
-        className="capitalize"
       >
         {r.status}
       </Badge>
@@ -121,10 +112,9 @@ function buildColumns(
     accessor: (r) => (
       <CopyableText
         text={r.hash}
-        startChars={10}
-        endChars={4}
+        startChars={8}
+        endChars={8}
         size="sm"
-        className={isDiscrepancy(r) ? "text-warning-400" : ""}
         {...(msgInfo?.get(r.hash)?.explorerUrl ? { href: msgInfo.get(r.hash)!.explorerUrl } : {})}
       />
     ),
@@ -159,7 +149,7 @@ function buildColumns(
   {
     header: "Type",
     accessor: (r) => (
-      <Badge variant="default" size="sm">
+      <Badge fill="outline" variant="default" size="sm">
         {r.type}
       </Badge>
     ),
@@ -173,9 +163,8 @@ function buildColumns(
         <CopyableText
           text={r.allocatedNode}
           startChars={8}
-          endChars={4}
+          endChars={8}
           size="sm"
-          className="text-muted-foreground"
         />
       ) : (
         <span className="text-xs text-muted-foreground">None</span>

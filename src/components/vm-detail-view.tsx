@@ -11,12 +11,12 @@ import {
   TooltipContent,
 } from "@aleph-front/ds/tooltip";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { CopyableText } from "@aleph-front/ds/copyable-text";
 import { useVM } from "@/hooks/use-vms";
 import { useNode } from "@/hooks/use-nodes";
 import { useVMMessageInfo } from "@/hooks/use-vm-creation-times";
 import {
   relativeTime,
-  truncateHash,
   formatDateTime,
 } from "@/lib/format";
 import { VM_STATUS_VARIANT } from "@/lib/status-map";
@@ -88,26 +88,22 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
         </Link>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="font-mono text-xl font-bold">
-          {truncateHash(hash, 16)}
-        </h2>
-        <Badge variant="default" size="sm">
+        <CopyableText text={hash} startChars={8} endChars={8} size="md" />
+        <Badge fill="outline" variant="default" size="sm">
           {vm.type}
         </Badge>
-        <Badge
+        <Badge fill="outline"
           variant={VM_STATUS_VARIANT[vm.status]}
           size="sm"
-          className="capitalize"
         >
           {vm.status}
         </Badge>
         {vm.paymentStatus && (
-          <Badge
+          <Badge fill="outline"
             variant={
               vm.paymentStatus === "validated" ? "success" : "error"
             }
             size="sm"
-            className="capitalize"
           >
             {vm.paymentStatus}
           </Badge>
@@ -134,15 +130,13 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
           </MetaItem>
           {messageInfo?.get(vm.hash)?.sender && (
             <MetaItem label="Owner">
-              <Link
+              <CopyableText
+                text={messageInfo.get(vm.hash)!.sender}
+                startChars={8}
+                endChars={8}
+                size="sm"
                 href={`/wallet?address=${messageInfo.get(vm.hash)!.sender}`}
-                className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-              >
-                {truncateHash(messageInfo.get(vm.hash)!.sender, 16)}
-                <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-                </svg>
-              </Link>
+              />
             </MetaItem>
           )}
           <MetaItem label="Type">{vm.type}</MetaItem>
@@ -174,25 +168,13 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
         </h3>
         {vm.allocatedNode ? (
           <div className="flex items-center justify-between gap-2">
-            <Link
+            <CopyableText
+              text={vm.allocatedNode}
+              startChars={8}
+              endChars={8}
+              size="sm"
               href={`/nodes?view=${vm.allocatedNode}`}
-              className="group/link inline-flex items-center gap-1 font-mono text-sm font-bold text-primary-300 hover:underline"
-            >
-              {truncateHash(vm.allocatedNode, 12)}
-              <svg
-                className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M7 17L17 7M7 7h10v10"
-                />
-              </svg>
-            </Link>
+            />
             {allocatedNodeData?.name && (
               <span className="text-sm text-muted-foreground">
                 {allocatedNodeData.name}
@@ -215,25 +197,13 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
           <ul className="space-y-1.5">
             {vm.observedNodes.map((nodeHash) => (
               <li key={nodeHash}>
-                <Link
+                <CopyableText
+                  text={nodeHash}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/nodes?view=${nodeHash}`}
-                  className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-                >
-                  {truncateHash(nodeHash)}
-                  <svg
-                    className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7 17L17 7M7 7h10v10"
-                    />
-                  </svg>
-                </Link>
+                />
               </li>
             ))}
           </ul>
@@ -316,12 +286,13 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
                       {row.action.replace(/_/g, " ")}
                     </td>
                     <td className="py-1.5 pr-4">
-                      <Link
+                      <CopyableText
+                        text={row.nodeHash}
+                        startChars={8}
+                        endChars={8}
+                        size="sm"
                         href={`/nodes?view=${row.nodeHash}`}
-                        className="font-mono text-xs text-primary-300 hover:underline"
-                      >
-                        {truncateHash(row.nodeHash)}
-                      </Link>
+                      />
                     </td>
                     <td className="py-1.5 pr-4 text-muted-foreground">
                       {row.reason ?? "—"}

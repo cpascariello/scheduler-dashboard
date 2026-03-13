@@ -12,11 +12,11 @@ import {
   TooltipContent,
 } from "@aleph-front/ds/tooltip";
 import { Skeleton } from "@aleph-front/ds/ui/skeleton";
+import { CopyableText } from "@aleph-front/ds/copyable-text";
 import { useNode } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
 import {
   relativeTime,
-  truncateHash,
   formatDateTime,
   formatCpuLabel,
 } from "@/lib/format";
@@ -92,17 +92,18 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
       </div>
       <div className="flex items-center gap-3">
         <StatusDot status={nodeStatusToDot(node.status)} />
-        <h2 className="text-xl font-bold">
-          {node.name ?? truncateHash(node.hash, 16)}
-        </h2>
-        <Badge
+        {node.name ? (
+          <h2 className="text-xl font-bold">{node.name}</h2>
+        ) : (
+          <CopyableText text={node.hash} startChars={8} endChars={8} size="md" />
+        )}
+        <Badge fill="outline"
           variant={NODE_STATUS_VARIANT[node.status]}
           size="sm"
-          className="capitalize"
         >
           {node.status}
         </Badge>
-        <Badge
+        <Badge fill="outline"
           variant={node.staked ? "success" : "default"}
           size="sm"
         >
@@ -135,15 +136,13 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
           )}
           {node.owner && (
             <MetaItem label="Owner">
-              <Link
+              <CopyableText
+                text={node.owner}
+                startChars={8}
+                endChars={8}
+                size="sm"
                 href={`/wallet?address=${node.owner}`}
-                className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-              >
-                {truncateHash(node.owner, 16)}
-                <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-                </svg>
-              </Link>
+              />
             </MetaItem>
           )}
           {node.supportsIpv6 != null && (
@@ -237,13 +236,13 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
             {node.gpus.used.map((gpu, i) => (
               <li key={`used-${i}`} className="flex items-center justify-between text-sm">
                 <span>{gpu.vendor} {gpu.model || gpu.deviceName}</span>
-                <Badge variant="warning" size="sm">in use</Badge>
+                <Badge fill="outline" variant="warning" size="sm">in use</Badge>
               </li>
             ))}
             {node.gpus.available.map((gpu, i) => (
               <li key={`avail-${i}`} className="flex items-center justify-between text-sm">
                 <span>{gpu.vendor} {gpu.model || gpu.deviceName}</span>
-                <Badge variant="success" size="sm">available</Badge>
+                <Badge fill="outline" variant="success" size="sm">available</Badge>
               </li>
             ))}
           </ul>
@@ -262,29 +261,16 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
                 key={vm.hash}
                 className="flex items-center justify-between text-sm"
               >
-                <Link
+                <CopyableText
+                  text={vm.hash}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/vms?view=${vm.hash}`}
-                  className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-                >
-                  {truncateHash(vm.hash)}
-                  <svg
-                    className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7 17L17 7M7 7h10v10"
-                    />
-                  </svg>
-                </Link>
-                <Badge
+                />
+                <Badge fill="outline"
                   variant={VM_STATUS_VARIANT[vm.status]}
                   size="sm"
-                  className="capitalize"
                 >
                   {vm.status}
                 </Badge>
@@ -323,12 +309,13 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
                       {row.action.replace(/_/g, " ")}
                     </td>
                     <td className="py-1.5 pr-4">
-                      <Link
+                      <CopyableText
+                        text={row.vmHash}
+                        startChars={8}
+                        endChars={8}
+                        size="sm"
                         href={`/vms?view=${row.vmHash}`}
-                        className="font-mono text-xs text-primary-300 hover:underline"
-                      >
-                        {truncateHash(row.vmHash)}
-                      </Link>
+                      />
                     </td>
                     <td className="py-1.5 pr-4 text-muted-foreground">
                       {row.reason ?? "—"}

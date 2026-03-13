@@ -2,8 +2,6 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowSquareOut } from "@phosphor-icons/react";
 import { Card } from "@aleph-front/ds/card";
 import { Badge } from "@aleph-front/ds/badge";
 import { Button } from "@aleph-front/ds/button";
@@ -23,7 +21,6 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   relativeTime,
   relativeTimeFromUnix,
-  truncateHash,
   explorerWalletUrl,
 } from "@/lib/format";
 import {
@@ -98,12 +95,13 @@ function NodesSection({ nodes }: { nodes: Node[] }) {
             {nodes.map((node) => (
               <tr key={node.hash} className="group">
                 <td className="py-2 pr-4">
-                  <Link
+                  <CopyableText
+                    text={node.hash}
+                    startChars={8}
+                    endChars={8}
+                    size="sm"
                     href={`/nodes?view=${node.hash}`}
-                    className="font-mono text-xs text-primary-300 hover:underline"
-                  >
-                    {truncateHash(node.hash)}
-                  </Link>
+                  />
                 </td>
                 <td className="py-2 pr-4 text-xs">
                   {node.name ?? "—"}
@@ -114,10 +112,9 @@ function NodesSection({ nodes }: { nodes: Node[] }) {
                       status={nodeStatusToDot(node.status)}
                       size="sm"
                     />
-                    <Badge
+                    <Badge fill="outline"
                       variant={NODE_STATUS_VARIANT[node.status]}
                       size="sm"
-                      className="capitalize"
                     >
                       {node.status}
                     </Badge>
@@ -164,40 +161,34 @@ function VMsSection({ vms }: { vms: WalletVM[] }) {
             {vms.map((vm) => (
               <tr key={vm.hash}>
                 <td className="py-2 pr-4">
-                  {vm.schedulerStatus ? (
-                    <Link
-                      href={`/vms?view=${vm.hash}`}
-                      className="font-mono text-xs text-primary-300 hover:underline"
-                    >
-                      {truncateHash(vm.hash)}
-                    </Link>
-                  ) : (
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {truncateHash(vm.hash)}
-                    </span>
-                  )}
+                  <CopyableText
+                    text={vm.hash}
+                    startChars={8}
+                    endChars={8}
+                    size="sm"
+                    {...(vm.schedulerStatus ? { href: `/vms?view=${vm.hash}` } : {})}
+                  />
                 </td>
                 <td className="py-2 pr-4 text-xs">
                   {vm.name ?? "—"}
                 </td>
                 <td className="py-2 pr-4">
-                  <Badge variant="default" size="sm">
+                  <Badge fill="outline" variant="default" size="sm">
                     {vm.type}
                   </Badge>
                 </td>
                 <td className="py-2 pr-4">
                   {vm.schedulerStatus ? (
-                    <Badge
+                    <Badge fill="outline"
                       variant={
                         VM_STATUS_VARIANT[vm.schedulerStatus]
                       }
                       size="sm"
-                      className="capitalize"
                     >
                       {vm.schedulerStatus}
                     </Badge>
                   ) : (
-                    <Badge variant="default" size="sm">
+                    <Badge fill="outline" variant="default" size="sm">
                       not tracked
                     </Badge>
                   )}
@@ -286,7 +277,7 @@ function ActivitySection({
                       {relativeTimeFromUnix(item.time)}
                     </td>
                     <td className="py-2 pr-4">
-                      <Badge
+                      <Badge fill="outline"
                         variant={
                           MESSAGE_TYPE_VARIANT[item.type] ??
                           "default"
@@ -300,26 +291,23 @@ function ActivitySection({
                       {item.name ?? "—"}
                     </td>
                     <td className="py-2 pr-4">
-                      <a
+                      <CopyableText
+                        text={item.hash}
+                        startChars={8}
+                        endChars={8}
+                        size="sm"
                         href={item.explorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-mono text-xs text-primary-300 hover:underline"
-                      >
-                        {truncateHash(item.hash)}
-                        <ArrowSquareOut size={12} />
-                      </a>
+                      />
                     </td>
                     <td className="py-2">
                       {item.schedulerStatus ? (
-                        <Badge
+                        <Badge fill="outline"
                           variant={
                             VM_STATUS_VARIANT[
                               item.schedulerStatus
                             ]
                           }
                           size="sm"
-                          className="capitalize"
                         >
                           {item.schedulerStatus}
                         </Badge>
@@ -367,7 +355,7 @@ function ScopeTags({ scope }: { scope: AuthorizationScope }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {tags.map((tag) => (
-        <Badge key={tag} variant="default" size="sm">
+        <Badge fill="outline" key={tag} variant="default" size="sm">
           {tag}
         </Badge>
       ))}
@@ -398,20 +386,13 @@ function PermissionsCard({
           {entries.map(([addr, scopes]) => (
             <li key={addr}>
               <div className="flex items-center gap-2">
-                <Link
+                <CopyableText
+                  text={addr}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/wallet?address=${addr}`}
-                  className="font-mono text-xs text-primary-300 hover:underline"
-                >
-                  {truncateHash(addr, 12)}
-                </Link>
-                <a
-                  href={explorerWalletUrl(addr)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground/60 hover:text-muted-foreground"
-                >
-                  <ArrowSquareOut size={12} />
-                </a>
+                />
                 {scopes[0]?.alias && (
                   <span className="text-xs text-muted-foreground">
                     ({scopes[0].alias})
@@ -491,8 +472,8 @@ function WalletContent() {
         <div className="mt-3 flex items-center gap-3">
           <CopyableText
             text={address}
-            startChars={10}
-            endChars={6}
+            startChars={8}
+            endChars={8}
             size="sm"
             href={explorerWalletUrl(address)}
           />

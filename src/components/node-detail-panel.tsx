@@ -9,7 +9,7 @@ import { Skeleton } from "@aleph-front/ds/ui/skeleton";
 import { CopyableText } from "@aleph-front/ds/copyable-text";
 import { useNode } from "@/hooks/use-nodes";
 import { ResourceBar } from "@/components/resource-bar";
-import { relativeTime, truncateHash, formatCpuLabel } from "@/lib/format";
+import { relativeTime, formatCpuLabel } from "@/lib/format";
 import {
   nodeStatusToDot,
   NODE_STATUS_VARIANT,
@@ -42,9 +42,11 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-center gap-2">
           <StatusDot status={nodeStatusToDot(node.status)} />
-          <h3 className="text-sm font-bold">
-            {node.name ?? truncateHash(node.hash, 12)}
-          </h3>
+          {node.name ? (
+            <h3 className="text-sm font-bold">{node.name}</h3>
+          ) : (
+            <CopyableText text={node.hash} startChars={8} endChars={8} size="sm" />
+          )}
         </div>
         <button
           type="button"
@@ -62,7 +64,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
         <div className="flex items-center justify-between">
           <dt className="text-muted-foreground">Full Hash</dt>
           <dd className="min-w-0 truncate font-mono text-xs">
-            <CopyableText text={node.hash} startChars={16} endChars={6} size="sm" />
+            <CopyableText text={node.hash} startChars={10} endChars={10} size="sm" />
           </dd>
         </div>
         {node.address && (
@@ -74,7 +76,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge variant={NODE_STATUS_VARIANT[node.status]} size="sm" className="capitalize">
+            <Badge fill="outline" variant={NODE_STATUS_VARIANT[node.status]} size="sm">
               {node.status}
             </Badge>
           </dd>
@@ -82,7 +84,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Staked</dt>
           <dd>
-            <Badge variant={node.staked ? "success" : "default"} size="sm">
+            <Badge fill="outline" variant={node.staked ? "success" : "default"} size="sm">
               {node.staked ? "Yes" : "No"}
             </Badge>
           </dd>
@@ -111,15 +113,13 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
           <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Owner
           </h4>
-          <Link
+          <CopyableText
+            text={node.owner}
+            startChars={8}
+            endChars={8}
+            size="sm"
             href={`/wallet?address=${node.owner}`}
-            className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-          >
-            {truncateHash(node.owner, 12)}
-            <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-            </svg>
-          </Link>
+          />
         </div>
       )}
 
@@ -182,7 +182,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
             {[...node.gpus.used, ...node.gpus.available].map((gpu, i) => (
               <li key={i} className="flex items-center justify-between text-sm">
                 <span className="text-xs">{gpu.vendor} {gpu.model || gpu.deviceName}</span>
-                <Badge
+                <Badge fill="outline"
                   variant={i < node.gpus.used.length ? "warning" : "success"}
                   size="sm"
                 >
@@ -205,16 +205,14 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
                 key={vm.hash}
                 className="flex items-center justify-between text-sm"
               >
-                <Link
+                <CopyableText
+                  text={vm.hash}
+                  startChars={8}
+                  endChars={8}
+                  size="sm"
                   href={`/vms?view=${vm.hash}`}
-                  className="group/link inline-flex items-center gap-1 font-mono text-xs font-bold text-primary-300 hover:underline"
-                >
-                  {truncateHash(vm.hash)}
-                  <svg className="size-3 transition-transform duration-150 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
-                  </svg>
-                </Link>
-                <Badge variant={VM_STATUS_VARIANT[vm.status]} size="sm" className="capitalize">
+                />
+                <Badge fill="outline" variant={VM_STATUS_VARIANT[vm.status]} size="sm">
                   {vm.status}
                 </Badge>
               </li>

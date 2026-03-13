@@ -18,6 +18,16 @@ Each entry includes:
 
 ---
 
+## Decision #45 - 2026-03-13
+**Context:** CopyableText styling consistency across the dashboard
+**Decision:** Standardize all CopyableText: equal `startChars`/`endChars` (min 8), default color for copy-only, `text-primary-400` when an `href` is present, no other text color overrides.
+**Rationale:** Inconsistent truncation (10/4, 16/6, 8/4) made hashes harder to compare visually. Warning/muted colors on hashes conflicted with semantic color use (badges, status indicators). Purple for linked hashes gives a clear affordance that the text is clickable.
+
+## Decision #44 - 2026-03-13
+**Context:** Badge fill style across the dashboard
+**Decision:** Use `fill="outline"` on all Badge instances instead of the default `fill="solid"`.
+**Rationale:** Outline badges are lighter and less visually dominant, better suited for dense data tables and detail panels where many badges appear together. Solid fill competed with status indicators and action buttons for visual attention.
+
 ## Decision #43 - 2026-03-11
 **Context:** Wallet view — whether to add a sidebar nav entry for the wallet page
 **Decision:** No sidebar entry. Wallet is a utility page reached via clicking wallet addresses.
