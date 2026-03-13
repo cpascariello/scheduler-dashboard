@@ -74,7 +74,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
         <div className="flex justify-between">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
-            <Badge fill="outline" variant={NODE_STATUS_VARIANT[node.status]} size="sm" className="capitalize">
+            <Badge fill="outline" variant={NODE_STATUS_VARIANT[node.status]} size="sm">
               {node.status}
             </Badge>
           </dd>
@@ -214,7 +214,7 @@ export function NodeDetailPanel({ hash, onClose }: NodeDetailPanelProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M7 7h10v10" />
                   </svg>
                 </Link>
-                <Badge fill="outline" variant={VM_STATUS_VARIANT[vm.status]} size="sm" className="capitalize">
+                <Badge fill="outline" variant={VM_STATUS_VARIANT[vm.status]} size="sm">
                   {vm.status}
                 </Badge>
               </li>

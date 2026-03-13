@@ -108,7 +108,6 @@ function buildColumns(
       <Badge fill="outline"
         variant={VM_STATUS_VARIANT[r.status]}
         size="sm"
-        className="capitalize"
       >
         {r.status}
       </Badge>

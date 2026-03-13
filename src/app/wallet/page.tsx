@@ -117,7 +117,6 @@ function NodesSection({ nodes }: { nodes: Node[] }) {
                     <Badge fill="outline"
                       variant={NODE_STATUS_VARIANT[node.status]}
                       size="sm"
-                      className="capitalize"
                     >
                       {node.status}
                     </Badge>
@@ -192,7 +191,6 @@ function VMsSection({ vms }: { vms: WalletVM[] }) {
                         VM_STATUS_VARIANT[vm.schedulerStatus]
                       }
                       size="sm"
-                      className="capitalize"
                     >
                       {vm.schedulerStatus}
                     </Badge>
@@ -319,7 +317,6 @@ function ActivitySection({
                             ]
                           }
                           size="sm"
-                          className="capitalize"
                         >
                           {item.schedulerStatus}
                         </Badge>

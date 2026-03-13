@@ -68,7 +68,6 @@ const columns: Column<IssueNode>[] = [
       <Badge fill="outline"
         variant={NODE_STATUS_VARIANT[r.node.status]}
         size="sm"
-        className="capitalize"
       >
         {r.node.status}
       </Badge>
@@ -190,7 +189,6 @@ function IssuesNodeDetailPanel({
             <Badge fill="outline"
               variant={NODE_STATUS_VARIANT[node.status]}
               size="sm"
-              className="capitalize"
             >
               {node.status}
             </Badge>
@@ -268,7 +266,6 @@ function IssuesNodeDetailPanel({
               <Badge fill="outline"
                 variant={VM_STATUS_VARIANT[vm.status]}
                 size="sm"
-                className="capitalize"
               >
                 {vm.status}
               </Badge>

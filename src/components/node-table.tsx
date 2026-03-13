@@ -63,7 +63,6 @@ const columns: Column<Node>[] = [
       <Badge fill="outline"
         variant={NODE_STATUS_VARIANT[r.status]}
         size="sm"
-        className="capitalize"
       >
         {r.status}
       </Badge>

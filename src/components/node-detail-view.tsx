@@ -98,7 +98,6 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
         <Badge fill="outline"
           variant={NODE_STATUS_VARIANT[node.status]}
           size="sm"
-          className="capitalize"
         >
           {node.status}
         </Badge>
@@ -284,7 +283,6 @@ export function NodeDetailView({ hash }: NodeDetailViewProps) {
                 <Badge fill="outline"
                   variant={VM_STATUS_VARIANT[vm.status]}
                   size="sm"
-                  className="capitalize"
                 >
                   {vm.status}
                 </Badge>

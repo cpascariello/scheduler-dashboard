@@ -54,7 +54,6 @@ const columns: Column<IssueVM>[] = [
       <Badge fill="outline"
         variant={VM_STATUS_VARIANT[r.status]}
         size="sm"
-        className="capitalize"
       >
         {r.status}
       </Badge>
@@ -165,7 +164,6 @@ function IssuesVmDetailPanel({ vm, onClose }: IssuesVmDetailPanelProps) {
         <Badge fill="outline"
           variant={VM_STATUS_VARIANT[vm.status]}
           size="sm"
-          className="capitalize"
         >
           {vm.status}
         </Badge>

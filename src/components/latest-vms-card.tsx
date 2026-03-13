@@ -92,7 +92,6 @@ export function LatestVMsCard() {
                   <Badge fill="outline"
                     variant={VM_STATUS_VARIANT[vm.status]}
                     size="sm"
-                    className="capitalize"
                   >
                     {vm.status}
                   </Badge>

@@ -97,7 +97,6 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
         <Badge fill="outline"
           variant={VM_STATUS_VARIANT[vm.status]}
           size="sm"
-          className="capitalize"
         >
           {vm.status}
         </Badge>
@@ -107,7 +106,6 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
               vm.paymentStatus === "validated" ? "success" : "error"
             }
             size="sm"
-            className="capitalize"
           >
             {vm.paymentStatus}
           </Badge>
