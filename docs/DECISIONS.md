@@ -18,6 +18,17 @@ Each entry includes:
 
 ---
 
+## Decision #51 - 2026-03-16
+**Context:** Glassmorphism borders and backgrounds used hardcoded `white` (`border-white/[0.06]`, `bg-white/[0.03]`), which was invisible in light mode.
+**Decision:** Replace all `white/[0.06]` and `white/[0.03]` with `foreground/[0.06]` and `foreground/[0.03]` across all glassmorphism components. Use `bg-background` for the content area and `bg-surface` (dark) / `bg-muted/40` (light) for sidebar/header chrome.
+**Rationale:** `--foreground` is dark in light mode and light in dark mode, so `foreground/[0.06]` always contrasts with its background. Eliminates the need for `dark:` variant overrides. Content area changed from `bg-surface` to `bg-background` so DS Card (`bg-surface`) is visually distinct from the page background. Filter panel switched from custom glassmorphism to DS `Card` component for consistency.
+**Alternatives considered:** `dark:` variants on each instance (more verbose, same result), semantic token like `--glass-border` (over-engineering for one pattern)
+
+## Decision #50 - 2026-03-16
+**Context:** Issues page had a filter toggle button that did nothing — `onFiltersToggle={() => {}}` was passed as a no-op.
+**Decision:** Make `onFiltersToggle`, `filtersOpen`, and `activeFilterCount` optional in `FilterToolbar`. Only render the filter button when `onFiltersToggle` is provided. Issues tables omit these props.
+**Rationale:** The Issues page has no advanced filters. Showing a clickable button that does nothing misleads users. Making the props optional is cleaner than passing no-op handlers.
+
 ## Decision #49 - 2026-03-16
 **Context:** Filter toolbar status tabs used DS `Tabs` pill variant, which had a visual "tail" artifact on the sliding indicator and felt heavy for a filter bar.
 **Decision:** Switch to `variant="underline" size="sm"` for status filter tabs. Keep `variant="pill" size="sm"` for the Issues page perspective toggle (VMs/Nodes). Constrain Tabs container with `flex-1 min-w-0` so overflow kicks in at ~5 visible items. Downsize search input to `size="sm"`.

@@ -17,9 +17,9 @@ type FilterToolbarProps<S> = {
   activeStatus: S;
   onStatusChange: (status: S) => void;
   formatCount: (status: S) => string;
-  filtersOpen: boolean;
-  onFiltersToggle: () => void;
-  activeFilterCount: number;
+  filtersOpen?: boolean;
+  onFiltersToggle?: () => void;
+  activeFilterCount?: number;
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder: string;
@@ -72,30 +72,32 @@ export function FilterToolbar<S>({
           ))}
         </TabsList>
       </Tabs>
-      <Button
-        variant="text"
-        size="xs"
-        onClick={onFiltersToggle}
-        className="relative"
-        aria-label="Toggle filters"
-      >
-        <svg
-          className="size-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
+      {onFiltersToggle && (
+        <Button
+          variant="text"
+          size="xs"
+          onClick={onFiltersToggle}
+          className="relative"
+          aria-label="Toggle filters"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 4h18M6 8h12M9 12h6M11 16h2"
-          />
-        </svg>
-        {activeFilterCount > 0 && !filtersOpen && (
-          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500" />
-        )}
-      </Button>
+          <svg
+            className="size-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3 4h18M6 8h12M9 12h6M11 16h2"
+            />
+          </svg>
+          {activeFilterCount != null && activeFilterCount > 0 && !filtersOpen && (
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500" />
+          )}
+        </Button>
+      )}
       <div className="relative ml-auto w-64">
         <svg
           className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"

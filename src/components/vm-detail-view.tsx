@@ -65,7 +65,7 @@ export function VMDetailView({ hash }: VMDetailViewProps) {
         >
           ← Virtual Machines
         </button>
-        <Card padding="md" variant="ghost" className="border border-white/[0.06] bg-white/[0.03]">
+        <Card padding="md" variant="ghost" className="border border-foreground/[0.06] bg-foreground/[0.03]">
           <h3 className="text-sm font-semibold">VM not found</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {error

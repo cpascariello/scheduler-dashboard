@@ -148,7 +148,7 @@ function IssuesNodeDetailPanel({
     <Card
       padding="md"
       variant="ghost"
-      className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] lg:sticky lg:top-0 lg:w-96"
+      className="w-full rounded-xl border border-foreground/[0.06] bg-foreground/[0.03] lg:sticky lg:top-0 lg:w-96"
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-center gap-2">
@@ -396,9 +396,6 @@ export function IssuesNodeTable({
           startTransition(() => setStatusFilter(s))
         }
         formatCount={formatCount}
-        filtersOpen={false}
-        onFiltersToggle={() => {}}
-        activeFilterCount={0}
         searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Search node hash, name..."

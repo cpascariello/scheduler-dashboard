@@ -131,7 +131,7 @@ function IssuesVmDetailPanel({ vm, onClose }: IssuesVmDetailPanelProps) {
     <Card
       padding="md"
       variant="ghost"
-      className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] lg:sticky lg:top-0 lg:w-96"
+      className="w-full rounded-xl border border-foreground/[0.06] bg-foreground/[0.03] lg:sticky lg:top-0 lg:w-96"
     >
       <div className="mb-4 flex items-start justify-between">
         <CopyableText text={vm.hash} startChars={8} endChars={8} size="sm" />
@@ -374,9 +374,6 @@ export function IssuesVMTable({
           startTransition(() => setStatusFilter(s))
         }
         formatCount={formatCount}
-        filtersOpen={false}
-        onFiltersToggle={() => {}}
-        activeFilterCount={0}
         searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Search VM hash, node..."
