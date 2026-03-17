@@ -377,6 +377,170 @@ export async function getAuthorizations(
   return res.json() as Promise<AuthorizationResponse>;
 }
 
+// --- Credit Expense API ---
+
+const CREDIT_EXPENSE_SENDER =
+  "0x6aeaEEb08720DEc9d6dae1A8fc49344Dd99391Ac";
+const CORECHANNEL_SENDER =
+  "0xa1B3bb7d2332383D96b7796B908fB7f7F3c2Be10";
+
+type ApiCreditExpenseMessage = {
+  item_hash: string;
+  time: number;
+  content: {
+    content: {
+      tags: string[];
+      expense: {
+        amount: number;
+        count: number;
+        credit_price_aleph: number;
+        credit_price_usdc: number;
+        credits: {
+          address: string;
+          amount: number;
+          price: number;
+          ref: string;
+          time: number;
+          node_id?: string;
+          execution_id?: string;
+          size?: number;
+        }[];
+        start_date: number;
+        end_date: number;
+      };
+    };
+  };
+};
+
+import type {
+  CCNInfo,
+  CRNInfo,
+  CreditExpense,
+  NodeState,
+  ApiCorechannelNode,
+  ApiResourceNode,
+} from "@/api/credit-types";
+
+function parseCreditMessage(
+  msg: ApiCreditExpenseMessage,
+): CreditExpense | null {
+  const inner = msg.content.content;
+  const tags = inner.tags ?? [];
+  const expense = inner.expense;
+  if (!expense) return null;
+
+  const type = tags.includes("type_storage")
+    ? ("storage" as const)
+    : tags.includes("type_execution")
+      ? ("execution" as const)
+      : null;
+  if (!type) return null;
+
+  const creditPriceAleph = expense.credit_price_aleph;
+
+  return {
+    hash: msg.item_hash,
+    time: msg.time,
+    type,
+    totalAleph: expense.credits.reduce(
+      (sum, c) => sum + c.amount * creditPriceAleph,
+      0,
+    ),
+    creditCount: expense.count,
+    creditPriceAleph,
+    credits: expense.credits.map((c) => ({
+      address: c.address,
+      amount: c.amount,
+      alephCost: c.amount * creditPriceAleph,
+      ref: c.ref,
+      timeSec: c.time,
+      nodeId: c.node_id ?? null,
+      executionId: c.execution_id ?? null,
+    })),
+  };
+}
+
+export async function getCreditExpenses(
+  startDate: number,
+  endDate: number,
+): Promise<CreditExpense[]> {
+  // Single request with high pagination limit — credit expenses are
+  // ~2 per hour (storage + execution), so 30 days ≈ 1440 messages.
+  const params = new URLSearchParams({
+    msgType: "POST",
+    contentTypes: "aleph_credit_expense",
+    addresses: CREDIT_EXPENSE_SENDER,
+    startDate: String(Math.floor(startDate)),
+    endDate: String(Math.floor(endDate)),
+    pagination: "10000",
+    sort_order: "1",
+    sort_by: "tx-time",
+  });
+
+  const url = `${getAlephBaseUrl()}/api/v0/messages.json?${params}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Aleph API error: ${res.status}`);
+  }
+  const data = (await res.json()) as {
+    messages: ApiCreditExpenseMessage[];
+  };
+
+  const all: CreditExpense[] = [];
+  for (const msg of data.messages) {
+    const parsed = parseCreditMessage(msg);
+    if (parsed) all.push(parsed);
+  }
+
+  return all;
+}
+
+export async function getNodeState(): Promise<NodeState> {
+  const url = `${getAlephBaseUrl()}/api/v0/aggregates/${CORECHANNEL_SENDER}.json?keys=corechannel`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Aleph API error: ${res.status} for aggregates`);
+  }
+  const data = (await res.json()) as {
+    data: {
+      corechannel: {
+        nodes: ApiCorechannelNode[];
+        resource_nodes: ApiResourceNode[];
+      };
+    };
+  };
+
+  const channel = data.data.corechannel;
+  const ccns = new Map<string, CCNInfo>();
+  const crns = new Map<string, CRNInfo>();
+
+  for (const n of channel.nodes ?? []) {
+    ccns.set(n.hash, {
+      hash: n.hash,
+      name: n.name,
+      owner: n.owner,
+      reward: n.reward,
+      score: n.score,
+      status: n.status,
+      stakers: n.stakers,
+      totalStaked: n.total_staked,
+    });
+  }
+
+  for (const r of channel.resource_nodes ?? []) {
+    crns.set(r.hash, {
+      hash: r.hash,
+      name: r.name,
+      owner: r.owner,
+      reward: r.reward,
+      score: r.score,
+      status: r.status,
+    });
+  }
+
+  return { ccns, crns };
+}
+
 export async function getMessagesByHashes(
   hashes: string[],
 ): Promise<Map<string, AlephMessageInfo>> {

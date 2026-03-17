@@ -37,11 +37,12 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Operations",
     items: [
       { label: "Issues", href: "/issues", icon: "warning" },
+      { label: "Credits", href: "/credits", icon: "coins" },
     ],
   },
 ];
 
-type IconName = "grid" | "server" | "cpu" | "warning";
+type IconName = "grid" | "server" | "cpu" | "warning" | "coins";
 
 function NavIcon({ name }: { name: IconName }) {
   switch (name) {
@@ -106,6 +107,22 @@ function NavIcon({ name }: { name: IconName }) {
             strokeLinecap="round"
             strokeLinejoin="round"
             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+          />
+        </svg>
+      );
+    case "coins":
+      return (
+        <svg
+          className="size-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M20 6c0 1.657-3.582 3-8 3S4 7.657 4 6m16 0c0-1.657-3.582-3-8-3S4 4.343 4 6m16 0v4c0 1.657-3.582 3-8 3S4 11.657 4 10V6m16 8c0 1.657-3.582 3-8 3s-8-1.343-8-3m16-4v8c0 1.657-3.582 3-8 3s-8-1.343-8-3v-8"
           />
         </svg>
       );

@@ -18,6 +18,23 @@ Each entry includes:
 
 ---
 
+## Decision #54 - 2026-03-17
+**Context:** Credit flow diagram used simple animated dashes (`stroke-dasharray` with `flow-dash` CSS keyframe). The animation felt mechanical — all paths animated at the same speed, no stagger, no interactivity, no entrance effect.
+**Decision:** Replace dashes with particle stream animation (SVG `<animateMotion>` circles) + source→destination gradient strokes. Add entrance draw animation, hover interaction (dim/highlight + tooltip), arrowheads at destinations, and accent bars on source boxes.
+**Rationale:** Compared three variants side-by-side (particle+gradient, glow-pulse+gradient, shimmer-sweep). Particles won — they feel alive and organic, clearly convey flow directionality, and the randomized sizes/speeds/opacity prevent the mechanical "marching ants" look. Gradients make the source→destination relationship instantly readable (blue→gold, green→purple, etc.). Seeded pseudo-random (`Math.sin` based) avoids `Math.random()` hydration mismatches while still producing visually random particle distributions.
+**Alternatives considered:** Animated dashes (original — too dull), glow pulse + gradient (dramatic but busy with multiple pulses), shimmer sweep (subtle but less directional than particles)
+
+## Decision #53 - 2026-03-17
+**Context:** Credit flow page used raw HTML form elements (`<button>`, `<input>`, `<select>`) and a hand-rolled table instead of DS components and shared patterns.
+**Decision:** Refactor all credit flow components to use DS elements: `Table` component (with `Column` definitions and sortable columns) for the recipient table, `FilterToolbar` for role filter tabs with counts + search, `Tabs` (pill variant) for the date range selector, `TablePagination` for pagination, `CopyableText` for addresses/hashes, `Badge` with `fill="outline" size="sm"` for role tags. Aligned page spacing (`mb-10` header, `mt-12` sections) and stat card borders (`border-edge`, `bg-muted/30`) with the rest of the dashboard.
+**Rationale:** Component policy (Decision #3) requires all UI primitives from the DS. Using the DS `Table` component gives consistent header styling (`bg-muted/50`, uppercase, `font-semibold`), row striping, hover states, and built-in column sorting — matching nodes/VMs pages exactly. `FilterToolbar` provides the standard tabs-with-counts + search layout. Raw elements created visual inconsistencies (different borders, padding, font sizes) and missed accessibility features (ARIA roles, keyboard navigation).
+
+## Decision #52 - 2026-03-17
+**Context:** Wallet page needs 24h credit reward data per node and role, and the Credits page already fetches the same data.
+**Decision:** Share the 24h credit expense query via React Query caching. `useWalletRewards()` uses stable 5-minute-rounded timestamps so the query key stays consistent across mounts and page navigations. `computeWalletRewards()` replays the distribution logic scoped to a single address, producing per-node CRN/CCN earnings and total staker earnings.
+**Rationale:** React Query already deduplicates and caches by query key. Rounding timestamps to 5-minute intervals ensures the wallet page and credits page (when viewing 24h) hit the same cache entry. Computing wallet rewards client-side from the cached expense data avoids a separate API call. The distribution function precomputes node weights once (they're stable across expense messages) for efficiency.
+**Alternatives considered:** Separate API endpoint for per-wallet rewards (not available), storing precomputed rewards in the distribution summary (couples wallet logic to the general summary), no caching (redundant fetches)
+
 ## Decision #51 - 2026-03-16
 **Context:** Glassmorphism borders and backgrounds used hardcoded `white` (`border-white/[0.06]`, `bg-white/[0.03]`), which was invisible in light mode.
 **Decision:** Replace all `white/[0.06]` and `white/[0.03]` with `foreground/[0.06]` and `foreground/[0.03]` across all glassmorphism components. Use `bg-background` for the content area and `bg-surface` (dark) / `bg-muted/40` (light) for sidebar/header chrome.
