@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #52 - 2026-03-17
+**Context:** Wallet page needs 24h credit reward data per node and role, and the Credits page already fetches the same data.
+**Decision:** Share the 24h credit expense query via React Query caching. `useWalletRewards()` uses stable 5-minute-rounded timestamps so the query key stays consistent across mounts and page navigations. `computeWalletRewards()` replays the distribution logic scoped to a single address, producing per-node CRN/CCN earnings and total staker earnings.
+**Rationale:** React Query already deduplicates and caches by query key. Rounding timestamps to 5-minute intervals ensures the wallet page and credits page (when viewing 24h) hit the same cache entry. Computing wallet rewards client-side from the cached expense data avoids a separate API call. The distribution function precomputes node weights once (they're stable across expense messages) for efficiency.
+**Alternatives considered:** Separate API endpoint for per-wallet rewards (not available), storing precomputed rewards in the distribution summary (couples wallet logic to the general summary), no caching (redundant fetches)
+
 ## Decision #51 - 2026-03-16
 **Context:** Glassmorphism borders and backgrounds used hardcoded `white` (`border-white/[0.06]`, `bg-white/[0.03]`), which was invisible in light mode.
 **Decision:** Replace all `white/[0.06]` and `white/[0.03]` with `foreground/[0.06]` and `foreground/[0.03]` across all glassmorphism components. Use `bg-background` for the content area and `bg-surface` (dark) / `bg-muted/40` (light) for sidebar/header chrome.

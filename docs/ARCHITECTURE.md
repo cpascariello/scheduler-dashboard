@@ -25,6 +25,8 @@ src/
 │   ├── page.tsx            # Overview page
 │   ├── providers.tsx       # QueryClientProvider
 │   ├── globals.css         # Tailwind + DS tokens import
+│   ├── credits/
+│   │   └── page.tsx        # Credits page (credit flow diagram, recipient table)
 │   ├── issues/
 │   │   └── page.tsx        # Issues page (scheduling discrepancies, VM/Node perspectives)
 │   ├── wallet/
@@ -37,6 +39,7 @@ src/
 │       └── page.tsx        # VMs page
 ├── api/
 │   ├── types.ts            # Scheduler entity types + Aleph Message API types
+│   ├── credit-types.ts     # Credit expense + distribution types (wire + app)
 │   └── client.ts           # API client (/api/v1 + api2.aleph.im) with snake→camel transform
 ├── hooks/
 │   ├── use-nodes.ts        # useNodes, useNode (30s/15s polling)
@@ -46,6 +49,9 @@ src/
 │   ├── use-health.ts       # useHealth — /health endpoint polling (30s)
 │   ├── use-issues.ts       # useIssues — derived discrepancy data from useVMs + useNodes
 │   ├── use-wallet.ts       # useWalletNodes, useWalletVMs, useWalletActivity, useAuthorizations
+│   ├── use-wallet-rewards.ts # useWalletRewards — 24h credit rewards per node/role for a wallet
+│   ├── use-credit-expenses.ts # useCreditExpenses — credit expense messages from api2
+│   ├── use-node-state.ts   # useNodeState — corechannel CCN/CRN aggregate
 │   ├── use-debounce.ts     # useDebounce hook (generic, configurable delay)
 │   └── use-pagination.ts   # usePagination hook (client-side page/pageSize state + slice)
 ├── components/
@@ -71,11 +77,16 @@ src/
 │   ├── vm-detail-view.tsx  # VM full-width detail view (?view= param)
 │   ├── issues-vm-table.tsx # Issues page: VM perspective table + detail panel
 │   ├── issues-node-table.tsx # Issues page: Node perspective table + detail panel
+│   ├── credit-flow-diagram.tsx  # SVG flow diagram for credit distribution
+│   ├── credit-recipient-table.tsx # Credit recipient table with role badges
+│   ├── credit-summary-bar.tsx # Credit summary stat cards
 │   └── resource-bar.tsx    # CPU/memory/disk usage bar
 ├── lib/
 │   ├── filters.ts          # Filter pipeline: textSearch, countByStatus, applyNodeAdvancedFilters, applyVmAdvancedFilters
 │   ├── filters.test.ts     # Filter unit tests (32 tests)
-│   ├── format.ts           # relativeTime, relativeTimeFromUnix, truncateHash, formatPercent, formatDateTime, formatCpuLabel, formatGpuLabel, explorerWalletUrl
+│   ├── credit-distribution.ts  # Credit expense distribution logic (computeDistributionSummary, computeWalletRewards)
+│   ├── credit-distribution.test.ts # Distribution unit tests
+│   ├── format.ts           # relativeTime, relativeTimeFromUnix, truncateHash, formatPercent, formatDateTime, formatCpuLabel, formatGpuLabel, formatAleph, explorerWalletUrl
 │   └── status-map.ts       # Status-to-visual maps: nodeStatusToDot(), NODE_STATUS_VARIANT, VM_STATUS_VARIANT, MESSAGE_TYPE_VARIANT
 ```
 
@@ -171,6 +182,13 @@ src/
 **Approach:** `/wallet?address=0x...` page combines data from three sources: scheduler API (nodes filtered by owner, VMs cross-referenced by hash), api2 messages endpoint (VM ownership via sender, activity timeline), and api2 authorization endpoints (granted/received permissions). `useWalletNodes()` filters existing `useNodes()` cache — no extra API call. `useWalletVMs()` fetches message hashes from api2 then cross-references against `useVMs()` for scheduler status. Activity section has a manual refresh button (invalidates React Query cache) for live troubleshooting. All wallet addresses in the dashboard (node owner, permission addresses) are clickable `<Link>`s to the wallet view, enabling wallet-to-wallet navigation.
 **Key files:** `src/app/wallet/page.tsx`, `src/hooks/use-wallet.ts`, `src/api/client.ts`
 **Notes:** VMs not found in the scheduler show "not tracked" status. Activity items link to Explorer for deep detail. Permissions show inline scope tags (types, channels, post_types, aggregate_keys). No sidebar entry — wallet view is a utility page reached via address links.
+
+### Credit Distribution — Shared 24h Cache
+
+**Context:** The Credits page and Wallet page both need credit expense data. The Wallet page shows per-node, per-role reward breakdowns for a specific address.
+**Approach:** `useCreditExpenses(start, end)` is the shared React Query hook. `useWalletRewards(address)` computes stable 24h timestamps (rounded to 5-minute intervals) so the query key stays consistent across mounts and page navigations — React Query deduplicates and caches the fetch. `computeWalletRewards()` takes an address, the raw expenses, and node state, then derives per-node CRN/CCN earnings and total staker earnings by replaying the distribution logic scoped to that address's owned nodes and stake.
+**Key files:** `src/hooks/use-wallet-rewards.ts`, `src/lib/credit-distribution.ts` (`computeWalletRewards`), `src/hooks/use-credit-expenses.ts`, `src/api/credit-types.ts` (`WalletRewards`, `WalletNodeReward`)
+**Notes:** CRN rewards are computed per credit entry (each has a `nodeId`). CCN rewards use score-weighted pool shares. Staker rewards use stake-weighted pool shares. Node state weights are precomputed once (stable across expense messages). The wallet page renders a "Credit Rewards (24h)" card with Node/Role/ALEPH columns.
 
 ### Sidebar Categories
 
