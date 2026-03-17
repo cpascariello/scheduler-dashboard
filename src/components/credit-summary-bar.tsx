@@ -63,7 +63,7 @@ export function CreditSummaryBar({ summary, isLoading }: Props) {
       <CreditStatCard
         label="Storage"
         value={summary?.storageAleph}
-        color="var(--color-info-400)"
+        color="var(--color-accent-500)"
         isLoading={isLoading}
       />
       <CreditStatCard
@@ -75,7 +75,7 @@ export function CreditSummaryBar({ summary, isLoading }: Props) {
       <CreditStatCard
         label="Dev Fund (5%)"
         value={summary?.devFundAleph}
-        color="var(--color-muted-foreground)"
+        color="var(--color-error-400)"
         isLoading={isLoading}
       />
     </div>

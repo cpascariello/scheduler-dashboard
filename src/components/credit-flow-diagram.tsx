@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { Card } from "@aleph-front/ds/card";
 import { formatAleph } from "@/lib/format";
 import type { DistributionSummary } from "@/api/credit-types";
 
 // ── Constants ──────────────────────────────────
 
 const COLORS = {
-  storage: "var(--color-info-400)",
+  storage: "var(--color-accent-500)",
   execution: "var(--color-success-500)",
   crn: "var(--color-success-500)",
   ccn: "var(--color-primary-400)",
   staker: "var(--color-warning-400)",
-  devFund: "var(--color-muted-foreground)",
+  devFund: "var(--color-error-400)",
 };
 
 const W = 900;
@@ -55,10 +56,34 @@ function bezierPath(
   return `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`;
 }
 
+function bezierPoint(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  t: number,
+): { x: number; y: number } {
+  const cx1 = (x1 + x2) / 2;
+  const cx2 = cx1;
+  const mt = 1 - t;
+  const mx =
+    mt * mt * mt * x1 +
+    3 * mt * mt * t * cx1 +
+    3 * mt * t * t * cx2 +
+    t * t * t * x2;
+  const my =
+    mt * mt * mt * y1 +
+    3 * mt * mt * t * y1 +
+    3 * mt * t * t * y2 +
+    t * t * t * y2;
+  return { x: mx, y: my };
+}
+
 function seededRandom(pathIdx: number, particleIdx: number): number {
   const x = Math.sin((pathIdx + 1) * 1000 + particleIdx * 137.5) * 10000;
   return x - Math.floor(x);
 }
+
 
 // ── Sub-components ─────────────────────────────
 
@@ -117,7 +142,7 @@ function FlowBox({
     >
       <g
         style={{
-          opacity: isDimmed ? 0.25 : 1,
+          opacity: isDimmed ? 0.5 : 1,
           transition: "opacity 0.3s ease",
         }}
       >
@@ -208,7 +233,7 @@ function AnimatedFlow({
   return (
     <g
       style={{
-        opacity: isDimmed ? 0.1 : 1,
+        opacity: isDimmed ? 0.35 : 1,
         transition: "opacity 0.3s ease",
       }}
       className="cursor-pointer"
@@ -254,13 +279,15 @@ function AnimatedFlow({
               j * (baseDur / particleCount) +
               (rng - 0.5) * 0.4;
             const opacity = 0.5 + rng * 0.4;
+            const hasGlow = seededRandom(index + 50, j) < 0.2;
 
             return (
               <circle
                 key={j}
-                r={r}
+                r={hasGlow ? r * 1.6 : r}
                 fill={destColor}
-                opacity={opacity}
+                opacity={hasGlow ? 0.9 : opacity}
+                {...(hasGlow ? { filter: "url(#particle-glow)" } : {})}
               >
                 <animateMotion
                   dur={`${dur}s`}
@@ -274,34 +301,47 @@ function AnimatedFlow({
             );
           })}
 
-          {/* Percentage label */}
-          <text
-            x={labelX}
-            y={labelY}
-            textAnchor="middle"
-            className="text-[10px] font-semibold tabular-nums"
-            fill={destColor}
-            fillOpacity={0.8}
+          {/* Percentage pill badge — expands on hover to show ALEPH amount */}
+          <g
             style={{
               opacity: 0,
               animation: `fade-in 0.3s ease ${flowDelay}s forwards`,
             }}
           >
-            {label}
-          </text>
-
-          {/* Hover tooltip — ALEPH amount */}
-          {isHighlighted && (
+            <rect
+              x={isHighlighted ? labelX - 40 : labelX - 20}
+              y={isHighlighted ? labelY - 15 : labelY - 14}
+              width={isHighlighted ? 80 : 40}
+              height={isHighlighted ? 33 : 22}
+              rx={9}
+              fill="var(--color-surface)"
+              stroke={destColor}
+              strokeWidth={isHighlighted ? 1.5 : 1}
+              strokeOpacity={isHighlighted ? 0.6 : 0.4}
+              style={{ transition: "all 0.2s ease" }}
+            />
             <text
               x={labelX}
-              y={labelY + 14}
+              y={isHighlighted ? labelY - 1 : labelY}
               textAnchor="middle"
-              className="text-[11px] font-bold tabular-nums"
+              className="text-[10px] font-semibold tabular-nums"
               fill={destColor}
             >
-              {formatAleph(value)}
+              {label}
             </text>
-          )}
+            {isHighlighted && (
+              <text
+                x={labelX}
+                y={labelY + 11}
+                textAnchor="middle"
+                className="text-[9px] font-bold tabular-nums"
+                fill={destColor}
+                fillOpacity={0.7}
+              >
+                {formatAleph(value)}
+              </text>
+            )}
+          </g>
         </>
       )}
     </g>
@@ -325,9 +365,9 @@ export function CreditFlowDiagram({ summary }: Props) {
 
   if (totalAleph === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-muted-foreground/50">
+      <Card className="flex h-48 items-center justify-center text-muted-foreground/50">
         No credit expenses in this period
-      </div>
+      </Card>
     );
   }
 
@@ -364,66 +404,35 @@ export function CreditFlowDiagram({ summary }: Props) {
   const paths: PathData[] = [];
   let idx = 0;
 
+  function makePath(
+    label: string, value: number,
+    sourceColor: string, destColor: string,
+    sourceId: string, destId: string,
+    fromY: number, toY: number,
+    t = 0.5,
+  ): PathData {
+    const pt = bezierPoint(srcRight, fromY, destLeft, toY, t);
+    return {
+      id: `s${idx++}`, label, value,
+      sourceColor, destColor, sourceId, destId,
+      d: bezierPath(srcRight, fromY, destLeft, toY),
+      thickness: scale(value),
+      labelX: pt.x, labelY: pt.y,
+      fromX: srcRight, fromY, toX: destLeft, toY,
+    };
+  }
+
   if (storageAleph > 0) {
-    paths.push({
-      id: `s${idx++}`, label: "75%", value: storCcn,
-      sourceColor: COLORS.storage, destColor: COLORS.ccn,
-      sourceId: "storage", destId: "ccn",
-      d: bezierPath(srcRight, storY - 10, destLeft, ccnY),
-      thickness: scale(storCcn), labelX: MID_X - 40, labelY: storY - 25,
-      fromX: srcRight, fromY: storY - 10, toX: destLeft, toY: ccnY,
-    });
-    paths.push({
-      id: `s${idx++}`, label: "20%", value: storStaker,
-      sourceColor: COLORS.storage, destColor: COLORS.staker,
-      sourceId: "storage", destId: "staker",
-      d: bezierPath(srcRight, storY + 10, destLeft, stakerY),
-      thickness: scale(storStaker), labelX: MID_X - 80, labelY: storY + 40,
-      fromX: srcRight, fromY: storY + 10, toX: destLeft, toY: stakerY,
-    });
-    paths.push({
-      id: `s${idx++}`, label: "5%", value: storDev,
-      sourceColor: COLORS.storage, destColor: COLORS.devFund,
-      sourceId: "storage", destId: "dev",
-      d: bezierPath(srcRight, storY + 20, destLeft, devY),
-      thickness: scale(storDev), labelX: MID_X - 100, labelY: storY + 80,
-      fromX: srcRight, fromY: storY + 20, toX: destLeft, toY: devY,
-    });
+    paths.push(makePath("75%", storCcn, COLORS.storage, COLORS.ccn, "storage", "ccn", storY - 10, ccnY, 0.35));
+    paths.push(makePath("20%", storStaker, COLORS.storage, COLORS.staker, "storage", "staker", storY + 10, stakerY, 0.45));
+    paths.push(makePath("5%", storDev, COLORS.storage, COLORS.devFund, "storage", "dev", storY + 20, devY, 0.3));
   }
 
   if (executionAleph > 0) {
-    paths.push({
-      id: `s${idx++}`, label: "60%", value: execCrn,
-      sourceColor: COLORS.execution, destColor: COLORS.crn,
-      sourceId: "execution", destId: "crn",
-      d: bezierPath(srcRight, execY - 20, destLeft, crnY),
-      thickness: scale(execCrn), labelX: MID_X + 40, labelY: execY - 90,
-      fromX: srcRight, fromY: execY - 20, toX: destLeft, toY: crnY,
-    });
-    paths.push({
-      id: `s${idx++}`, label: "15%", value: execCcn,
-      sourceColor: COLORS.execution, destColor: COLORS.ccn,
-      sourceId: "execution", destId: "ccn",
-      d: bezierPath(srcRight, execY - 5, destLeft, ccnY),
-      thickness: scale(execCcn), labelX: MID_X + 80, labelY: execY - 40,
-      fromX: srcRight, fromY: execY - 5, toX: destLeft, toY: ccnY,
-    });
-    paths.push({
-      id: `s${idx++}`, label: "20%", value: execStaker,
-      sourceColor: COLORS.execution, destColor: COLORS.staker,
-      sourceId: "execution", destId: "staker",
-      d: bezierPath(srcRight, execY + 5, destLeft, stakerY),
-      thickness: scale(execStaker), labelX: MID_X + 60, labelY: execY + 5,
-      fromX: srcRight, fromY: execY + 5, toX: destLeft, toY: stakerY,
-    });
-    paths.push({
-      id: `s${idx++}`, label: "5%", value: execDev,
-      sourceColor: COLORS.execution, destColor: COLORS.devFund,
-      sourceId: "execution", destId: "dev",
-      d: bezierPath(srcRight, execY + 20, destLeft, devY),
-      thickness: scale(execDev), labelX: MID_X + 100, labelY: execY + 45,
-      fromX: srcRight, fromY: execY + 20, toX: destLeft, toY: devY,
-    });
+    paths.push(makePath("60%", execCrn, COLORS.execution, COLORS.crn, "execution", "crn", execY - 20, crnY, 0.65));
+    paths.push(makePath("15%", execCcn, COLORS.execution, COLORS.ccn, "execution", "ccn", execY - 5, ccnY, 0.55));
+    paths.push(makePath("20%", execStaker, COLORS.execution, COLORS.staker, "execution", "staker", execY + 5, stakerY, 0.55));
+    paths.push(makePath("5%", execDev, COLORS.execution, COLORS.devFund, "execution", "dev", execY + 20, devY, 0.7));
   }
 
   // Derive highlighted box IDs from hovered path
@@ -451,7 +460,7 @@ export function CreditFlowDiagram({ summary }: Props) {
   }, 0);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-foreground/[0.06] bg-foreground/[0.02] p-4">
+    <Card className="overflow-x-auto p-4">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="mx-auto w-full max-w-[900px]"
@@ -473,6 +482,15 @@ export function CreditFlowDiagram({ summary }: Props) {
               <stop offset="100%" stopColor={p.destColor} />
             </linearGradient>
           ))}
+          {/* Glow filter for highlight particles */}
+          <filter id="particle-glow" x="-300%" y="-300%" width="700%" height="700%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
           {/* Path definitions for animateMotion particle references */}
           {paths.map((p) => (
             <path key={`def-${p.id}`} id={`flow-${p.id}`} d={p.d} />
@@ -499,7 +517,7 @@ export function CreditFlowDiagram({ summary }: Props) {
             <g
               key={id}
               style={{
-                opacity: anyHovered && !highlightedBoxes.has(id) ? 0.1 : 1,
+                opacity: anyHovered && !highlightedBoxes.has(id) ? 0.35 : 1,
                 transition: "opacity 0.3s ease",
               }}
             >
@@ -582,6 +600,6 @@ export function CreditFlowDiagram({ summary }: Props) {
           entranceDelay={0.45}
         />
       </svg>
-    </div>
+    </Card>
   );
 }
