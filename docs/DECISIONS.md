@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #55 - 2026-03-18
+**Context:** Issues page had a prominent sidebar entry with an amber badge count showing live discrepancy numbers, plus two "Affected VMs/Nodes" stat cards on the overview page.
+**Decision:** Demote Issues to the sidebar utility section (alongside API Status), remove the amber badge, remove the overview stat cards and `affectedNodes` computation. Move Credits from Operations to Resources section, remove empty Operations section.
+**Rationale:** The Issues page is primarily a dev/ops diagnostic tool for investigating scheduling discrepancies and stuck migrations. Showing "Issues: 12" in amber in the main nav alarmed regular users into thinking the network is broken, when it's normal operational noise. The utility footer signals "secondary tool" without hiding it. Overview stat cards for individual VM statuses (Orphaned/Missing/Unschedulable) already link to filtered `/vms` pages which show the same data. Future: contextual entry points from VM/node detail pages when discrepancies are detected.
+**Alternatives considered:** Hiding Issues completely (too hidden for devs), keeping in sidebar without badge (still prominent for a secondary tool), config/gear menu (over-engineering for 2 utility links)
+
 ## Decision #54 - 2026-03-17
 **Context:** Credit flow diagram used simple animated dashes (`stroke-dasharray` with `flow-dash` CSS keyframe). The animation felt mechanical — all paths animated at the same speed, no stagger, no interactivity, no entrance effect.
 **Decision:** Replace dashes with particle stream animation (SVG `<animateMotion>` circles) + source→destination gradient strokes. Add entrance draw animation, hover interaction (dim/highlight + tooltip), arrowheads at destinations, and accent bars on source boxes.

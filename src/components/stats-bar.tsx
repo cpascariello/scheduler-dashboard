@@ -206,31 +206,14 @@ export function StatsBar() {
   const hasMissing = (stats?.missingVMs ?? 0) > 0;
   const hasUnschedulable = (stats?.unschedulableVMs ?? 0) > 0;
 
-  const affectedVMs =
-    (stats?.orphanedVMs ?? 0) +
-    (stats?.missingVMs ?? 0) +
-    (stats?.unschedulableVMs ?? 0);
-  const hasIssues = affectedVMs > 0;
-
-  const issueVmSubtitle = isLoading
-    ? "Loading..."
-    : `${stats?.orphanedVMs ?? 0} orphaned \u00b7 ${stats?.missingVMs ?? 0} missing \u00b7 ${stats?.unschedulableVMs ?? 0} unschedulable`;
-
-  const issueNodeSubtitle = isLoading
-    ? "Loading..."
-    : `Unique nodes involved in scheduling discrepancies`;
-
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {/* Section labels */}
       <p className="col-span-2 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">
         Nodes
       </p>
       <p className="col-span-2 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 max-lg:hidden lg:pl-4">
         Virtual Machines
-      </p>
-      <p className="col-span-1 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 max-lg:hidden lg:pl-4">
-        Issues
       </p>
 
       {/* Nodes (cols 1-2) */}
@@ -276,27 +259,6 @@ export function StatsBar() {
         icon={iconQuestion}
         href="/vms?status=orphaned"
         {...(hasOrphaned
-          ? {
-              color: "var(--color-warning-400)",
-              tint: "var(--color-warning-400)",
-            }
-          : {})}
-      />
-
-      {/* Issues (col 5) — first card */}
-      <p className="col-span-2 mb-[-8px] text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 lg:hidden">
-        Issues
-      </p>
-      <Stat
-        label="Affected VMs"
-        value={isLoading ? undefined : affectedVMs}
-        total={stats?.totalVMs}
-        subtitle={issueVmSubtitle}
-        isLoading={isLoading}
-        icon={iconWarning}
-        href="/issues?perspective=vms"
-        className="lg:pl-4"
-        {...(hasIssues
           ? {
               color: "var(--color-warning-400)",
               tint: "var(--color-warning-400)",
@@ -369,23 +331,6 @@ export function StatsBar() {
           : {})}
       />
 
-      {/* Issues (col 5) — second card */}
-      <Stat
-        label="Affected Nodes"
-        value={stats?.affectedNodes}
-        total={stats?.totalNodes}
-        subtitle={issueNodeSubtitle}
-        isLoading={isLoading}
-        icon={iconWarning}
-        href="/issues?perspective=nodes"
-        className="lg:pl-4"
-        {...(hasIssues
-          ? {
-              color: "var(--color-warning-400)",
-              tint: "var(--color-warning-400)",
-            }
-          : {})}
-      />
     </div>
   );
 }
