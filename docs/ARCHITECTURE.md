@@ -231,8 +231,8 @@ src/
 
 ### API Status Page
 
-**Context:** Need a diagnostic page to verify all scheduler endpoints are reachable.
-**Approach:** Standalone client component at `/status` that fires fetch requests to all 8 API endpoints on mount. Checks `/health` (root-level) first, then uses a two-phase strategy: hits independent endpoints (stats, nodes list, vms list), then resolves `:hash` placeholders from list results for dependent endpoints (node/vm detail + history). `Promise.allSettled` ensures one failure doesn't block others. StatusDot shows health, HTTP codes displayed alongside. Base URL comes from `NEXT_PUBLIC_API_URL` with `?api=` query param override. Sidebar link is separated from main nav via `border-t` to signal it's a utility page, not primary navigation.
+**Context:** Need a diagnostic page to verify all scheduler and Aleph API endpoints are reachable.
+**Approach:** Standalone client component at `/status` with two sections: Scheduler API (8 endpoints) and Aleph API (3 endpoints). Scheduler section checks `/health` first, then independent endpoints (stats, nodes, vms), then resolves `:hash` placeholders from list results for dependent endpoints (detail + history). Aleph section probes `/api/v0/messages.json`, `/api/v0/aggregates/:address.json`, and `/api/v0/authorizations/:direction/:address.json` using lightweight queries (pagination=1, limit=1). Each endpoint shows a `StatusDot`, HTTP status code, and response latency (ms via `performance.now()`). Per-section summary rings (donut chart) show healthy/total ratio. Auto-refreshes every 60s with a "last checked" timestamp. `Promise.allSettled` ensures one failure doesn't block others. Aleph endpoints use `probePath` (real URL with addresses/params) for fetching but `path` (clean pattern with `:address` placeholders) for display. Sections use the `stat-card` CSS class for glassmorphism styling. Rows fade in with staggered animation delays.
 **Key files:** `src/app/status/page.tsx`, `src/components/app-sidebar.tsx`
 
 ### Deploying to IPFS
