@@ -25,6 +25,8 @@ src/
 │   ├── page.tsx            # Overview page
 │   ├── providers.tsx       # QueryClientProvider
 │   ├── globals.css         # Tailwind + DS tokens import
+│   ├── changelog/
+│   │   └── page.tsx        # Changelog page (version history)
 │   ├── credits/
 │   │   └── page.tsx        # Credits page (credit flow diagram, recipient table)
 │   ├── issues/
@@ -41,6 +43,7 @@ src/
 │   ├── types.ts            # Scheduler entity types + Aleph Message API types
 │   ├── credit-types.ts     # Credit expense + distribution types (wire + app)
 │   └── client.ts           # API client (/api/v1 + api2.aleph.im) with snake→camel transform
+├── changelog.ts             # Version history data (CURRENT_VERSION + CHANGELOG array)
 ├── hooks/
 │   ├── use-nodes.ts        # useNodes, useNode (30s/15s polling)
 │   ├── use-vms.ts          # useVMs, useVM (30s/15s polling)

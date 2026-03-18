@@ -1,0 +1,155 @@
+export type ChangeType = "feature" | "ui" | "infra" | "refactor";
+
+export type ChangeEntry = {
+  type: ChangeType;
+  text: string;
+};
+
+export type VersionEntry = {
+  version: string;
+  date: string;
+  changes: ChangeEntry[];
+};
+
+export const CURRENT_VERSION = "0.5.0";
+
+export const CHANGELOG: VersionEntry[] = [
+  {
+    version: "0.5.0",
+    date: "2026-03-18",
+    changes: [
+      {
+        type: "feature",
+        text: "Credits page with flow diagram, recipient table, and distribution breakdown",
+      },
+      {
+        type: "feature",
+        text: "Wallet view with owned nodes, VMs, credit rewards, activity timeline, and permissions",
+      },
+      {
+        type: "feature",
+        text: "Issues page for scheduling discrepancy investigation (VM and Node perspectives)",
+      },
+      {
+        type: "feature",
+        text: "API status page with Scheduler and Aleph API health checks, response latency, auto-refresh",
+      },
+      {
+        type: "refactor",
+        text: "Issues demoted to sidebar overflow menu to reduce noise for regular users",
+      },
+      {
+        type: "ui",
+        text: "Credit flow diagram polish: pre-populated particles, single origin points, removed arrowheads",
+      },
+      {
+        type: "ui",
+        text: "Light/dark mode theming fixes, filter panel UX improvements",
+      },
+    ],
+  },
+  {
+    version: "0.4.0",
+    date: "2026-03-13",
+    changes: [
+      {
+        type: "feature",
+        text: "Client-side table pagination with page-size dropdown (25/50/100)",
+      },
+      {
+        type: "feature",
+        text: "Clickable overview stat cards linking to filtered list pages",
+      },
+      {
+        type: "feature",
+        text: "Animated donut rings with status icons on stat cards",
+      },
+      {
+        type: "ui",
+        text: "Status filter tabs switched to DS Tabs underline variant with overflow collapse",
+      },
+      {
+        type: "ui",
+        text: "Badge, CopyableText, and status tooltip consistency pass",
+      },
+    ],
+  },
+  {
+    version: "0.3.0",
+    date: "2026-03-09",
+    changes: [
+      {
+        type: "feature",
+        text: "GPU info on nodes and VMs (badges, filters, detail views)",
+      },
+      {
+        type: "feature",
+        text: "CPU info on nodes (vendor filter, architecture column, detail sections)",
+      },
+      {
+        type: "feature",
+        text: "Confidential computing indicators (ShieldCheck icon, filters)",
+      },
+      {
+        type: "feature",
+        text: "Advanced filters on list pages: search, checkboxes, range sliders, collapsible panel",
+      },
+      {
+        type: "infra",
+        text: "Automated IPFS deployment via GitHub Actions with delegated billing",
+      },
+      {
+        type: "infra",
+        text: "Paginated API v1 support with parallel page fetching",
+      },
+    ],
+  },
+  {
+    version: "0.2.0",
+    date: "2026-03-05",
+    changes: [
+      {
+        type: "feature",
+        text: "Dedicated detail views for nodes and VMs via ?view= search params",
+      },
+      {
+        type: "feature",
+        text: "Top Nodes and Latest VMs cards on overview page",
+      },
+      {
+        type: "feature",
+        text: "Overview page redesign with glassmorphism stat cards, noise texture, accent glow",
+      },
+      {
+        type: "ui",
+        text: "Recessed content panel, sticky detail panels, glass card styling",
+      },
+      {
+        type: "infra",
+        text: "Real API integration replacing mock data layer",
+      },
+    ],
+  },
+  {
+    version: "0.1.0",
+    date: "2026-03-01",
+    changes: [
+      {
+        type: "feature",
+        text: "Initial dashboard with nodes and VMs tables, overview stats, dark theme",
+      },
+      {
+        type: "feature",
+        text: "App shell with sidebar navigation, responsive mobile drawer",
+      },
+      {
+        type: "feature",
+        text: "Cross-page navigation via URL search params",
+      },
+      {
+        type: "infra",
+        text: "Static export for IPFS hosting with trailingSlash",
+      },
+    ],
+  },
+];

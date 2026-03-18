@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LogoFull } from "@aleph-front/ds/logo";
 import { StatusDot } from "@aleph-front/ds/status-dot";
 import { useHealth } from "@/hooks/use-health";
+import { CURRENT_VERSION } from "@/changelog";
 
 type NavItem = {
   label: string;
@@ -343,6 +344,17 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
           pathname={pathname}
           healthStatus={healthStatus}
         />
+
+        {/* Version */}
+        <div className="px-6 pb-4">
+          <Link
+            href="/changelog"
+            className="text-[11px] tabular-nums text-muted-foreground/40 transition-colors hover:text-muted-foreground"
+            style={{ transitionDuration: "var(--duration-fast)" }}
+          >
+            v{CURRENT_VERSION}
+          </Link>
+        </div>
 
       </aside>
     </>
