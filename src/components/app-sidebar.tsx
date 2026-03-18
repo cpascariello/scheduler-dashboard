@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { LogoFull } from "@aleph-front/ds/logo";
 import { StatusDot } from "@aleph-front/ds/status-dot";
 import { useHealth } from "@/hooks/use-health";
-import { useOverviewStats } from "@/hooks/use-overview-stats";
 
 type NavItem = {
   label: string;
@@ -31,12 +30,6 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Nodes", href: "/nodes", icon: "server" },
       { label: "VMs", href: "/vms", icon: "cpu" },
-    ],
-  },
-  {
-    title: "Operations",
-    items: [
-      { label: "Issues", href: "/issues", icon: "warning" },
       { label: "Credits", href: "/credits", icon: "coins" },
     ],
   },
@@ -140,12 +133,6 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
   const healthStatus = healthLoading ? "unknown" as const : healthy ? "healthy" as const : "error" as const;
   const prevPathname = useRef(pathname);
 
-  const { data: stats } = useOverviewStats();
-  const issueCount =
-    (stats?.orphanedVMs ?? 0) +
-    (stats?.missingVMs ?? 0) +
-    (stats?.unschedulableVMs ?? 0);
-
   useEffect(() => {
     if (prevPathname.current !== pathname) {
       prevPathname.current = pathname;
@@ -204,11 +191,6 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                     >
                       <NavIcon name={item.icon} />
                       {item.label}
-                      {item.href === "/issues" && issueCount > 0 && (
-                        <span className="ml-auto rounded-full bg-warning-400/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-warning-400">
-                          {issueCount}
-                        </span>
-                      )}
                     </Link>
                   </li>
                 ))}
@@ -217,8 +199,20 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
           ))}
         </nav>
 
-        {/* Bottom utility link */}
-        <div className="border-t border-foreground/[0.06] px-3 py-4">
+        {/* Bottom utility links */}
+        <div className="space-y-1 border-t border-foreground/[0.06] px-3 py-4">
+          <Link
+            href="/issues"
+            className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+              pathname === "/issues"
+                ? "bg-primary-600/10 text-primary-400 font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
+            style={{ transitionDuration: "var(--duration-fast)" }}
+          >
+            <NavIcon name="warning" />
+            Issues
+          </Link>
           <Link
             href="/status"
             className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${

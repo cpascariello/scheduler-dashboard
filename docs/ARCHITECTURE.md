@@ -144,9 +144,9 @@ src/
 ### Overview Page Redesign
 
 **Context:** The overview page needed more visual impact, spacing, and contextual help for users unfamiliar with Aleph Cloud terminology.
-**Approach:** Hero stat cards with `text-4xl` numbers in rigid-square italic font, each in its own glassmorphism card (`bg-foreground/[0.03]`, `border-foreground/[0.06]`) with colored status indicators (green/amber/red), status-tinted backgrounds via CSS custom property `--stat-tint` at 7% opacity, SVG noise texture (`feTurbulence`) at 3% opacity for depth, and explanatory subtitles. Content cards have larger `text-2xl` titles with `?` info tooltips (DS Tooltip component) and `padding="lg"`. Page has a `text-4xl` title with subtitle, and `mt-12` / `gap-8` spacing between sections. A shared `CardHeader` component provides the title + tooltip pattern for all 4 content cards.
+**Approach:** Hero stat cards with `text-4xl` numbers in rigid-square italic font, each in its own glassmorphism card (`bg-foreground/[0.03]`, `border-foreground/[0.06]`) with colored status indicators (green/amber/red), status-tinted backgrounds via CSS custom property `--stat-tint` at 7% opacity, SVG noise texture (`feTurbulence`) at 3% opacity for depth, and explanatory subtitles. Two sections: Nodes (Total/Healthy/Unreachable/Removed) and VMs (Total/Orphaned/Missing/Unschedulable) in a 4-column grid. Content cards have larger `text-2xl` titles with `?` info tooltips (DS Tooltip component) and `padding="lg"`. Page has a `text-4xl` title with subtitle, and `mt-12` / `gap-8` spacing between sections. A shared `CardHeader` component provides the title + tooltip pattern for all 4 content cards.
 **Key files:** `src/app/page.tsx`, `src/components/stats-bar.tsx`, `src/components/card-header.tsx`, `src/app/globals.css`
-**Notes:** Stats grid uses `xl` breakpoint for 6 columns (not `lg`) to prevent "UNSCHEDULABLE" label truncation. The `.stat-card::before` pseudo-element reads `--stat-tint` from inline styles for dynamic color tinting. The `.stat-card::after` pseudo-element adds an SVG noise grain texture. The `.card-glow` utility adds `shadow-brand` on hover. Status-specific stat cards show a `DonutRing` SVG in the top-right corner (absolutely positioned) displaying the value/total ratio with an animated arc (1.2s CSS transition on `stroke-dashoffset`, triggered by `requestAnimationFrame` after mount). Each ring contains a centered Phosphor-style inline SVG icon matching the status semantics (check, wifi-slash, trash, question, warning, prohibit).
+**Notes:** Stats grid uses 4 columns at `lg` breakpoint. The `.stat-card::before` pseudo-element reads `--stat-tint` from inline styles for dynamic color tinting. The `.stat-card::after` pseudo-element adds an SVG noise grain texture. The `.card-glow` utility adds `shadow-brand` on hover. Status-specific stat cards show a `DonutRing` SVG in the top-right corner (absolutely positioned) displaying the value/total ratio with an animated arc (1.2s CSS transition on `stroke-dashoffset`, triggered by `requestAnimationFrame` after mount). Each ring contains a centered Phosphor-style inline SVG icon matching the status semantics (check, wifi-slash, trash, question, warning, prohibit).
 
 ### Cross-Page Navigation via URL Search Params
 
@@ -172,9 +172,9 @@ src/
 ### Issues Page — Derived Data Views
 
 **Context:** DevOps investigating scheduling discrepancies (orphaned, missing, unschedulable VMs) had no dedicated view.
-**Approach:** `/issues` page with a VMs|Nodes perspective toggle (`?perspective=vms|nodes`). No new API calls — `useIssues()` hook combines `useVMs()` + `useNodes()` to derive discrepancy sets. VM perspective table: Status, VM Hash, Issue, Scheduled On, Observed On, Last Updated. Node perspective table: Status (StatusDot + Badge), Node Hash, Name, Orphaned, Missing, Total VMs, Last Updated. Status pills and text search, no advanced filters (data set is small). Overview page has an "Issues" section with Affected VMs / Affected Nodes stat cards linking to the issues page.
+**Approach:** `/issues` page with a VMs|Nodes perspective toggle (`?perspective=vms|nodes`). No new API calls — `useIssues()` hook combines `useVMs()` + `useNodes()` to derive discrepancy sets. VM perspective table: Status, VM Hash, Issue, Scheduled On, Observed On, Last Updated. Node perspective table: Status (StatusDot + Badge), Node Hash, Name, Orphaned, Missing, Total VMs, Last Updated. Status pills and text search, no advanced filters (data set is small). Accessible from the sidebar utility section (alongside API Status) — positioned as a dev/ops diagnostic tool, not primary navigation.
 **Key files:** `src/app/issues/page.tsx`, `src/hooks/use-issues.ts`, `src/components/issues-vm-table.tsx`, `src/components/issues-node-table.tsx`
-**Notes:** `affectedNodes` count is computed in `getOverviewStats()` for the overview card (unique nodes involved in any discrepancy). `IssueVM` extends `VM` with `issueDescription`. `IssueNode` bundles a `Node` with discrepancy counts and the list of discrepancy VMs associated with it. The perspective toggle uses DS `Tabs` with `variant="pill"` (`@aleph-front/ds/tabs`), rendered inline with status pills via `FilterToolbar`'s `leading` slot.
+**Notes:** `IssueVM` extends `VM` with `issueDescription`. `IssueNode` bundles a `Node` with discrepancy counts and the list of discrepancy VMs associated with it. The perspective toggle uses DS `Tabs` with `variant="pill"` (`@aleph-front/ds/tabs`), rendered inline with status pills via `FilterToolbar`'s `leading` slot.
 
 ### Wallet View — Cross-API Entity Page
 
@@ -201,9 +201,9 @@ src/
 ### Sidebar Categories
 
 **Context:** With 5+ nav items, flat navigation list needed structure.
-**Approach:** Three categories: Dashboard (Overview), Resources (Nodes, VMs), Operations (Issues). Small uppercase section titles as visual grouping only (not clickable, no collapse). Issues link shows an amber count badge with the total discrepancy VM count from `useOverviewStats()`, updating with 30s polling. API Status at the bottom, border-separated.
+**Approach:** Two categories: Dashboard (Overview), Resources (Nodes, VMs, Credits). Small uppercase section titles as visual grouping only (not clickable, no collapse). Issues and API Status live in a border-separated bottom utility section — Issues is a dev-focused diagnostic page, not primary navigation. No badge count on Issues to avoid alarming regular users with operational noise.
 **Key files:** `src/components/app-sidebar.tsx`
-**Notes:** `NAV_SECTIONS` array drives the rendering. The sidebar now imports `useOverviewStats()` for the badge count.
+**Notes:** `NAV_SECTIONS` array drives the main nav rendering. The utility section is rendered separately below the nav.
 
 ### Client-Side Pagination
 

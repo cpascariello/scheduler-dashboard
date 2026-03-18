@@ -128,7 +128,6 @@ export type OverviewStats = {
   unschedulableVMs: number;
   totalVcpusAllocated: number;
   totalVcpusCapacity: number;
-  affectedNodes: number;
 };
 
 // --- API wire types (snake_case, used only in client.ts) ---

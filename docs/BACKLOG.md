@@ -15,6 +15,11 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
+### 2026-03-18 - Contextual Issues entry points from VM/node detail pages
+**Source:** Issues page nav reorg (Decision #55)
+**Description:** Add "View related issues" or similar links in VM and node detail views/panels when the entity has scheduling discrepancies (orphaned, missing, unschedulable). Provides a natural discovery path for the Issues page from relevant context.
+**Priority:** Medium
+
 ### 2026-03-17 - DS CopyableText: show arrow icon for internal links
 **Source:** Credit recipient table — internal hrefs (`/nodes?view=...`, `/wallet?address=...`) don't show the ArrowUpRight icon
 **Description:** The DS `CopyableText` component only renders the arrow icon for external URLs (`isExternalUrl` check). Internal links should also show the arrow (without `target="_blank"`). Patched locally in `node_modules`; needs to be applied in `@aleph-front/ds`.
