@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pulse } from "@phosphor-icons/react";
 import { Button } from "@aleph-front/ds/button";
 import { StatusDot } from "@aleph-front/ds/status-dot";
 
-type EndpointStatus = {
+type EndpointResult = {
   path: string;
   label: string;
   status: "pending" | "healthy" | "error" | "skipped";
   httpCode: number | null;
+  latencyMs: number | null;
 };
 
 type EndpointDef = {
@@ -18,9 +19,11 @@ type EndpointDef = {
   dependsOn?: string;
 };
 
-const API_PREFIX = "/api/v1";
+// --- Scheduler API ---
 
-const ENDPOINTS: EndpointDef[] = [
+const SCHEDULER_PREFIX = "/api/v1";
+
+const SCHEDULER_ENDPOINTS: EndpointDef[] = [
   { path: "/stats", label: "Stats" },
   { path: "/nodes", label: "Nodes (list)" },
   { path: "/vms", label: "VMs (list)" },
@@ -46,7 +49,31 @@ const ENDPOINTS: EndpointDef[] = [
   },
 ];
 
-function getBaseUrl(): string {
+// --- Aleph API (api2) ---
+
+type AlephEndpointDef = EndpointDef & { probePath: string };
+
+const ALEPH_ENDPOINTS: AlephEndpointDef[] = [
+  {
+    path: "/api/v0/messages.json",
+    probePath: "/api/v0/messages.json?pagination=1",
+    label: "Messages",
+  },
+  {
+    path: "/api/v0/aggregates/:address.json",
+    probePath:
+      "/api/v0/aggregates/0xa1B3bb7d2332383D96b7796B908fB7f7F3c2Be10.json?keys=corechannel&limit=1",
+    label: "Aggregates (corechannel)",
+  },
+  {
+    path: "/api/v0/authorizations/:direction/:address.json",
+    probePath:
+      "/api/v0/authorizations/granted/0xa1B3bb7d2332383D96b7796B908fB7f7F3c2Be10.json",
+    label: "Authorizations",
+  },
+];
+
+function getSchedulerBaseUrl(): string {
   if (typeof window !== "undefined") {
     const params = new URLSearchParams(window.location.search);
     const override = params.get("api");
@@ -54,6 +81,13 @@ function getBaseUrl(): string {
   }
   return (
     process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:8081"
+  );
+}
+
+function getAlephBaseUrl(): string {
+  return (
+    process.env["NEXT_PUBLIC_ALEPH_API_URL"] ??
+    "https://api2.aleph.im"
   );
 }
 
@@ -84,98 +118,314 @@ function unwrapFirstHash(
   return null;
 }
 
-type CheckResult = {
-  path: string;
-  label: string;
-  status: "healthy" | "error" | "skipped";
-  httpCode: number | null;
-};
-
-async function checkEndpoint(
-  baseUrl: string,
-  ep: EndpointDef,
-  resolvedPath?: string,
-): Promise<CheckResult> {
-  const path = resolvedPath ?? ep.path;
-  const url = `${baseUrl}${API_PREFIX}${path}`;
+async function timedFetch(
+  url: string,
+): Promise<{ res: Response; latencyMs: number }> {
+  const t0 = performance.now();
   const res = await fetch(url);
-  return {
-    path: `${API_PREFIX}${ep.path}`,
-    label: ep.label,
-    status: res.ok ? "healthy" : "error",
-    httpCode: res.status,
-  };
+  const latencyMs = Math.round(performance.now() - t0);
+  return { res, latencyMs };
 }
 
-export default function StatusPage() {
-  const [results, setResults] = useState<EndpointStatus[]>([
-    { path: "/health", label: "Health", status: "pending", httpCode: null },
-    ...ENDPOINTS.map((e) => ({
-      path: `${API_PREFIX}${e.path}`,
-      label: e.label,
-      status: "pending" as const,
+async function probeEndpoint(
+  url: string,
+  displayPath: string,
+  label: string,
+): Promise<EndpointResult> {
+  try {
+    const { res, latencyMs } = await timedFetch(url);
+    return {
+      path: displayPath,
+      label,
+      status: res.ok ? "healthy" : "error",
+      httpCode: res.status,
+      latencyMs,
+    };
+  } catch {
+    return {
+      path: displayPath,
+      label,
+      status: "error",
       httpCode: null,
-    })),
-  ]);
+      latencyMs: null,
+    };
+  }
+}
+
+// --- Summary ring ---
+
+function SummaryRing({
+  healthy,
+  total,
+}: {
+  healthy: number;
+  total: number;
+}) {
+  const pct = total > 0 ? (healthy / total) * 100 : 0;
+  const allGood = healthy === total && total > 0;
+  const color = allGood
+    ? "var(--color-success-500)"
+    : "var(--color-error-500)";
+
+  return (
+    <div className="relative flex size-12 items-center justify-center">
+      <svg
+        viewBox="0 0 36 36"
+        className="absolute inset-0 size-full"
+        style={{ transform: "rotate(-90deg)" }}
+      >
+        <circle
+          cx="18"
+          cy="18"
+          r="15.9155"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          className="text-white/[0.06]"
+        />
+        <circle
+          cx="18"
+          cy="18"
+          r="15.9155"
+          fill="none"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeDasharray="100"
+          strokeDashoffset={100 - pct}
+          strokeLinecap="round"
+          className="donut-arc"
+        />
+      </svg>
+      <span
+        className="relative z-10 text-xs font-bold tabular-nums"
+        style={{ color }}
+      >
+        {healthy}/{total}
+      </span>
+    </div>
+  );
+}
+
+// --- Endpoint row ---
+
+function EndpointRow({
+  result,
+  baseUrl,
+  index,
+}: {
+  result: EndpointResult;
+  baseUrl: string;
+  index: number;
+}) {
+  const isPending = result.status === "pending";
+
+  return (
+    <li
+      className="flex items-center gap-3 px-4 py-2.5 transition-opacity duration-300"
+      style={{
+        animationDelay: `${index * 60}ms`,
+        animationDuration: "400ms",
+        animationFillMode: "both",
+        animationName: isPending ? "none" : "fade-in",
+        opacity: isPending ? 0.4 : undefined,
+      }}
+    >
+      <StatusDot
+        status={
+          result.status === "pending"
+            ? "unknown"
+            : result.status === "skipped"
+              ? "offline"
+              : result.status
+        }
+      />
+      <div className="min-w-0 flex-1">
+        <a
+          href={`${baseUrl}${result.path}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block truncate font-mono text-sm text-foreground transition-colors hover:text-primary-400"
+        >
+          {result.path}
+        </a>
+        <p className="text-xs text-muted-foreground">
+          {result.label}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        {result.latencyMs != null && (
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">
+            {result.latencyMs}ms
+          </span>
+        )}
+        <span
+          className={`min-w-[3ch] text-right font-mono text-xs tabular-nums ${
+            result.status === "healthy"
+              ? "text-success-400"
+              : result.status === "error"
+                ? "text-error-400"
+                : "text-muted-foreground"
+          }`}
+        >
+          {result.status === "skipped"
+            ? "—"
+            : result.status === "pending"
+              ? "\u2026"
+              : result.httpCode}
+        </span>
+      </div>
+    </li>
+  );
+}
+
+// --- Section ---
+
+function StatusSection({
+  title,
+  baseUrl,
+  results,
+}: {
+  title: string;
+  baseUrl: string;
+  results: EndpointResult[];
+}) {
+  const healthyCount = results.filter(
+    (r) => r.status === "healthy",
+  ).length;
+  const totalCount = results.length;
+  const anyResolved = results.some((r) => r.status !== "pending");
+
+  return (
+    <section className="stat-card border border-edge bg-surface/80 backdrop-blur-sm">
+      <div className="flex items-center gap-4 border-b border-edge px-5 py-4">
+        {anyResolved ? (
+          <SummaryRing healthy={healthyCount} total={totalCount} />
+        ) : (
+          <div className="flex size-12 items-center justify-center">
+            <div className="size-4 animate-pulse rounded-full bg-white/10" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h2 className="text-sm font-semibold text-foreground">
+            {title}
+          </h2>
+          <code className="text-xs text-muted-foreground">
+            {baseUrl}
+          </code>
+        </div>
+      </div>
+      <ul className="divide-y divide-edge/50">
+        {results.map((r, i) => (
+          <EndpointRow
+            key={r.path}
+            result={r}
+            baseUrl={baseUrl}
+            index={i}
+          />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// --- Pending state builder ---
+
+function buildPendingList(
+  prefix: string,
+  endpoints: EndpointDef[],
+  includeHealth: boolean,
+): EndpointResult[] {
+  const items: EndpointResult[] = [];
+  if (includeHealth) {
+    items.push({
+      path: "/health",
+      label: "Health",
+      status: "pending",
+      httpCode: null,
+      latencyMs: null,
+    });
+  }
+  for (const e of endpoints) {
+    items.push({
+      path: prefix ? `${prefix}${e.path}` : e.path,
+      label: e.label,
+      status: "pending",
+      httpCode: null,
+      latencyMs: null,
+    });
+  }
+  return items;
+}
+
+// --- Page ---
+
+export default function StatusPage() {
+  const [schedulerResults, setSchedulerResults] = useState<
+    EndpointResult[]
+  >(
+    buildPendingList(SCHEDULER_PREFIX, SCHEDULER_ENDPOINTS, true),
+  );
+  const [alephResults, setAlephResults] = useState<
+    EndpointResult[]
+  >(buildPendingList("", ALEPH_ENDPOINTS, false));
   const [checking, setChecking] = useState(false);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(null);
 
   const runChecks = useCallback(async () => {
     setChecking(true);
     const minDelay = new Promise((r) => setTimeout(r, 600));
-    const baseUrl = getBaseUrl();
-    const newResults: EndpointStatus[] = [];
+    const schedulerBase = getSchedulerBaseUrl();
+    const alephBase = getAlephBaseUrl();
+
+    // --- Scheduler checks ---
+    const schedulerItems: EndpointResult[] = [];
     const listData: Record<string, unknown> = {};
 
-    let healthResult: EndpointStatus;
-    try {
-      const res = await fetch(`${baseUrl}/health`);
-      healthResult = {
-        path: "/health",
-        label: "Health",
-        status: res.ok ? "healthy" : "error",
-        httpCode: res.status,
-      };
-    } catch {
-      healthResult = {
-        path: "/health",
-        label: "Health",
-        status: "error",
-        httpCode: null,
-      };
-    }
+    const healthResult = await probeEndpoint(
+      `${schedulerBase}/health`,
+      "/health",
+      "Health",
+    );
 
-    const independent = ENDPOINTS.filter((e) => !e.dependsOn);
+    const independent = SCHEDULER_ENDPOINTS.filter(
+      (e) => !e.dependsOn,
+    );
     const indResults = await Promise.allSettled(
       independent.map(async (ep) => {
-        const url = `${baseUrl}${API_PREFIX}${ep.path}`;
-        const res = await fetch(url);
+        const url = `${schedulerBase}${SCHEDULER_PREFIX}${ep.path}`;
+        const { res, latencyMs } = await timedFetch(url);
         const data = res.ok ? await res.json() : null;
         if (ep.path === "/nodes") listData["nodes"] = data;
         if (ep.path === "/vms") listData["vms"] = data;
         return {
-          path: `${API_PREFIX}${ep.path}`,
+          path: `${SCHEDULER_PREFIX}${ep.path}`,
           label: ep.label,
           status: (res.ok ? "healthy" : "error") as
             | "healthy"
             | "error",
           httpCode: res.status,
+          latencyMs,
         };
       }),
     );
     for (const [i, r] of indResults.entries()) {
-      newResults.push(
+      schedulerItems.push(
         r.status === "fulfilled"
           ? r.value
           : {
-              path: `${API_PREFIX}${independent[i]!.path}`,
+              path: `${SCHEDULER_PREFIX}${independent[i]!.path}`,
               label: independent[i]!.label,
               status: "error",
               httpCode: null,
+              latencyMs: null,
             },
       );
     }
 
-    const dependent = ENDPOINTS.filter((e) => e.dependsOn);
+    const dependent = SCHEDULER_ENDPOINTS.filter(
+      (e) => e.dependsOn,
+    );
     const depResults = await Promise.allSettled(
       dependent.map(async (ep) => {
         const hash = unwrapFirstHash(
@@ -184,107 +434,147 @@ export default function StatusPage() {
         );
         if (!hash) {
           return {
-            path: `${API_PREFIX}${ep.path}`,
+            path: `${SCHEDULER_PREFIX}${ep.path}`,
             label: ep.label,
             status: "skipped" as const,
             httpCode: null,
+            latencyMs: null,
           };
         }
         const resolvedPath = ep.path.replace(":hash", hash);
-        return checkEndpoint(baseUrl, ep, resolvedPath);
+        const url = `${schedulerBase}${SCHEDULER_PREFIX}${resolvedPath}`;
+        const { res, latencyMs } = await timedFetch(url);
+        return {
+          path: `${SCHEDULER_PREFIX}${ep.path}`,
+          label: ep.label,
+          status: (res.ok ? "healthy" : "error") as
+            | "healthy"
+            | "error",
+          httpCode: res.status,
+          latencyMs,
+        };
       }),
     );
     for (const [i, r] of depResults.entries()) {
-      newResults.push(
+      schedulerItems.push(
         r.status === "fulfilled"
           ? r.value
           : {
-              path: `${API_PREFIX}${dependent[i]!.path}`,
+              path: `${SCHEDULER_PREFIX}${dependent[i]!.path}`,
               label: dependent[i]!.label,
               status: "error",
               httpCode: null,
+              latencyMs: null,
             },
       );
     }
 
+    setSchedulerResults([healthResult, ...schedulerItems]);
+
+    // --- Aleph API checks ---
+    const alephSettled = await Promise.allSettled(
+      ALEPH_ENDPOINTS.map((ep) =>
+        probeEndpoint(
+          `${alephBase}${ep.probePath}`,
+          ep.path,
+          ep.label,
+        ),
+      ),
+    );
+    setAlephResults(
+      alephSettled.map((r, i) =>
+        r.status === "fulfilled"
+          ? r.value
+          : {
+              path: ALEPH_ENDPOINTS[i]!.path,
+              label: ALEPH_ENDPOINTS[i]!.label,
+              status: "error" as const,
+              httpCode: null,
+              latencyMs: null,
+            },
+      ),
+    );
+
     await minDelay;
-    setResults([healthResult, ...newResults]);
     setChecking(false);
+    setLastChecked(new Date());
   }, []);
 
   useEffect(() => {
     runChecks();
   }, [runChecks]);
 
-  const baseUrl = getBaseUrl();
+  // Auto-refresh every 60s
+  useEffect(() => {
+    intervalRef.current = setInterval(runChecks, 60_000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [runChecks]);
+
+  const schedulerBase = getSchedulerBaseUrl();
+  const alephBase = getAlephBaseUrl();
+
+  const allResults = [...schedulerResults, ...alephResults];
+  const totalHealthy = allResults.filter(
+    (r) => r.status === "healthy",
+  ).length;
+  const totalEndpoints = allResults.length;
+  const allResolved = allResults.every(
+    (r) => r.status !== "pending",
+  );
+  const allHealthy =
+    allResolved && totalHealthy === totalEndpoints;
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Checking endpoints at{" "}
-          <code className="text-xs">{baseUrl}</code>
-        </p>
-        <Button
-          variant="text"
-          size="xs"
-          className="shrink-0"
-          iconLeft={
-            <Pulse className={checking ? "animate-pulse" : ""} />
-          }
-          onClick={runChecks}
-          disabled={checking}
-        >
-          {checking ? "Checking" : "Recheck"}
-        </Button>
+    <div className="mx-auto max-w-2xl space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl">API Status</h1>
+          <p className="mt-2 text-base text-muted-foreground">
+            {!allResolved
+              ? "Checking endpoints\u2026"
+              : allHealthy
+                ? "All systems operational"
+                : `${totalEndpoints - totalHealthy} endpoint${totalEndpoints - totalHealthy === 1 ? "" : "s"} degraded`}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <Button
+            variant="text"
+            size="xs"
+            className="shrink-0"
+            iconLeft={
+              <Pulse
+                className={checking ? "animate-pulse" : ""}
+              />
+            }
+            onClick={runChecks}
+            disabled={checking}
+          >
+            {checking ? "Checking" : "Recheck"}
+          </Button>
+          {lastChecked && (
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {lastChecked.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </div>
 
-      <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface">
-        {results.map((ep) => (
-          <li
-            key={ep.path}
-            className="flex items-center gap-3 px-4 py-3"
-          >
-            <StatusDot
-              status={
-                ep.status === "pending"
-                  ? "unknown"
-                  : ep.status === "skipped"
-                    ? "offline"
-                    : ep.status
-              }
-            />
-            <div className="min-w-0 flex-1">
-              <a
-                href={`${baseUrl}${ep.path}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono text-sm text-foreground transition-colors hover:text-primary-400"
-              >
-                {ep.path}
-              </a>
-              <p className="text-xs text-muted-foreground">
-                {ep.label}
-              </p>
-            </div>
-            <span
-              className={`font-mono text-xs ${
-                ep.status === "healthy"
-                  ? "text-success-400"
-                  : ep.status === "error"
-                    ? "text-error-400"
-                    : "text-muted-foreground"
-              }`}
-            >
-              {ep.status === "skipped"
-                ? "no data"
-                : ep.status === "pending"
-                  ? "\u2026"
-                  : ep.httpCode}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {/* Sections */}
+      <StatusSection
+        title="Scheduler API"
+        baseUrl={schedulerBase}
+        results={schedulerResults}
+      />
+
+      <StatusSection
+        title="Aleph API"
+        baseUrl={alephBase}
+        results={alephResults}
+      />
     </div>
   );
 }
