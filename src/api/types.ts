@@ -57,10 +57,13 @@ export type NodeFilters = {
 
 export type VmStatus =
   | "scheduled"
-  | "unscheduled"
-  | "unschedulable"
+  | "dispatched"
+  | "duplicated"
+  | "misplaced"
   | "missing"
   | "orphaned"
+  | "unscheduled"
+  | "unschedulable"
   | "unknown";
 
 export type VmType = "microvm" | "persistent_program" | "instance";
