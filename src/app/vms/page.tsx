@@ -10,6 +10,9 @@ import type { VmStatus } from "@/api/types";
 
 const VALID_VM_STATUSES = new Set<string>([
   "scheduled",
+  "dispatched",
+  "duplicated",
+  "misplaced",
   "unscheduled",
   "orphaned",
   "missing",
