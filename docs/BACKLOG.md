@@ -15,6 +15,11 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
+### 2026-03-19 - Expose `?scheduling_status=` API filter in UI
+**Source:** VM status expansion brainstorming
+**Description:** The scheduler API now supports a `?scheduling_status=` filter for raw scheduling intent (scheduled/unscheduled/unschedulable/unknown), independent of observation-based `?status=`. Could be exposed as a second filter dimension (e.g. two-tier tabs or an advanced filter) for power users who want to combine intent + observation queries. Not needed for v1 of the status expansion — the flat status tabs cover the primary use case.
+**Priority:** Low
+
 ### 2026-03-18 - Contextual Issues entry points from VM/node detail pages
 **Source:** Issues page nav reorg (Decision #55)
 **Description:** Add "View related issues" or similar links in VM and node detail views/panels when the entity has scheduling discrepancies (orphaned, missing, unschedulable). Provides a natural discovery path for the Issues page from relevant context.
