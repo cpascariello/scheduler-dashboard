@@ -57,10 +57,13 @@ export type NodeFilters = {
 
 export type VmStatus =
   | "scheduled"
-  | "unscheduled"
-  | "unschedulable"
+  | "dispatched"
+  | "duplicated"
+  | "misplaced"
   | "missing"
   | "orphaned"
+  | "unscheduled"
+  | "unschedulable"
   | "unknown";
 
 export type VmType = "microvm" | "persistent_program" | "instance";
@@ -122,8 +125,7 @@ export type OverviewStats = {
   unknownNodes: number;
   removedNodes: number;
   totalVMs: number;
-  scheduledVMs: number;
-  orphanedVMs: number;
+  dispatchedVMs: number;
   missingVMs: number;
   unschedulableVMs: number;
   totalVcpusAllocated: number;

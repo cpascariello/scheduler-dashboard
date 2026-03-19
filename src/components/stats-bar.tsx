@@ -186,11 +186,6 @@ const iconWarning = (
     <path d="M240.26,186.1,152.81,34.23a28.74,28.74,0,0,0-49.62,0L15.74,186.1a27.45,27.45,0,0,0,0,27.71A28.31,28.31,0,0,0,40.55,228h174.9a28.31,28.31,0,0,0,24.81-14.19A27.45,27.45,0,0,0,240.26,186.1Zm-20.8,15.7a4.46,4.46,0,0,1-4,2.2H40.55a4.46,4.46,0,0,1-4-2.2,3.56,3.56,0,0,1,0-3.73L124,46.2a4.77,4.77,0,0,1,8,0l87.44,151.87A3.56,3.56,0,0,1,219.46,201.8ZM116,136V104a12,12,0,0,1,24,0v32a12,12,0,0,1-24,0Zm28,40a16,16,0,1,1-16-16A16,16,0,0,1,144,176Z" />
   </svg>
 );
-const iconQuestion = (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="size-4" fill="currentColor">
-    <path d="M144,180a16,16,0,1,1-16-16A16,16,0,0,1,144,180Zm-2.29-80.81A36,36,0,0,0,92,136a12,12,0,0,0,24,0,12,12,0,1,1,12,12,12,12,0,0,0-12,12v8a12,12,0,0,0,24,0v-.73A36,36,0,0,0,141.71,99.19ZM236,128A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Z" />
-  </svg>
-);
 const iconProhibit = (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="size-4" fill="currentColor">
     <path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,24a83.61,83.61,0,0,1,57.49,22.85L68.85,185.49A84,84,0,0,1,128,44Zm0,168a83.61,83.61,0,0,1-57.49-22.85L187.15,70.51A84,84,0,0,1,128,212Z" />
@@ -202,7 +197,7 @@ export function StatsBar() {
 
   const hasUnreachable = (stats?.unreachableNodes ?? 0) > 0;
   const hasRemoved = (stats?.removedNodes ?? 0) > 0;
-  const hasOrphaned = (stats?.orphanedVMs ?? 0) > 0;
+  const hasDispatched = (stats?.dispatchedVMs ?? 0) > 0;
   const hasMissing = (stats?.missingVMs ?? 0) > 0;
   const hasUnschedulable = (stats?.unschedulableVMs ?? 0) > 0;
 
@@ -251,17 +246,17 @@ export function StatsBar() {
         className="lg:pl-4"
       />
       <Stat
-        label="Orphaned"
-        value={stats?.orphanedVMs}
+        label="Dispatched"
+        value={stats?.dispatchedVMs}
         total={stats?.totalVMs}
-        subtitle="VMs whose assigned node is no longer responding"
+        subtitle="VMs running on their correct assigned node"
         isLoading={isLoading}
-        icon={iconQuestion}
-        href="/vms?status=orphaned"
-        {...(hasOrphaned
+        icon={iconCheck}
+        href="/vms?status=dispatched"
+        {...(hasDispatched
           ? {
-              color: "var(--color-warning-400)",
-              tint: "var(--color-warning-400)",
+              color: "var(--color-success-500)",
+              tint: "var(--color-success-500)",
             }
           : {})}
       />

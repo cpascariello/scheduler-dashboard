@@ -130,7 +130,26 @@ src/
 **Context:** The DS `StatusDot` component accepts a fixed set of variants (`"healthy" | "degraded" | "error" | "offline" | "unknown"`), but the API returns different node statuses (`"Healthy" | "Unreachable" | "Unknown" | "removed"`). Badge variants also need consistent mapping from API statuses.
 **Approach:** `src/lib/status-map.ts` is the single source of truth for all status-to-visual mappings: `nodeStatusToDot()` for StatusDot, `NODE_STATUS_VARIANT` and `VM_STATUS_VARIANT` for Badge variants. All components import from this file — never define status variant maps locally.
 **Key files:** `src/lib/status-map.ts`
-**Notes:** `scheduled` maps to `"success"` (green) — it's the healthy state for VMs. Badge size should always be `"sm"` across the dashboard for consistency.
+**Notes:** Badge size should always be `"sm"` across the dashboard for consistency.
+
+**VM status set (10 values):**
+
+| Status | Variant | Meaning |
+|--------|---------|---------|
+| `dispatched` | `success` (green) | Running on the correct allocated node |
+| `scheduled` | `default` (neutral) | Assigned to a node but not yet observed running |
+| `duplicated` | `warning` (amber) | Running on the correct node plus extra unintended copies |
+| `misplaced` | `warning` (amber) | Running on wrong nodes, not on the allocated node |
+| `missing` | `error` (red) | Should be running but not found on any node |
+| `orphaned` | `warning` (amber) | Running without any scheduling intent |
+| `unscheduled` | `default` (neutral) | Deliberately not scheduled |
+| `unschedulable` | `error` (red) | Cannot be placed — no node meets requirements |
+| `unknown` | `default` (neutral) | No scheduling decision has been made yet |
+| `migrating` | `info` (purple) | In-flight migration (future — not yet implemented) |
+
+**Node counting logic for discrepancy statuses:**
+- `duplicated`: excludes `allocatedNode` from the affected-node count (the allocated node is correct; only extra copies are discrepant)
+- `misplaced`: counts all `observedNodes` (all observed locations are wrong because the VM is absent from the allocated node)
 
 ### Dark Theme Default
 
@@ -174,10 +193,10 @@ src/
 
 ### Issues Page — Derived Data Views
 
-**Context:** DevOps investigating scheduling discrepancies (orphaned, missing, unschedulable VMs) had no dedicated view.
-**Approach:** `/issues` page with a VMs|Nodes perspective toggle (`?perspective=vms|nodes`). No new API calls — `useIssues()` hook combines `useVMs()` + `useNodes()` to derive discrepancy sets. VM perspective table: Status, VM Hash, Issue, Scheduled On, Observed On, Last Updated. Node perspective table: Status (StatusDot + Badge), Node Hash, Name, Orphaned, Missing, Total VMs, Last Updated. Status pills and text search, no advanced filters (data set is small). Accessible from the sidebar utility section (alongside API Status) — positioned as a dev/ops diagnostic tool, not primary navigation.
+**Context:** DevOps investigating scheduling discrepancies had no dedicated view.
+**Approach:** `/issues` page with a VMs|Nodes perspective toggle (`?perspective=vms|nodes`). No new API calls — `useIssues()` hook combines `useVMs()` + `useNodes()` to derive discrepancy sets. VM perspective table: Status, VM Hash, Issue, Scheduled On, Observed On, Last Updated. Node perspective table: Status (StatusDot + Badge), Node Hash, Name, Orphaned, Duplicated, Misplaced, Missing, Total VMs, Last Updated. Status pills and text search, no advanced filters (data set is small). Accessible from the sidebar utility section (alongside API Status) — positioned as a dev/ops diagnostic tool, not primary navigation.
 **Key files:** `src/app/issues/page.tsx`, `src/hooks/use-issues.ts`, `src/components/issues-vm-table.tsx`, `src/components/issues-node-table.tsx`
-**Notes:** `IssueVM` extends `VM` with `issueDescription`. `IssueNode` bundles a `Node` with discrepancy counts and the list of discrepancy VMs associated with it. The perspective toggle uses DS `Tabs` with `variant="pill"` (`@aleph-front/ds/tabs`), rendered inline with status pills via `FilterToolbar`'s `leading` slot.
+**Notes:** `IssueVM` extends `VM` with `issueDescription`. `IssueNode` bundles a `Node` with discrepancy counts and the list of discrepancy VMs associated with it. The perspective toggle uses DS `Tabs` with `variant="pill"` (`@aleph-front/ds/tabs`), rendered inline with status pills via `FilterToolbar`'s `leading` slot. Five `DiscrepancyStatus` values: `orphaned`, `duplicated`, `misplaced`, `missing`, `unschedulable`. Node perspective filter pills: All / Has Orphaned / Has Duplicated / Has Misplaced / Has Missing. Node detail panel shows individual summary cards for each discrepancy type with the affected VM list below.
 
 ### Wallet View — Cross-API Entity Page
 

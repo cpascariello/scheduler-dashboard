@@ -28,11 +28,14 @@ export const NODE_STATUS_VARIANT: Record<NodeStatus, BadgeVariant> = {
 };
 
 export const VM_STATUS_VARIANT: Record<VmStatus, BadgeVariant> = {
-  scheduled: "success",
-  unscheduled: "default",
-  orphaned: "warning",
+  dispatched: "success",
+  scheduled: "default",
+  duplicated: "warning",
+  misplaced: "warning",
   missing: "error",
-  unschedulable: "warning",
+  orphaned: "warning",
+  unscheduled: "default",
+  unschedulable: "error",
   unknown: "default",
 };
 

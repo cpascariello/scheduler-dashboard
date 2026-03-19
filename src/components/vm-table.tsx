@@ -34,10 +34,13 @@ import type { AlephMessageInfo, VM, VmStatus, VmType } from "@/api/types";
 
 const STATUS_PILLS: { value: VmStatus | undefined; label: string; tooltip?: string }[] = [
   { value: undefined, label: "All" },
-  { value: "scheduled", label: "Scheduled", tooltip: "Assigned to a node and running" },
-  { value: "unscheduled", label: "Unscheduled", tooltip: "Waiting to be assigned to a node" },
-  { value: "orphaned", label: "Orphaned", tooltip: "Running on a node but not in the schedule" },
-  { value: "missing", label: "Missing", tooltip: "In the schedule but not found on any node" },
+  { value: "dispatched", label: "Dispatched", tooltip: "Running on the correct node" },
+  { value: "orphaned", label: "Orphaned", tooltip: "Running without active scheduling intent" },
+  { value: "missing", label: "Missing", tooltip: "Scheduled but not found on any node" },
+  { value: "misplaced", label: "Misplaced", tooltip: "Running on wrong node(s), not on assigned node" },
+  { value: "duplicated", label: "Duplicated", tooltip: "Running on correct node plus extra copies" },
+  { value: "scheduled", label: "Scheduled", tooltip: "Assigned to a node but not yet observed" },
+  { value: "unscheduled", label: "Unscheduled", tooltip: "Deliberately unscheduled" },
   { value: "unschedulable", label: "Unschedulable", tooltip: "No node meets this VM's requirements" },
   { value: "unknown", label: "Unknown", tooltip: "Status could not be determined" },
 ];
@@ -229,7 +232,7 @@ export function VMTable({
   // Status filter
   const [statusFilter, setStatusFilter] = useState<
     VmStatus | undefined
-  >(initialStatus ?? "scheduled");
+  >(initialStatus);
 
   // Advanced filters
   const [filtersOpen, setFiltersOpen] = useState(false);

@@ -32,7 +32,7 @@ const makeVm = (overrides: Partial<VM> = {}): VM => ({
   type: "microvm",
   allocatedNode: null,
   observedNodes: [],
-  status: "scheduled",
+  status: "dispatched",
   requirements: { vcpus: 2, memoryMb: 1024, diskMb: 10000 },
   paymentStatus: null,
   updatedAt: "2026-01-01T00:00:00Z",

@@ -22,7 +22,7 @@ import {
 import { relativeTime } from "@/lib/format";
 import type { IssueNode, IssueVM } from "@/hooks/use-issues";
 
-type NodeIssueFilter = "hasOrphaned" | "hasMissing" | undefined;
+type NodeIssueFilter = "hasOrphaned" | "hasMissing" | "hasDuplicated" | "hasMisplaced" | undefined;
 
 const STATUS_PILLS: {
   value: NodeIssueFilter;
@@ -32,6 +32,8 @@ const STATUS_PILLS: {
   { value: undefined, label: "All" },
   { value: "hasOrphaned", label: "Has Orphaned", tooltip: "Nodes running VMs not in the schedule" },
   { value: "hasMissing", label: "Has Missing", tooltip: "Nodes with scheduled VMs not found on them" },
+  { value: "hasDuplicated", label: "Has Duplicated", tooltip: "Nodes running extra copies of VMs" },
+  { value: "hasMisplaced", label: "Has Misplaced", tooltip: "Nodes running VMs assigned elsewhere" },
 ];
 
 const SEARCH_FIELDS = (n: IssueNode) => [
@@ -40,7 +42,7 @@ const SEARCH_FIELDS = (n: IssueNode) => [
   n.node.owner,
 ];
 
-const COMPACT_HIDDEN_HEADERS = new Set(["Total VMs", "Last Updated"]);
+const COMPACT_HIDDEN_HEADERS = new Set(["Total VMs", "Last Updated", "Duplicated", "Misplaced"]);
 
 const columns: Column<IssueNode>[] = [
   {
@@ -107,6 +109,32 @@ const columns: Column<IssueNode>[] = [
     ),
     sortable: true,
     sortValue: (r) => r.missingCount,
+    align: "right",
+  },
+  {
+    header: "Duplicated",
+    accessor: (r) => (
+      <span
+        className={`text-xs tabular-nums ${r.duplicatedCount > 0 ? "text-warning-400 font-bold" : "text-muted-foreground"}`}
+      >
+        {r.duplicatedCount}
+      </span>
+    ),
+    sortable: true,
+    sortValue: (r) => r.duplicatedCount,
+    align: "right",
+  },
+  {
+    header: "Misplaced",
+    accessor: (r) => (
+      <span
+        className={`text-xs tabular-nums ${r.misplacedCount > 0 ? "text-warning-400 font-bold" : "text-muted-foreground"}`}
+      >
+        {r.misplacedCount}
+      </span>
+    ),
+    sortable: true,
+    sortValue: (r) => r.misplacedCount,
     align: "right",
   },
   {
@@ -241,6 +269,22 @@ function IssuesNodeDetailPanel({
             <p className="text-xs text-muted-foreground">Missing</p>
           </div>
         )}
+        {issueNode.duplicatedCount > 0 && (
+          <div className="flex-1 rounded-lg border border-warning-400/20 bg-warning-400/5 p-2.5 text-center">
+            <p className="text-lg font-bold text-warning-400 tabular-nums">
+              {issueNode.duplicatedCount}
+            </p>
+            <p className="text-xs text-muted-foreground">Duplicated</p>
+          </div>
+        )}
+        {issueNode.misplacedCount > 0 && (
+          <div className="flex-1 rounded-lg border border-warning-400/20 bg-warning-400/5 p-2.5 text-center">
+            <p className="text-lg font-bold text-warning-400 tabular-nums">
+              {issueNode.misplacedCount}
+            </p>
+            <p className="text-xs text-muted-foreground">Misplaced</p>
+          </div>
+        )}
       </div>
 
       {/* Discrepancy VMs */}
@@ -311,10 +355,10 @@ export function IssuesNodeTable({
     useMemo(() => {
       const uCounts: Record<string, number> = {
         all: issueNodes.length,
-        hasOrphaned: issueNodes.filter((n) => n.orphanedCount > 0)
-          .length,
-        hasMissing: issueNodes.filter((n) => n.missingCount > 0)
-          .length,
+        hasOrphaned: issueNodes.filter((n) => n.orphanedCount > 0).length,
+        hasMissing: issueNodes.filter((n) => n.missingCount > 0).length,
+        hasDuplicated: issueNodes.filter((n) => n.duplicatedCount > 0).length,
+        hasMisplaced: issueNodes.filter((n) => n.misplacedCount > 0).length,
       };
 
       const afterSearch = textSearch(
@@ -324,10 +368,10 @@ export function IssuesNodeTable({
       );
       const fCounts: Record<string, number> = {
         all: afterSearch.length,
-        hasOrphaned: afterSearch.filter((n) => n.orphanedCount > 0)
-          .length,
-        hasMissing: afterSearch.filter((n) => n.missingCount > 0)
-          .length,
+        hasOrphaned: afterSearch.filter((n) => n.orphanedCount > 0).length,
+        hasMissing: afterSearch.filter((n) => n.missingCount > 0).length,
+        hasDuplicated: afterSearch.filter((n) => n.duplicatedCount > 0).length,
+        hasMisplaced: afterSearch.filter((n) => n.misplacedCount > 0).length,
       };
 
       let afterStatus = afterSearch;
@@ -335,6 +379,10 @@ export function IssuesNodeTable({
         afterStatus = afterSearch.filter((n) => n.orphanedCount > 0);
       } else if (statusFilter === "hasMissing") {
         afterStatus = afterSearch.filter((n) => n.missingCount > 0);
+      } else if (statusFilter === "hasDuplicated") {
+        afterStatus = afterSearch.filter((n) => n.duplicatedCount > 0);
+      } else if (statusFilter === "hasMisplaced") {
+        afterStatus = afterSearch.filter((n) => n.misplacedCount > 0);
       }
 
       return {

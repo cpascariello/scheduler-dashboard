@@ -20,7 +20,7 @@ describe("StatsBar", () => {
     expect(screen.getByText("Healthy")).toBeInTheDocument();
     expect(screen.getByText("Unreachable")).toBeInTheDocument();
     expect(screen.getByText("Removed")).toBeInTheDocument();
-    expect(screen.getByText("Orphaned")).toBeInTheDocument();
+    expect(screen.getByText("Dispatched")).toBeInTheDocument();
     expect(screen.getByText("Missing")).toBeInTheDocument();
     expect(screen.getByText("Unschedulable")).toBeInTheDocument();
   });
