@@ -202,7 +202,7 @@ export function StatsBar() {
 
   const hasUnreachable = (stats?.unreachableNodes ?? 0) > 0;
   const hasRemoved = (stats?.removedNodes ?? 0) > 0;
-  const hasOrphaned = (stats?.orphanedVMs ?? 0) > 0;
+  const hasDispatched = (stats?.dispatchedVMs ?? 0) > 0;
   const hasMissing = (stats?.missingVMs ?? 0) > 0;
   const hasUnschedulable = (stats?.unschedulableVMs ?? 0) > 0;
 
@@ -251,17 +251,17 @@ export function StatsBar() {
         className="lg:pl-4"
       />
       <Stat
-        label="Orphaned"
-        value={stats?.orphanedVMs}
+        label="Dispatched"
+        value={stats?.dispatchedVMs}
         total={stats?.totalVMs}
-        subtitle="VMs whose assigned node is no longer responding"
+        subtitle="VMs running on their correct assigned node"
         isLoading={isLoading}
-        icon={iconQuestion}
-        href="/vms?status=orphaned"
-        {...(hasOrphaned
+        icon={iconCheck}
+        href="/vms?status=dispatched"
+        {...(hasDispatched
           ? {
-              color: "var(--color-warning-400)",
-              tint: "var(--color-warning-400)",
+              color: "var(--color-success-500)",
+              tint: "var(--color-success-500)",
             }
           : {})}
       />

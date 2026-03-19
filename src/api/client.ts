@@ -266,9 +266,8 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     removedNodes: nodes.filter((n) => n.status === "removed")
       .length,
     totalVMs: vms.length,
-    scheduledVMs: vms.filter((v) => v.status === "scheduled")
+    dispatchedVMs: vms.filter((v) => v.status === "dispatched")
       .length,
-    orphanedVMs: vms.filter((v) => v.status === "orphaned").length,
     missingVMs: vms.filter((v) => v.status === "missing").length,
     unschedulableVMs: vms.filter(
       (v) => v.status === "unschedulable",

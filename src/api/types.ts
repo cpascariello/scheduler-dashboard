@@ -125,8 +125,7 @@ export type OverviewStats = {
   unknownNodes: number;
   removedNodes: number;
   totalVMs: number;
-  scheduledVMs: number;
-  orphanedVMs: number;
+  dispatchedVMs: number;
   missingVMs: number;
   unschedulableVMs: number;
   totalVcpusAllocated: number;
