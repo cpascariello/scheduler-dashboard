@@ -173,12 +173,13 @@ Every implementation plan must include a final step with this exact checklist. T
 The final plan task should be:
 
 ```
-### Task N: Update docs
+### Task N: Update docs and version
 
 - [ ] ARCHITECTURE.md — new patterns, new files, or changed structure
 - [ ] DECISIONS.md — design decisions made during this feature
 - [ ] BACKLOG.md — completed items moved, deferred ideas added
 - [ ] CLAUDE.md — Current Features list if user-facing behavior changed
+- [ ] src/changelog.ts — if user-facing behavior changed: bump CURRENT_VERSION (semver: major=breaking, minor=feature, patch=fix), add VersionEntry with changes
 ```
 
 Copy this checklist verbatim into every plan. Do not paraphrase or summarize — the explicit checklist prevents items from being forgotten.
