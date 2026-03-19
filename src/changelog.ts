@@ -11,9 +11,31 @@ export type VersionEntry = {
   changes: ChangeEntry[];
 };
 
-export const CURRENT_VERSION = "0.5.0";
+export const CURRENT_VERSION = "0.6.0";
 
 export const CHANGELOG: VersionEntry[] = [
+  {
+    version: "0.6.0",
+    date: "2026-03-19",
+    changes: [
+      {
+        type: "feature",
+        text: "Expanded VM statuses: dispatched, duplicated, misplaced join the existing set for precise observation-based tracking",
+      },
+      {
+        type: "ui",
+        text: "VM filter tabs priority-ordered (operational statuses first), default changed from Scheduled to All",
+      },
+      {
+        type: "ui",
+        text: "Overview page: Dispatched hero card replaces Orphaned, showing healthy VM baseline",
+      },
+      {
+        type: "feature",
+        text: "Issues page tracks 5 discrepancy types (added duplicated and misplaced) with Node perspective columns and filters",
+      },
+    ],
+  },
   {
     version: "0.5.0",
     date: "2026-03-18",
