@@ -22,8 +22,10 @@ type StatusFilter = DiscrepancyStatus | undefined;
 
 const STATUS_PILLS: { value: StatusFilter; label: string; tooltip?: string }[] = [
   { value: undefined, label: "All" },
-  { value: "orphaned", label: "Orphaned", tooltip: "Running on a node but not in the schedule" },
-  { value: "missing", label: "Missing", tooltip: "In the schedule but not found on any node" },
+  { value: "orphaned", label: "Orphaned", tooltip: "Running without active scheduling intent" },
+  { value: "missing", label: "Missing", tooltip: "Scheduled but not found on any node" },
+  { value: "duplicated", label: "Duplicated", tooltip: "Running on correct node plus extra copies" },
+  { value: "misplaced", label: "Misplaced", tooltip: "Running on wrong node(s), not on assigned node" },
   { value: "unschedulable", label: "Unschedulable", tooltip: "No node meets this VM's requirements" },
 ];
 

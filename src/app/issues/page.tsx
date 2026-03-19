@@ -14,6 +14,8 @@ const VALID_DISCREPANCY_STATUSES = new Set<string>([
   "orphaned",
   "missing",
   "unschedulable",
+  "duplicated",
+  "misplaced",
 ]);
 
 function IssuesContent() {

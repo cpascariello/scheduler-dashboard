@@ -3,12 +3,14 @@ import { useVMs } from "@/hooks/use-vms";
 import { useNodes } from "@/hooks/use-nodes";
 import type { VM, Node, VmStatus } from "@/api/types";
 
-export type DiscrepancyStatus = "orphaned" | "missing" | "unschedulable";
+export type DiscrepancyStatus = "orphaned" | "missing" | "unschedulable" | "duplicated" | "misplaced";
 
 const DISCREPANCY_STATUSES = new Set<VmStatus>([
   "orphaned",
   "missing",
   "unschedulable",
+  "duplicated",
+  "misplaced",
 ]);
 
 export type IssueVM = VM & {
@@ -19,6 +21,8 @@ export type IssueNode = {
   node: Node;
   orphanedCount: number;
   missingCount: number;
+  duplicatedCount: number;
+  misplacedCount: number;
   totalVmCount: number;
   lastUpdated: string;
   discrepancyVMs: IssueVM[];
@@ -31,12 +35,18 @@ const ISSUE_DESCRIPTIONS: Record<DiscrepancyStatus, string> = {
     "Scheduled but not running. The VM should be active on its allocated node but cannot be found.",
   unschedulable:
     "Cannot be placed. No available node meets the resource requirements for this VM.",
+  duplicated:
+    "Running on the correct node but also observed on additional nodes. May indicate failed migration cleanup or scheduler inconsistency.",
+  misplaced:
+    "Running on wrong node(s), not found on its assigned node. The VM is active but not where the scheduler expects it.",
 };
 
 const ISSUE_SHORT: Record<DiscrepancyStatus, string> = {
   orphaned: "Running without schedule",
   missing: "Scheduled but not running",
   unschedulable: "Cannot be placed",
+  duplicated: "Extra copies running",
+  misplaced: "Running on wrong node",
 };
 
 export function getIssueDescription(status: DiscrepancyStatus): string {
@@ -84,6 +94,8 @@ export function useIssues() {
         node,
         orphanedCount: 0,
         missingCount: 0,
+        duplicatedCount: 0,
+        misplacedCount: 0,
         totalVmCount: node.vmCount,
         lastUpdated: "",
         discrepancyVMs: [],
@@ -113,6 +125,31 @@ export function useIssues() {
             entry.lastUpdated = vm.updatedAt;
           }
         }
+      } else if (vm.status === "duplicated") {
+        // Count only extra nodes — exclude the allocated (correct) node
+        for (const nodeHash of vm.observedNodes) {
+          if (nodeHash === vm.allocatedNode) continue;
+          const entry = getOrCreateIssueNode(nodeHash);
+          if (entry) {
+            entry.duplicatedCount++;
+            entry.discrepancyVMs.push(vm);
+            if (!entry.lastUpdated || vm.updatedAt > entry.lastUpdated) {
+              entry.lastUpdated = vm.updatedAt;
+            }
+          }
+        }
+      } else if (vm.status === "misplaced") {
+        // All observed nodes are wrong — count each one
+        for (const nodeHash of vm.observedNodes) {
+          const entry = getOrCreateIssueNode(nodeHash);
+          if (entry) {
+            entry.misplacedCount++;
+            entry.discrepancyVMs.push(vm);
+            if (!entry.lastUpdated || vm.updatedAt > entry.lastUpdated) {
+              entry.lastUpdated = vm.updatedAt;
+            }
+          }
+        }
       }
     }
 
@@ -122,6 +159,8 @@ export function useIssues() {
       orphaned: 0,
       missing: 0,
       unschedulable: 0,
+      duplicated: 0,
+      misplaced: 0,
     };
     for (const vm of issueVMs) {
       counts[vm.status as DiscrepancyStatus]++;
