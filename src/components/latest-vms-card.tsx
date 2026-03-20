@@ -93,9 +93,11 @@ export function LatestVMsCard() {
                   {vm.hash}
                 </span>
 
-                <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+                <span className="min-w-16 shrink-0 whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">
                   {createdAt != null ? (
                     relativeTimeFromUnix(createdAt)
+                  ) : messageInfo ? (
+                    "—"
                   ) : (
                     <Skeleton className="h-4 w-12" />
                   )}
