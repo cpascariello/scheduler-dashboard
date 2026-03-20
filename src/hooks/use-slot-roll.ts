@@ -47,7 +47,6 @@ export function useSlotRoll(
     (typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-  const hasAnimated = useRef(false);
   const [offsets, setOffsets] = useState<number[]>(() =>
     chars.map((c) => {
       if (reducedMotion || !/\d/.test(c)) return 0;
@@ -56,11 +55,15 @@ export function useSlotRoll(
   );
 
   useEffect(() => {
-    if (hasAnimated.current || reducedMotion) return;
-    hasAnimated.current = true;
+    if (reducedMotion) return;
 
-    let digitIdx = 0;
+    // Reset offsets to 100 for digits (handles StrictMode remount)
+    setOffsets(chars.map((c) => (!/\d/.test(c) ? 0 : 100)));
+
+    let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
+    const rafs: number[] = [];
+    let digitIdx = 0;
 
     for (let i = 0; i < chars.length; i++) {
       if (!/\d/.test(chars[i]!)) continue;
@@ -71,6 +74,7 @@ export function useSlotRoll(
       const timer = setTimeout(() => {
         const start = performance.now();
         function tick() {
+          if (cancelled) return;
           const elapsed = performance.now() - start;
           const t = Math.min(elapsed / duration, 1);
           const eased = 1 - Math.pow(1 - t, 3);
@@ -80,14 +84,20 @@ export function useSlotRoll(
             next[idx] = offset;
             return next;
           });
-          if (t < 1) requestAnimationFrame(tick);
+          if (t < 1) {
+            rafs.push(requestAnimationFrame(tick));
+          }
         }
-        requestAnimationFrame(tick);
+        rafs.push(requestAnimationFrame(tick));
       }, delay);
       timers.push(timer);
     }
 
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      rafs.forEach(cancelAnimationFrame);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- animate once on mount
 
   return chars.map((char, i) => ({
