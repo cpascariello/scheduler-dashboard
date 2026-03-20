@@ -10,7 +10,7 @@ import { computeDistributionSummary } from "@/lib/credit-distribution";
 import { CreditSummaryBar } from "@/components/credit-summary-bar";
 import { CreditFlowDiagram } from "@/components/credit-flow-diagram";
 import { CreditRecipientTable } from "@/components/credit-recipient-table";
-import { SlotRollNumber } from "@/components/slot-roll-number";
+import { formatAleph } from "@/lib/format";
 
 type Range = "24h" | "7d" | "30d";
 
@@ -89,17 +89,10 @@ function CreditsContent() {
             Total ALEPH Distributed
           </p>
           <p className="mt-2 font-heading text-5xl font-extrabold tracking-tight">
-            <SlotRollNumber
-              value={summary.totalAleph}
-              decimals={2}
-              className="font-mono tabular-nums"
-              prefix={
-                <span className="mr-1 text-3xl text-muted-foreground/50">
-                  ℵ
-                </span>
-              }
-              decimalClassName="text-3xl text-muted-foreground/50"
-            />
+            <span className="mr-1 text-3xl text-muted-foreground/50">ℵ</span>
+            <span className="font-mono tabular-nums">
+              {formatAleph(summary.totalAleph)}
+            </span>
           </p>
           <p className="mt-1 text-xs text-muted-foreground/50">
             {RANGE_LABELS[range]}

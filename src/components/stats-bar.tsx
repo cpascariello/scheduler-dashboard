@@ -10,7 +10,6 @@ import {
   TooltipContent,
 } from "@aleph-front/ds/tooltip";
 import { useOverviewStats } from "@/hooks/use-overview-stats";
-import { SlotRollNumber } from "@/components/slot-roll-number";
 
 type StatProps = {
   label: string;
@@ -131,7 +130,7 @@ function StatCard({
           className="mt-3 font-heading font-mono text-4xl font-extrabold tabular-nums tracking-tight"
           {...(color ? { style: { color } } : {})}
         >
-          <SlotRollNumber value={value ?? 0} formatted />
+          {(value ?? 0).toLocaleString()}
         </p>
       )}
       <p className="mt-auto pt-2 text-xs leading-relaxed text-muted-foreground/60">
