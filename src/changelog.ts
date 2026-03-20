@@ -11,9 +11,35 @@ export type VersionEntry = {
   changes: ChangeEntry[];
 };
 
-export const CURRENT_VERSION = "0.6.0";
+export const CURRENT_VERSION = "0.7.0";
 
 export const CHANGELOG: VersionEntry[] = [
+  {
+    version: "0.7.0",
+    date: "2026-03-20",
+    changes: [
+      {
+        type: "ui",
+        text: "Three-tier typography: Source Code Pro for hashes, timestamps, and numbers",
+      },
+      {
+        type: "ui",
+        text: "Billboard slot-roll animation on overview stat card numbers and credits total",
+      },
+      {
+        type: "ui",
+        text: "Staggered card entrance animations on overview page",
+      },
+      {
+        type: "feature",
+        text: "Network Health page: hero status banner, quick stats bar, streamlined endpoint sections",
+      },
+      {
+        type: "ui",
+        text: "Credits page: total ALEPH distributed counter with ℵ prefix, powered-by watermark",
+      },
+    ],
+  },
   {
     version: "0.6.0",
     date: "2026-03-19",
