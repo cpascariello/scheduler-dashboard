@@ -150,7 +150,7 @@ function transformVm(raw: ApiVmRow): VM {
     hash: raw.vm_hash,
     type: raw.vm_type,
     allocatedNode: raw.allocated_node,
-    observedNodes: raw.observed_nodes,
+    observedNodes: raw.observed_nodes ?? [],
     status: raw.status,
     requirements: {
       vcpus: raw.requirements_vcpus,
