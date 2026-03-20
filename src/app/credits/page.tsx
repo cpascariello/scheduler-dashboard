@@ -84,6 +84,13 @@ function CreditsContent() {
         ) : null}
       </div>
 
+      {/* Watermark */}
+      {!isLoading && summary && (
+        <p className="mt-4 text-center text-[10px] uppercase tracking-[0.3em] text-foreground/10">
+          Powered by Aleph Cloud
+        </p>
+      )}
+
       {/* Recipient table */}
       <div className="mt-12">
         {isLoading ? (

@@ -251,11 +251,22 @@ src/
 2. Add nav entry to `NAV_ITEMS` in `src/components/app-sidebar.tsx`
 3. Verify with `pnpm build` (static export must include the route)
 
-### API Status Page
+### Typography & Motion System
 
-**Context:** Need a diagnostic page to verify all scheduler and Aleph API endpoints are reachable.
-**Approach:** Standalone client component at `/status` with two sections: Scheduler API (8 endpoints) and Aleph API (3 endpoints). Scheduler section checks `/health` first, then independent endpoints (stats, nodes, vms), then resolves `:hash` placeholders from list results for dependent endpoints (detail + history). Aleph section probes `/api/v0/messages.json`, `/api/v0/aggregates/:address.json`, and `/api/v0/authorizations/:direction/:address.json` using lightweight queries (pagination=1, limit=1). Each endpoint shows a `StatusDot`, HTTP status code, and response latency (ms via `performance.now()`). Per-section summary rings (donut chart) show healthy/total ratio. Auto-refreshes every 60s with a "last checked" timestamp. `Promise.allSettled` ensures one failure doesn't block others. Aleph endpoints use `probePath` (real URL with addresses/params) for fetching but `path` (clean pattern with `:address` placeholders) for display. Sections use the `stat-card` CSS class for glassmorphism styling. Rows fade in with staggered animation delays.
+**Context:** Dashboard needed to feel more premium to prospective operators evaluating Aleph Cloud.
+**Approach:** Three-tier font hierarchy: Rigid Square (headings, via Typekit), Titillium Web (body, via Typekit), Source Code Pro (technical data, via Google Fonts). The `--font-mono` CSS variable overrides Tailwind's `font-mono` stack so all existing `font-mono` usage automatically resolves to Source Code Pro. Slot-roll billboard animation on stat card numbers: each digit sits in an `overflow: hidden` container and translates from bottom to top on first mount, staggered ~50ms per digit left-to-right. A shared `--ease-spring` CSS variable (`cubic-bezier(0.16, 1, 0.3, 1)`) coordinates all entrance animations. Card entrance uses CSS `@keyframes card-entrance` (opacity + translateY) with staggered `animation-delay`. All animations respect `prefers-reduced-motion`.
+**Key files:** `src/hooks/use-slot-roll.ts`, `src/components/slot-roll-number.tsx`, `src/app/globals.css`, `src/components/stats-bar.tsx`
+**Notes:** `useSlotRoll(target, opts?)` returns an array of `{ char, offset }`. The hook animates once on mount — subsequent data updates (polling) show the final value instantly. Value `0` skips animation. `SlotRollNumber` component renders each digit in a masked container; non-digit characters (commas, periods) appear without animation. Optional `prefix` prop for currency symbols (e.g. ℵ), optional `decimalClassName` for styling the decimal portion differently.
+
+### Network Health Page
+
+**Context:** The API Status page needed marketing-grade presentation for prospective operators.
+**Approach:** Reframed `/status` as "Network Health" with a centered hero banner showing "All Systems Operational" (green pill with glow) or degraded state (red). Quick stats bar below shows endpoints healthy, avg latency (computed from probe results), active nodes, and running VMs (from `useOverviewStats()` — cached, no extra API call). Endpoint sections simplified: removed per-section donut rings (redundant with hero stats), kept compact section headers with "N/N healthy" text count. Footer bar with auto-refresh info, timestamp, and recheck button. Same endpoint probing logic — no new API calls.
 **Key files:** `src/app/status/page.tsx`, `src/components/app-sidebar.tsx`
+
+### API Status Page (legacy name — now Network Health)
+
+See "Network Health Page" above. URL remains `/status`.
 
 ### Deploying to IPFS
 

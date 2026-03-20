@@ -40,7 +40,14 @@ function VMsContent() {
   }
 
   return (
-    <VMTable
+    <div>
+      <div className="mb-10">
+        <h1 className="text-4xl">Virtual Machines</h1>
+        <p className="mt-2 text-base text-muted-foreground">
+          VMs scheduled across the Aleph Cloud network
+        </p>
+      </div>
+      <VMTable
       onSelectVM={setSelectedVM}
       {...(initialStatus ? { initialStatus } : {})}
       initialQuery={queryParam}
@@ -64,6 +71,7 @@ function VMsContent() {
         )
       }
     />
+    </div>
   );
 }
 

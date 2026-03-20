@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pulse } from "@phosphor-icons/react";
 import { Button } from "@aleph-front/ds/button";
 import { StatusDot } from "@aleph-front/ds/status-dot";
+import { Badge } from "@aleph-front/ds/badge";
 
 type EndpointResult = {
   path: string;
@@ -152,60 +153,6 @@ async function probeEndpoint(
   }
 }
 
-// --- Summary ring ---
-
-function SummaryRing({
-  healthy,
-  total,
-}: {
-  healthy: number;
-  total: number;
-}) {
-  const pct = total > 0 ? (healthy / total) * 100 : 0;
-  const allGood = healthy === total && total > 0;
-  const color = allGood
-    ? "var(--color-success-500)"
-    : "var(--color-error-500)";
-
-  return (
-    <div className="relative flex size-12 items-center justify-center">
-      <svg
-        viewBox="0 0 36 36"
-        className="absolute inset-0 size-full"
-        style={{ transform: "rotate(-90deg)" }}
-      >
-        <circle
-          cx="18"
-          cy="18"
-          r="15.9155"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          className="text-white/[0.06]"
-        />
-        <circle
-          cx="18"
-          cy="18"
-          r="15.9155"
-          fill="none"
-          stroke={color}
-          strokeWidth="2.5"
-          strokeDasharray="100"
-          strokeDashoffset={100 - pct}
-          strokeLinecap="round"
-          className="donut-arc"
-        />
-      </svg>
-      <span
-        className="relative z-10 text-xs font-bold tabular-nums"
-        style={{ color }}
-      >
-        {healthy}/{total}
-      </span>
-    </div>
-  );
-}
-
 // --- Endpoint row ---
 
 function EndpointRow({
@@ -293,26 +240,16 @@ function StatusSection({
     (r) => r.status === "healthy",
   ).length;
   const totalCount = results.length;
-  const anyResolved = results.some((r) => r.status !== "pending");
 
   return (
     <section className="stat-card border border-edge bg-surface/80 backdrop-blur-sm">
-      <div className="flex items-center gap-4 border-b border-edge px-5 py-4">
-        {anyResolved ? (
-          <SummaryRing healthy={healthyCount} total={totalCount} />
-        ) : (
-          <div className="flex size-12 items-center justify-center">
-            <div className="size-4 animate-pulse rounded-full bg-white/10" />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-foreground">
-            {title}
-          </h2>
-          <code className="text-xs text-muted-foreground">
-            {baseUrl}
-          </code>
-        </div>
+      <div className="flex items-center gap-3 border-b border-edge px-5 py-3">
+        <h2 className="text-sm font-semibold text-foreground">
+          {title}
+        </h2>
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+          {healthyCount}/{totalCount} healthy
+        </span>
       </div>
       <ul className="divide-y divide-edge/50">
         {results.map((r, i) => (
@@ -525,56 +462,104 @@ export default function StatusPage() {
   );
   const allHealthy =
     allResolved && totalHealthy === totalEndpoints;
+  const degradedCount = totalEndpoints - totalHealthy;
+
+  const resolvedLatencies = allResults
+    .filter((r) => r.latencyMs !== null)
+    .map((r) => r.latencyMs!);
+  const avgLatencyMs =
+    resolvedLatencies.length > 0
+      ? Math.round(
+          resolvedLatencies.reduce((a, b) => a + b, 0) /
+            resolvedLatencies.length,
+        )
+      : null;
+
+  const statusBadgeVariant = !allResolved
+    ? ("default" as const)
+    : allHealthy
+      ? ("success" as const)
+      : ("error" as const);
+  const statusText = !allResolved
+    ? "Checking\u2026"
+    : allHealthy
+      ? "All Systems Operational"
+      : `${degradedCount} endpoint${degradedCount === 1 ? "" : "s"} degraded`;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div>
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-4xl">API Status</h1>
-          <p className="mt-2 text-base text-muted-foreground">
-            {!allResolved
-              ? "Checking endpoints\u2026"
-              : allHealthy
-                ? "All systems operational"
-                : `${totalEndpoints - totalHealthy} endpoint${totalEndpoints - totalHealthy === 1 ? "" : "s"} degraded`}
+      <div className="mb-10">
+        <div className="flex items-center gap-3">
+          <h1 className="text-4xl">Network Health</h1>
+          <Badge variant={statusBadgeVariant} fill="outline" size="sm">
+            {statusText}
+          </Badge>
+        </div>
+        <p className="mt-2 text-base text-muted-foreground">
+          Real-time status of Aleph Cloud infrastructure
+        </p>
+      </div>
+
+      {/* Summary cards */}
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="stat-card border border-foreground/[0.06] bg-foreground/[0.03] p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
+            Endpoints Healthy
+          </p>
+          <p
+            className="mt-3 font-heading font-mono text-4xl font-extrabold tabular-nums tracking-tight"
+            style={{ color: allHealthy ? "var(--color-success-500)" : "var(--color-error-400)" }}
+          >
+            {totalHealthy}/{totalEndpoints}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="stat-card border border-foreground/[0.06] bg-foreground/[0.03] p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
+            Avg Latency
+          </p>
+          <p className="mt-3 font-heading font-mono text-4xl font-extrabold tabular-nums tracking-tight">
+            {avgLatencyMs !== null ? `${avgLatencyMs}` : "\u2026"}
+            <span className="ml-1 text-lg font-normal text-muted-foreground/60">ms</span>
+          </p>
+        </div>
+        <div className="stat-card flex items-center justify-between border border-foreground/[0.06] bg-foreground/[0.03] p-6 sm:col-span-1 max-sm:col-span-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
+              Last Checked
+            </p>
+            <p className="mt-3 font-mono text-sm tabular-nums text-muted-foreground">
+              {lastChecked ? lastChecked.toLocaleTimeString() : "\u2026"}
+            </p>
+          </div>
           <Button
             variant="text"
             size="xs"
             className="shrink-0"
             iconLeft={
-              <Pulse
-                className={checking ? "animate-pulse" : ""}
-              />
+              <Pulse className={checking ? "animate-pulse" : ""} />
             }
             onClick={runChecks}
             disabled={checking}
           >
             {checking ? "Checking" : "Recheck"}
           </Button>
-          {lastChecked && (
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {lastChecked.toLocaleTimeString()}
-            </span>
-          )}
         </div>
       </div>
 
-      {/* Sections */}
-      <StatusSection
-        title="Scheduler API"
-        baseUrl={schedulerBase}
-        results={schedulerResults}
-      />
-
-      <StatusSection
-        title="Aleph API"
-        baseUrl={alephBase}
-        results={alephResults}
-      />
+      {/* API sections — side by side */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <StatusSection
+          title="Scheduler API"
+          baseUrl={schedulerBase}
+          results={schedulerResults}
+        />
+        <StatusSection
+          title="Aleph API"
+          baseUrl={alephBase}
+          results={alephResults}
+        />
+      </div>
     </div>
   );
 }

@@ -47,7 +47,14 @@ function NodesContent() {
   }
 
   return (
-    <NodeTable
+    <div>
+      <div className="mb-10">
+        <h1 className="text-4xl">Nodes</h1>
+        <p className="mt-2 text-base text-muted-foreground">
+          Compute nodes registered with the Aleph Cloud scheduler
+        </p>
+      </div>
+      <NodeTable
       onSelectNode={setSelectedNode}
       {...(initialStatus ? { initialStatus } : {})}
       initialHasVms={hasVms}
@@ -73,6 +80,7 @@ function NodesContent() {
         )
       }
     />
+    </div>
   );
 }
 
