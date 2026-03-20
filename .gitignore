@@ -1,42 +1,33 @@
-# dependencies
-node_modules/
-.pnpm-store/
 
 # build
-.next/
-out/
-__pycache__/
-
-# env
-.env
-.env.local
-.env.*.local
-
-# editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# os
-.DS_Store
-Thumbs.db
-
-# template
-.template-version
-
-# typescript
-tsconfig.tsbuildinfo
-
-# pnpm
-pnpm-workspace.yaml
-
 # debug
-npm-debug.log*
-
+# dependencies
+# editor
+# env
+# os
 # playwright
-.playwright-mcp/
-.worktrees/
-
+# pnpm
 # superpowers
+# template
+# typescript
+*.swo
+*.swp
+.DS_Store
+.env
+.env.*.local
+.env.local
+.idea/
+.next/
+.playwright-mcp/
+.pnpm-store/
 .superpowers/
+.template-version
+.vscode/
+.worktrees/
+Thumbs.db
+__pycache__/
+node_modules/
+npm-debug.log*
+out/
+pnpm-workspace.yaml
+tsconfig.tsbuildinfo
