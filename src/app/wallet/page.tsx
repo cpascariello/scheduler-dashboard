@@ -270,7 +270,6 @@ function ActivitySection({
                   <th className="pb-2 pr-4 font-medium">Type</th>
                   <th className="pb-2 pr-4 font-medium">Name</th>
                   <th className="pb-2 pr-4 font-medium">Hash</th>
-                  <th className="pb-2 pr-4 font-medium">Payment</th>
                   <th className="pb-2 font-medium">Status</th>
                 </tr>
               </thead>
@@ -302,16 +301,6 @@ function ActivitySection({
                         size="sm"
                         href={item.explorerUrl}
                       />
-                    </td>
-                    <td className="py-2 pr-4">
-                      {item.paymentType ? (
-                        <Badge fill="outline"
-                          variant={item.paymentType === "credit" ? "warning" : "default"}
-                          size="sm"
-                        >
-                          {item.paymentType}
-                        </Badge>
-                      ) : null}
                     </td>
                     <td className="py-2">
                       {item.schedulerStatus ? (
