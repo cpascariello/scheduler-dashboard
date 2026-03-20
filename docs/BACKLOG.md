@@ -15,11 +15,6 @@ Ideas and scope creep captured for later consideration.
 
 ## Open Items
 
-### 2026-03-20 - Sparklines on other credit stat cards
-**Source:** Credit sparkline implementation
-**Description:** Currently only the Total Revenue card has a sparkline. Could add sparklines to Storage, Execution, and Dev Fund cards showing their individual trends. The `Sparkline` component and `buildCumulativeSeries` function already support this — just need to filter expenses by type before bucketing.
-**Priority:** Low
-
 ### 2026-03-20 - Sparkline hover tooltip
 **Source:** Credit sparkline implementation
 **Description:** Add a tooltip on sparkline hover showing the exact ALEPH value and timestamp at the cursor position. Would require tracking mouse position relative to the SVG and mapping x-coordinate back to the data series.
