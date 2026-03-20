@@ -71,7 +71,7 @@ export function TopNodesCard() {
           return (
             <li key={node.hash} className="contents">
               <Link
-                href={`/nodes?selected=${node.hash}`}
+                href={`/nodes?view=${node.hash}`}
                 className="col-span-full grid min-h-12 grid-cols-subgrid items-center rounded-md border-b border-foreground/[0.06] px-2 py-1.5 transition-colors last:border-b-0 hover:bg-muted"
                 style={{
                   transitionDuration: "var(--duration-fast)",
