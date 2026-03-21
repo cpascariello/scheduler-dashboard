@@ -93,6 +93,28 @@ src/
 │   └── status-map.ts       # Status-to-visual maps: nodeStatusToDot(), NODE_STATUS_VARIANT, VM_STATUS_VARIANT, MESSAGE_TYPE_VARIANT
 ```
 
+```
+scripts/
+├── deploy-ipfs.py              # IPFS deployment via aleph-client
+├── preview.sh                  # CLI for multi-branch preview (start/stop/list)
+└── preview-dashboard.mjs       # Preview dashboard server (port 3000)
+```
+
+---
+
+## Preview System
+
+Multi-branch preview via git worktrees + concurrent dev servers.
+
+| Command | Description |
+|---------|-------------|
+| `pnpm preview start <branch>` | Worktree + dev server on next available port |
+| `pnpm preview stop <branch>` | Kill server, remove worktree |
+| `pnpm preview stop-all` | Stop everything |
+| `pnpm preview list` | Show active previews |
+
+Dashboard on `http://localhost:3000` lists all active previews with links. State tracked in `.previews.json` (gitignored). Worktrees in `/tmp/previews/`, node_modules via hard-link copy.
+
 ---
 
 ## Patterns
