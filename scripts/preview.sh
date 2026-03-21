@@ -142,7 +142,7 @@ cmd_dashboard() {
 }
 
 cmd_start() {
-	local branch="${1:?Usage: preview start <branch>}"
+	local branch="${1:-$(git rev-parse --abbrev-ref HEAD)}"
 
 	# Validate branch exists
 	if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
@@ -238,7 +238,7 @@ stop_dashboard() {
 }
 
 cmd_stop() {
-	local branch="${1:?Usage: preview stop <branch>}"
+	local branch="${1:-$(git rev-parse --abbrev-ref HEAD)}"
 
 	prune_stale
 

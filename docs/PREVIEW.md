@@ -5,11 +5,11 @@ Preview multiple feature branches side by side before deciding which to merge.
 ## Quick Start
 
 ```bash
-# Start previewing a branch
-pnpm preview start feature/credits-v2
+# Start previewing the current branch (auto-detected)
+pnpm preview start
 
-# Start another
-pnpm preview start fix/pagination
+# Or specify a branch explicitly
+pnpm preview start feature/credits-v2
 
 # Open the dashboard — lists all active previews with links
 open http://localhost:3000
@@ -25,8 +25,8 @@ pnpm preview stop-all
 
 | Command | What it does |
 |---------|-------------|
-| `pnpm preview start <branch>` | Creates a worktree, starts a dev server on the next available port |
-| `pnpm preview stop <branch>` | Stops the server, removes the worktree |
+| `pnpm preview start [branch]` | Creates a worktree, starts a dev server (defaults to current branch) |
+| `pnpm preview stop [branch]` | Stops the server, removes the worktree (defaults to current branch) |
 | `pnpm preview stop-all` | Stops all servers and the dashboard |
 | `pnpm preview list` | Shows active previews (branch, port, uptime) |
 | `pnpm preview dashboard` | Starts just the dashboard (auto-started by `start`) |
@@ -43,7 +43,7 @@ If you normally run `pnpm dev` on port 3000, stop it first or use `pnpm preview 
 ```
 1. Work on feature branch → commit as you go
 2. Implementation done → pnpm check passes
-3. pnpm preview start <branch>         ← preview it
+3. pnpm preview start                  ← preview current branch
 4. Open localhost:3000                  ← compare branches
 5. Happy with it → tell Claude to push + PR
 6. pnpm preview stop-all               ← clean up
