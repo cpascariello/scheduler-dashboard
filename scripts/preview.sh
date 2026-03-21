@@ -173,7 +173,11 @@ cmd_start() {
 		echo "Worktree already exists at $worktree, reusing..."
 	else
 		echo "Creating worktree for '$branch'..."
-		git worktree add "$worktree" "$branch" --quiet
+		# Use --detach if branch is already checked out (e.g. current branch)
+		if ! git worktree add "$worktree" "$branch" --quiet 2>/dev/null; then
+			echo "Branch already checked out, using detached HEAD..."
+			git worktree add --detach "$worktree" "$branch" --quiet
+		fi
 	fi
 
 	# Hard-link node_modules
