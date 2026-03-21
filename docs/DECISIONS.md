@@ -18,6 +18,12 @@ Each entry includes:
 
 ---
 
+## Decision #59 - 2026-03-21
+**Context:** Wanted to preview multiple feature branches simultaneously before deciding which to merge and deploy
+**Decision:** Worktree-based dev servers with a local Node.js dashboard, managed via CLI script
+**Rationale:** Zero infrastructure — reuses git worktrees and hard-linked node_modules (proven patterns in this project). Each branch gets a full independent dev server on its own port, avoiding basePath hacks. Dashboard auto-refreshes every 5s. CI preview deploys to IPFS backlogged as a separate enhancement.
+**Alternatives considered:** (A) Static builds per branch with basePath — fiddly for Next.js static export, assets break without proper configuration. (C) CI preview deploys to IPFS — more capable but needs CI workflow changes, added to backlog.
+
 ## Decision #58 - 2026-03-20
 **Context:** Adding a "total credits over time" chart to the credits page. Needed to choose a charting approach.
 **Decision:** Pure SVG sparkline (`<polyline>` + `<polygon>` gradient fill) with zero dependencies. No charting library.
