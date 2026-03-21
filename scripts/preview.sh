@@ -35,12 +35,12 @@ prune_stale() {
   new_state=$(cat "$STATE_FILE")
 
   # Check each preview PID
-  while IFS= read -r branch; do
-    local pid
-    pid=$(echo "$new_state" | jq -r ".previews[\"$branch\"].pid")
-    if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null; then
-      new_state=$(echo "$new_state" | jq "del(.previews[\"$branch\"])")
-      echo "Pruned stale preview: $branch (PID $pid no longer running)"
+  while IFS= read -r _branch; do
+    local _pid
+    _pid=$(echo "$new_state" | jq -r ".previews[\"$_branch\"].pid")
+    if [[ -n "$_pid" ]] && ! kill -0 "$_pid" 2>/dev/null; then
+      new_state=$(echo "$new_state" | jq "del(.previews[\"$_branch\"])")
+      echo "Pruned stale preview: $_branch (PID $_pid no longer running)"
     fi
   done < <(echo "$new_state" | jq -r '.previews | keys[]' 2>/dev/null)
 
@@ -223,6 +223,88 @@ cmd_start() {
   cmd_dashboard 2>/dev/null || true
 }
 
+stop_dashboard() {
+  local dash_pid
+  dash_pid=$(read_state '.dashboard.pid // empty')
+  if [[ -n "$dash_pid" ]] && kill -0 "$dash_pid" 2>/dev/null; then
+    echo "Stopping dashboard (PID $dash_pid)..."
+    kill "$dash_pid" 2>/dev/null || true
+  fi
+  jq 'del(.dashboard)' "$STATE_FILE" | write_state
+}
+
+cmd_stop() {
+  local branch="${1:?Usage: preview stop <branch>}"
+
+  prune_stale
+
+  local pid port worktree
+  pid=$(read_state ".previews[\"$branch\"].pid // empty")
+
+  if [[ -z "$pid" ]]; then
+    echo "No active preview for '$branch'."
+    return 1
+  fi
+
+  port=$(read_state ".previews[\"$branch\"].port")
+  worktree=$(read_state ".previews[\"$branch\"].worktree")
+
+  # Kill the dev server and all child processes (next dev spawns Node + Turbopack children)
+  if kill -0 "$pid" 2>/dev/null; then
+    echo "Stopping dev server (PID $pid) and children..."
+    pkill -P "$pid" 2>/dev/null || true
+    kill "$pid" 2>/dev/null || true
+    # Wait briefly for clean shutdown, then force-kill stragglers
+    sleep 1
+    pkill -9 -P "$pid" 2>/dev/null || true
+    kill -9 "$pid" 2>/dev/null || true
+  fi
+
+  # Remove worktree and log file
+  if [[ -d "$worktree" ]]; then
+    echo "Removing worktree at $worktree..."
+    git worktree remove --force "$worktree" 2>/dev/null || true
+  fi
+  local safe_name
+  safe_name=$(sanitize_branch "$branch")
+  rm -f "/tmp/previews/$safe_name.log"
+
+  # Update state
+  jq --arg branch "$branch" 'del(.previews[$branch])' "$STATE_FILE" | write_state
+
+  echo "Stopped preview for '$branch' (was on port $port)"
+
+  # If no previews left, stop dashboard
+  local remaining
+  remaining=$(read_state '.previews | length')
+  if [[ "$remaining" == "0" ]]; then
+    stop_dashboard
+  fi
+}
+
+cmd_stop_all() {
+  prune_stale
+
+  local branches
+  branches=$(read_state '.previews | keys[]' 2>/dev/null || true)
+
+  if [[ -z "$branches" ]]; then
+    echo "No active previews to stop."
+    stop_dashboard 2>/dev/null || true
+    return
+  fi
+
+  while IFS= read -r branch; do
+    cmd_stop "$branch"
+  done <<< "$branches"
+
+  # Ensure dashboard is stopped
+  stop_dashboard 2>/dev/null || true
+
+  echo ""
+  echo "All previews stopped."
+}
+
 # ── Main ─────────────────────────────────────────────
 
 usage() {
@@ -239,11 +321,9 @@ usage() {
 case "${1:-}" in
   list) cmd_list ;;
   start) cmd_start "${2:-}" ;;
+  stop) cmd_stop "${2-}" ;;
+  stop-all) cmd_stop_all ;;
   dashboard) cmd_dashboard ;;
-  stop|stop-all)
-    echo "Command '${1}' not yet implemented."
-    exit 1
-    ;;
   *)
     usage
     exit 1
